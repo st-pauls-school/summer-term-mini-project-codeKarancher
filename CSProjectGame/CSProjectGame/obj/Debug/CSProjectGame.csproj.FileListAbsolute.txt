@@ -1,0 +1,15 @@
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\bin\Debug\CSProjectGame.exe.config
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\bin\Debug\CSProjectGame.exe
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\bin\Debug\CSProjectGame.pdb
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame.csprojResolveAssemblyReference.cache
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\MainWindow.g.cs
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\App.g.cs
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame_MarkupCompile.cache
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame_MarkupCompile.lref
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\MainWindow.baml
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame.g.resources
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame.Properties.Resources.resources
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame.csproj.GenerateResource.Cache
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame.csproj.CoreCompileInputs.cache
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame.exe
+F:\Users\Karan\source\repos\CSProjectGame\CSProjectGame\obj\Debug\CSProjectGame.pdb
