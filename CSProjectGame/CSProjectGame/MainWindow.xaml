@@ -103,8 +103,8 @@
                                     </LinearGradientBrush>
                                 </Rectangle.Fill>
                             </Rectangle>
-                            <ContentPresenter RecognizesAccessKey="True" Content=""></ContentPresenter>
-                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="1" Foreground="GhostWhite"/>
+                            <ContentPresenter RecognizesAccessKey="True"></ContentPresenter>
+                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Foreground="GhostWhite"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True"/>
@@ -118,7 +118,7 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid>
+    <Grid x:Name="myGrid">
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                 <GradientStop Color="#FF00E8FF" Offset="0"/>
@@ -126,13 +126,13 @@
             </LinearGradientBrush>
         </Grid.Background>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="3*"></RowDefinition>
-            <RowDefinition Height="3*"></RowDefinition>
-            <RowDefinition Height="3*"></RowDefinition>
-            <RowDefinition Height="3*"></RowDefinition>
-            <RowDefinition Height="3*"></RowDefinition>
-            <RowDefinition Height="3*"></RowDefinition>
+            <RowDefinition Height="23*"></RowDefinition>
+            <RowDefinition Height="44*"></RowDefinition>
+            <RowDefinition Height="51*"></RowDefinition>
+            <RowDefinition Height="51*"></RowDefinition>
+            <RowDefinition Height="51*"></RowDefinition>
+            <RowDefinition Height="51*"></RowDefinition>
+            <RowDefinition Height="51*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"></ColumnDefinition>
@@ -148,10 +148,8 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
-        <Rectangle Name="rect_Tabs" Grid.ColumnSpan="14" HorizontalAlignment="Left" Height="16.842" Stroke="White" VerticalAlignment="Top" Width="517" Fill="#FFBAD3FF" Opacity="0.7" Visibility="Collapsed"/>
-        <TextBlock x:Name="text_Title" HorizontalAlignment="Left" VerticalAlignment="Center" Height="77.778" Margin="0,23.275,0,0" TextWrapping="Wrap" Text="Inside Your Computer" Width="170.133" FontFamily="HP Simplified" FontSize="25 " TextDecorations="{x:Null}" Grid.ColumnSpan="5" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1">
+        <TextBlock x:Name="text_Title" HorizontalAlignment="Left" VerticalAlignment="Center" Height="77.778" Margin="0,5.465,0,11.167" TextWrapping="Wrap" Text="Inside Your Computer" Width="170.133" FontFamily="HP Simplified" FontSize="25 " TextDecorations="{x:Null}" Grid.ColumnSpan="5" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1">
             <TextBlock.Foreground>
                 <RadialGradientBrush>
                     <GradientStop Color="#FF15554C"/>
@@ -159,20 +157,11 @@
                 </RadialGradientBrush>
             </TextBlock.Foreground>
         </TextBlock>
-        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="101.052" Grid.Row="3" Grid.RowSpan="2" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="172.333" Click="button_Go_Click" Grid.ColumnSpan="5" Grid.Column="5"/>
+        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="101.052" Grid.Row="3" Grid.RowSpan="2" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="184.643" Click="button_Go_Click" Grid.ColumnSpan="5" Grid.Column="5"/>
         <StackPanel x:Name="myStackPanel"  Grid.ColumnSpan="12" Grid.Column="1" HorizontalAlignment="Left" Height="151.579" Grid.Row="3" Grid.RowSpan="3" VerticalAlignment="Top" Width="413.6" Background="White" Opacity="0.2" Visibility="Collapsed"/>
         <Button x:Name="tab_Main" Content="" HorizontalAlignment="Left" Height="16.842" Style="{DynamicResource ButtonStyle4}" VerticalAlignment="Top" Width="68.933" Visibility="Collapsed"/>
         <Button x:Name="tab_Code1" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code2" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code3" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code4" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code5" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code6" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code7" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code8" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code9" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code10" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code11" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code12" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
+        <DockPanel x:Name="myDockPanel" Grid.ColumnSpan="14" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0"/>
+        <Button x:Name="button_DeleteTab" Content="-" Grid.Column="12" HorizontalAlignment="Left" Height="43.727" Grid.Row="1" VerticalAlignment="Top" Width="36.929" FontSize="16"/>
     </Grid>
 </Window>
