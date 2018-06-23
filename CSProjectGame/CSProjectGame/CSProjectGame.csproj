@@ -63,6 +63,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ExtMeth.cs" />
+    <Compile Include="KSAssemblyCode.cs" />
     <Compile Include="KSFileManagement.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -94,6 +95,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="bookclipartforcomputergame.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="uparrowclipartforcomputergame.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="uparrowclipartforcomputergameFINAL.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="uparrowwithbackgrounforgame.PNG" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -117,6 +117,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Storyboard x:Key="OnSizeChanged1"/>
     </Window.Resources>
     <Grid x:Name="myGrid">
         <Grid.Background>
@@ -158,10 +159,37 @@
             </TextBlock.Foreground>
         </TextBlock>
         <Button x:Name="button_Go" HorizontalAlignment="Left" Height="101.052" Grid.Row="3" Grid.RowSpan="2" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="184.643" Click="button_Go_Click" Grid.ColumnSpan="5" Grid.Column="5"/>
-        <StackPanel x:Name="myStackPanel"  Grid.ColumnSpan="12" Grid.Column="1" HorizontalAlignment="Left" Height="151.579" Grid.Row="3" Grid.RowSpan="3" VerticalAlignment="Top" Width="413.6" Background="White" Opacity="0.2" Visibility="Collapsed"/>
+        <StackPanel x:Name="myStackPanel"  Grid.ColumnSpan="12" HorizontalAlignment="Left" Height="202.733" Grid.Row="2" Grid.RowSpan="4" VerticalAlignment="Top" Width="443.487" Background="White" Opacity="0.35" Margin="36.584,0,0,0" Visibility="Collapsed"/>
         <Button x:Name="tab_Main" Content="" HorizontalAlignment="Left" Height="16.842" Style="{DynamicResource ButtonStyle4}" VerticalAlignment="Top" Width="68.933" Visibility="Collapsed"/>
         <Button x:Name="tab_Code1" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <DockPanel x:Name="myDockPanel" Grid.ColumnSpan="14" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0"/>
-        <Button x:Name="button_DeleteTab" Content="-" Grid.Column="12" HorizontalAlignment="Left" Height="43.727" Grid.Row="1" VerticalAlignment="Top" Width="36.929" FontSize="16"/>
+        <DockPanel x:Name="myDockPanel" Grid.ColumnSpan="14" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0" Visibility="Collapsed"/>
+        <DockPanel x:Name="toolsDockPanel" Grid.Column="9" HorizontalAlignment="Left" Height="38.727" VerticalAlignment="Top" Width="123.119" Grid.ColumnSpan="4" Grid.Row="1" Margin="24.595,0,0,0" Visibility="Collapsed">
+            <DockPanel.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF26BDBD" Offset="1"/>
+                    <GradientStop Color="#FF1DA2A2"/>
+                </LinearGradientBrush>
+            </DockPanel.Background>
+            <Button x:Name="button_CodeManual" Content="" HorizontalAlignment="Left" Height="35.06" VerticalAlignment="Top" Width="45.979" Visibility="Collapsed" Margin="0,1.132,0,0" Opacity="0.75">
+                <Button.Background>
+                    <ImageBrush ImageSource="bookclipartforcomputergame.jpg"/>
+                </Button.Background>
+            </Button>
+            <Button x:Name="button_DeleteTab" Content="Delete" HorizontalAlignment="Left" Height="35.06" VerticalAlignment="Top" Width="34.263" FontSize="8" Visibility="Collapsed" Margin="0,1.132,0,0" Opacity="0.75">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                        <GradientStop Color="#FFADD1C7" Offset="0"/>
+                        <GradientStop Color="#FF7AD6BD" Offset="0.49"/>
+                        <GradientStop Color="#FF2AB891" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+            </Button>
+            <Button x:Name="button_LoadIntoMem" Content="" HorizontalAlignment="Left" Height="35.06" VerticalAlignment="Top" Width="34.851" Foreground="{x:Null}" Visibility="Collapsed" Margin="0,1.132,0,0" Opacity="0.75">
+                <Button.Background>
+                    <ImageBrush ImageSource="uparrowwithbackgrounforgame.PNG"/>
+                </Button.Background>
+            </Button>
+        </DockPanel>
+        <DataGrid x:Name="myDataGrid" Grid.ColumnSpan="12" HorizontalAlignment="Left" Height="297.143" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="443.143" Grid.Column="1"/>
     </Grid>
 </Window>
