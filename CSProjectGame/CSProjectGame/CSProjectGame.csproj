@@ -64,6 +64,7 @@
     </Compile>
     <Compile Include="ExtMeth.cs" />
     <Compile Include="KSAssemblyCode.cs" />
+    <Compile Include="KSConvert.cs" />
     <Compile Include="KSFileManagement.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
