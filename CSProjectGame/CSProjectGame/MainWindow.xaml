@@ -191,13 +191,31 @@
                 </Button.Background>
             </Button>
         </DockPanel>
-        <StackPanel x:Name="registersStackPanel" HorizontalAlignment="Left" Height="286.535" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="69" Margin="5,5,0,0" Visibility="Visible">
+        <StackPanel x:Name="registersStackPanel" HorizontalAlignment="Left" Height="286.535" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="69" Margin="5,5,0,0" Visibility="Collapsed">
             <StackPanel.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <GradientStop Color="#FF5F5F5F" Offset="1"/>
                     <GradientStop Color="#FF9E9E9E"/>
                 </LinearGradientBrush>
             </StackPanel.Background>
+        </StackPanel>
+        <StackPanel x:Name="processorStackPanel" Grid.ColumnSpan="3" Grid.Column="3" Margin="0,0.315,0,0" Orientation="Vertical" Grid.Row="3" Grid.RowSpan="2" Background="#FF3C3C3C" Visibility="Collapsed">
+            <StackPanel x:Name="processorStackPanel1" HorizontalAlignment="Left" Height="50.683" VerticalAlignment="Top" Width="110.786" Visibility="Visible">
+                <StackPanel.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FF7A7A7A" Offset="0"/>
+                        <GradientStop Color="#FF595959" Offset="1"/>
+                    </LinearGradientBrush>
+                </StackPanel.Background>
+            </StackPanel>
+            <StackPanel x:Name="processorStackPanel2" HorizontalAlignment="Left" Height="50.683" VerticalAlignment="Top" Width="110.786" Visibility="Visible">
+                <StackPanel.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FF7A7A7A" Offset="0"/>
+                        <GradientStop Color="#FF636363" Offset="1"/>
+                    </LinearGradientBrush>
+                </StackPanel.Background>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>

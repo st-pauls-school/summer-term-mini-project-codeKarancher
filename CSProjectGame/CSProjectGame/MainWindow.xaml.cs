@@ -46,9 +46,7 @@ namespace CSProjectGame
         List<StackPanel> stackpanels_Registers;
         List<TextBlock> texts_RegisterNames;
         List<TextBlock> texts_Registers;
-        TextBlock text_AddressBus;
-        TextBlock text_DataBus;
-        TextBlock text_ToALU;
+        TextBlock text_AddressBus, text_DataBus, text_ToALU, text_PC, text_PCName, text_CIR, text_CIRName;
         
         TextBlock text_MemoryController;
         TextBlock[] texts_MemoryCells;
@@ -285,6 +283,7 @@ namespace CSProjectGame
         {
             rect_MotherBoardBackGround.Visibility = Visibility.Visible;
             registersStackPanel.Visibility = Visibility.Visible;
+            processorStackPanel.Visibility = Visibility.Visible;
             bool FirstTimeShowing = texts_Registers.Count == 0 ? true : false;
             for (int curReg = 0; curReg < NumRegisters; curReg++)
             {
@@ -301,10 +300,28 @@ namespace CSProjectGame
                     texts_Registers[curReg].Visibility = Visibility.Visible;
 
                     stackpanels_Registers[curReg].IsMouseDirectlyOverChanged += new DependencyPropertyChangedEventHandler(stackpanels_Registers_IsMouseDirectlyOverChanged);
-                    
                 }
                 texts_Registers[curReg].Text = "0000 0000";
             }
+            if (FirstTimeShowing)
+            {
+                text_PCName = new TextBlock() { Text = "Program Counter: ", Width = processorStackPanel1.Width, Height = processorStackPanel1.Height / 2, FontSize = processorStackPanel1.Width / 9 < processorStackPanel1.Height / 3 ? processorStackPanel1.Width / 9 : processorStackPanel1.Height / 3, TextWrapping = TextWrapping.Wrap };
+                processorStackPanel1.Children.Add(text_PCName);
+                text_PCName.Visibility = Visibility.Visible;
+                text_PC = new TextBlock() { Width = processorStackPanel1.Width, Height = processorStackPanel1.Height / 2, FontSize = processorStackPanel1.Width / 9 < processorStackPanel1.Height / 3 ? processorStackPanel1.Width / 9 : processorStackPanel1.Height / 3, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
+                processorStackPanel1.Children.Add(text_PC);
+                text_PC.Visibility = Visibility.Visible;
+                processorStackPanel1.Visibility = Visibility.Visible;
+
+                text_CIRName = new TextBlock() { Text = "Current Instruction Register: ", Width = processorStackPanel2.Width, Height = processorStackPanel2.Height / 2, FontSize = processorStackPanel2.Width / 10.5 < processorStackPanel2.Height / 4 ? processorStackPanel2.Width / 10.5 : processorStackPanel2.Height / 4, TextWrapping = TextWrapping.Wrap };
+                processorStackPanel2.Children.Add(text_CIRName);
+                text_CIRName.Visibility = Visibility.Visible;
+                text_CIR = new TextBlock() { Width = processorStackPanel2.Width, Height = processorStackPanel2.Height / 2, FontSize = processorStackPanel2.Width / 9 < processorStackPanel2.Height / 3 ? processorStackPanel2.Width / 9 : processorStackPanel2.Height / 3, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
+                processorStackPanel2.Children.Add(text_CIR);
+                text_CIR.Visibility = Visibility.Visible;
+                processorStackPanel2.Visibility = Visibility.Visible;
+            }
+            text_PC.Text = text_CIR.Text = "0000 0000";
         }
         #endregion
 
@@ -500,6 +517,27 @@ namespace CSProjectGame
                 }
             }
 
+            processorStackPanel.Width = ActualWidth * 3 / 14;
+            processorStackPanel.Height = ActualHeight * 102 / 322;
+            processorStackPanel1.Height = processorStackPanel.Height / 2;
+            processorStackPanel1.Width = processorStackPanel.Width;
+            processorStackPanel2.Height = processorStackPanel.Height / 2;
+            processorStackPanel2.Width = processorStackPanel.Width;
+            if (text_PCName != null)
+            {
+                text_PCName.FontSize = processorStackPanel1.Width / 9 < processorStackPanel1.Height / 3 ? processorStackPanel1.Width / 9 : processorStackPanel1.Height / 3;
+                text_PCName.Width = processorStackPanel1.Width;
+                text_PCName.Height = processorStackPanel1.Height / 2;
+                text_PC.FontSize = processorStackPanel1.Width / 9 < processorStackPanel1.Height / 3 ? processorStackPanel1.Width / 9 : processorStackPanel1.Height / 3;
+                text_PC.Width = processorStackPanel1.Width;
+                text_PC.Height = processorStackPanel1.Height / 2;
+                text_CIRName.FontSize = processorStackPanel2.Width / 10.5 < processorStackPanel2.Height / 4 ? processorStackPanel2.Width / 10.5 : processorStackPanel2.Height / 4;
+                text_CIRName.Width = processorStackPanel2.Width;
+                text_CIRName.Height = processorStackPanel2.Height / 2;
+                text_CIR.FontSize = processorStackPanel2.Width / 9 < processorStackPanel2.Height / 3 ? processorStackPanel2.Width / 9 : processorStackPanel2.Height / 3;
+                text_CIR.Width = processorStackPanel2.Width;
+                text_CIR.Height = processorStackPanel2.Height / 2;
+            }
         }
         #endregion
     }
