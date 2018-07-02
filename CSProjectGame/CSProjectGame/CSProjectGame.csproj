@@ -109,5 +109,8 @@
   <ItemGroup>
     <Resource Include="uparrowwithbackgrounforgame.PNG" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Capture.PNG" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

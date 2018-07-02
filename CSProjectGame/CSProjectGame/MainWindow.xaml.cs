@@ -47,13 +47,16 @@ namespace CSProjectGame
         List<TextBlock> texts_RegisterNames;
         List<TextBlock> texts_Registers;
         TextBlock text_AddressBus, text_DataBus, text_ToALU, text_PC, text_PCName, text_CIR, text_CIRName;
+        List<StackPanel> stackpanels_MemLocs;
         
         TextBlock text_MemoryController;
+        TextBlock[] texts_MemoryCellNames;
         TextBlock[] texts_MemoryCells;
-        byte[] bytes_Commands;
+        int[] ints_Commands;
         
         List<TextBox> texts_Tabs;
         int curTab = 1;
+        int runTab = 0;
 
         public MainWindow()
         {
@@ -92,7 +95,7 @@ namespace CSProjectGame
             toolsDockPanel.Visibility = Visibility.Collapsed;
         }
 
-        private void ingraph_FirstTime_01_Tutorial_Tabs()
+        private void ingraph_FirstTime_01_Tabs()
         {
             text_Welcome.Text = "Use the tabs above to switch between your computer and your code... 'Main' will show you the computer. Numbered tabs can be used for multiple coding solutions\n\npress any key to continue...";
             myDockPanel.Children.ShowAllElements();
@@ -101,13 +104,13 @@ namespace CSProjectGame
             KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_02_1);
         }
 
-        private void ingraph_FirstTime_02_Tutorial_Coding_01()
+        private void ingraph_FirstTime_02_Coding_01()
         {
             text_Welcome.Text = "Click on the coding tab to continue..";
             (myDockPanel.Children[1] as Button).Click += new RoutedEventHandler(Code1_Tutorial_01);
         }
 
-        private void ingraph_FirstTime_02_Tutorial_Coding_02()
+        private void ingraph_FirstTime_02_Coding_02()
         {
             text_Welcome.Text = "Click on the delete button in the top right to delete the current tab\n\npress any key to continue...";
             button_DeleteTab.Visibility = Visibility.Visible;
@@ -118,21 +121,67 @@ namespace CSProjectGame
 
         private void ingraph_FirstTime_03()
         {
-            text_Welcome.Text = "Use the button on the top right to toggle to and fro the assembly code guidlines\n\npress any key to continue...";
+            text_Welcome.Text = "Use the button on the top right to toggle to and from the assembly code guidlines\n\npress any key to continue...";
             button_CodeManual.Visibility = Visibility.Visible;
             button_CodeManual.Click += Button_CodeManual_Click_Tutorial_Open;
             KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_05);
         }
 
-        private void ingraph_FirstTime_04_Tutorial_ComputerAnimations()
+        private void ingraph_FirstTime_04_ComputerAnimations()
         {
-            text_Welcome.Text = "You will start with just 1 register, 10 bytes of memory, a basic ALU and minimal clock speed... Click on the 'Main' tab to see your brand new computer hot out of the oven!";
-            NumRegisters = 3;
+            NumRegisters = 1;
             shapes_ProcessorParts.Add(new Rectangle() { Width = ActualWidth / 8, Height = ActualHeight / 8, Fill = Brushes.Gray });
             MemorySpec = 0;
+            texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
+            texts_MemoryCellNames = new TextBlock[lookup_MemorySpec[MemorySpec]];
+            for (int curMem = 0; curMem < lookup_MemorySpec[MemorySpec]; curMem++)
+            {
+                texts_MemoryCells[curMem] = new TextBlock() { Text = "0000 0000" };
+                texts_MemoryCellNames[curMem] = new TextBlock() { Text = curMem.ToString() + ":" };
+                texts_MemoryCellNames[curMem].Width = memoryStackPanel1.Width / 4;
+                texts_MemoryCellNames[curMem].FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20;
+                texts_MemoryCells[curMem].FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20;
+            }
             ALUSpec = 0;
             ClockSpeedSpec = 0;
-            (myDockPanel.Children[0] as Button).Click += new RoutedEventHandler(MainTab_Click);
+            (myDockPanel.Children[0] as Button).Click += new RoutedEventHandler(MainTab_Click_Tutorial);
+            text_Welcome.Text = "You will start with just 1 register, " + lookup_MemorySpec[MemorySpec] + " memory locations, a basic ALU and minimal clock speed... Click on the 'Main' tab to see your brand new computer hot out of the oven!";
+        }
+
+        private void ingraph_FirstTime_05_RuntimeButtons()
+        {
+            TextBlock tb = runtimeStackPanel.Children[0] as TextBlock;
+            tb.Text = "Your computer is here! You can use this side panel to go through the runtime information and notifications that will be displayed here, or click on the button below to toggle to and from your code...\nThe play button will run the code loaded in memory\n\npress any to continue...";
+            button_ToggleCode.Visibility = Visibility.Visible;
+            button_ToggleCode.Click += new RoutedEventHandler(button_ToggleCode_Click_Open);
+            button_PlayRun.Visibility = Visibility.Visible;
+            KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_06);
+        }
+
+        private void ingraph_FirstTime_06_Final()
+        {
+            (runtimeStackPanel.Children[0] as TextBlock).Text = "Well, that's all you need to know to enjoy Inside Your Computer! Get cracking!\n\npress any key to begin...";
+            KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_07);
+        }
+
+        private void ingraph_FirstTime_07_Reset()
+        {
+            (runtimeStackPanel.Children[0] as TextBlock).Text = ">>No program loaded";
+            text_Welcome.Visibility = Visibility.Collapsed;
+            (myDockPanel.Children[0] as Button).Click -= Code1_Tutorial_01;
+            for (int i = 1; i < myDockPanel.Children.Count - 1; i++)
+                (myDockPanel.Children[i] as Button).Click += CodeTab_Click;
+            Button AddTab = (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button);
+            AddTab.Click -= DockButton_Click_AddNewTab_Tutorial;
+            AddTab.Click += DockButton_Click_AddNewTab;
+            button_DeleteTab.Click -= DockButton_Click_DeleteTab_Tutorial;
+            button_DeleteTab.Click += DockButton_Click_DeleteTab;
+            button_CodeManual.Click -= Button_CodeManual_Click_Tutorial_Open;
+            button_CodeManual.Click += DockButton_Click_CodeManual_Open;
+            button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory;
+            (myDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
+            (myDockPanel.Children[0] as Button).Click += MainTab_Click;
+            button_ToggleCode.Click += new RoutedEventHandler(button_ToggleCode_Click_Open);
         }
 
         private void ingraph_Initialise()
@@ -203,6 +252,12 @@ namespace CSProjectGame
             NumRegisters = KSFileManagement.GetNumRegisters(binaryReader);
             MemorySpec = KSFileManagement.GetMemorySpec(binaryReader);
             texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
+            texts_MemoryCellNames = new TextBlock[lookup_MemorySpec[MemorySpec]];
+            for (int i = 0; i < lookup_MemorySpec[MemorySpec]; i++)
+            {
+                texts_MemoryCells[i] = new TextBlock() { Text = "0000 0000" };
+                texts_MemoryCellNames[i] = new TextBlock() { Text = i.ToString() + ":" };
+            }
             ALUSpec = KSFileManagement.GetALUSpec(binaryReader);
             ClockSpeedSpec = KSFileManagement.GetClockSpeedSpec(binaryReader);
             texts_Tabs[0].Visibility = Visibility.Visible;
@@ -261,8 +316,15 @@ namespace CSProjectGame
             {
                 for (int i = 0; i < shapes_ProcessorParts.Count; i++)
                     shapes_ProcessorParts[i].Visibility = Visibility.Collapsed;
+                registersStackPanel.Visibility = Visibility.Collapsed;
+                rect_MotherBoardBackGround.Visibility = Visibility.Collapsed;
+                processorStackPanel.Visibility = Visibility.Collapsed;
+                runtimeStackPanel.Visibility = Visibility.Collapsed;
+                runtimeDockPanel.Visibility = Visibility.Collapsed;
+                runtimestackpanelBorder.Visibility = Visibility.Collapsed;
                 myStackPanel.Visibility = Visibility.Visible;
                 toolsDockPanel.Visibility = Visibility.Visible;
+                memoryDockPanel.Visibility = Visibility.Collapsed;
             }
             curTab = myDockPanel.Children.IndexOf(sender as Button);
             myStackPanel.Children.CollapseElements();
@@ -284,6 +346,8 @@ namespace CSProjectGame
             rect_MotherBoardBackGround.Visibility = Visibility.Visible;
             registersStackPanel.Visibility = Visibility.Visible;
             processorStackPanel.Visibility = Visibility.Visible;
+            memoryDockPanel.Visibility = Visibility.Visible;
+            runtimeDockPanel.Visibility = Visibility.Visible;
             bool FirstTimeShowing = texts_Registers.Count == 0 ? true : false;
             for (int curReg = 0; curReg < NumRegisters; curReg++)
             {
@@ -295,33 +359,50 @@ namespace CSProjectGame
                     stackpanels_Registers[curReg].Children.Add(texts_RegisterNames[curReg]);
                     texts_Registers.Add(new TextBlock() { FontSize = registersStackPanel.Width / 8 < stackpanels_Registers[curReg].Height / 4 ? registersStackPanel.Width / 8 : stackpanels_Registers[curReg].Height / 4, FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Height = stackpanels_Registers[curReg].Height / 3 });
                     stackpanels_Registers[curReg].Children.Add(texts_Registers[curReg]);
-                    stackpanels_Registers[curReg].Visibility = Visibility.Visible;
-                    texts_RegisterNames[curReg].Visibility = Visibility.Visible;
-                    texts_Registers[curReg].Visibility = Visibility.Visible;
 
                     stackpanels_Registers[curReg].IsMouseDirectlyOverChanged += new DependencyPropertyChangedEventHandler(stackpanels_Registers_IsMouseDirectlyOverChanged);
                 }
                 texts_Registers[curReg].Text = "0000 0000";
+                stackpanels_Registers[curReg].Visibility = Visibility.Visible;
+                texts_RegisterNames[curReg].Visibility = Visibility.Visible;
+                texts_Registers[curReg].Visibility = Visibility.Visible;
             }
             if (FirstTimeShowing)
             {
                 text_PCName = new TextBlock() { Text = "Program Counter: ", Width = processorStackPanel1.Width, Height = processorStackPanel1.Height / 2, FontSize = processorStackPanel1.Width / 9 < processorStackPanel1.Height / 3 ? processorStackPanel1.Width / 9 : processorStackPanel1.Height / 3, TextWrapping = TextWrapping.Wrap };
                 processorStackPanel1.Children.Add(text_PCName);
-                text_PCName.Visibility = Visibility.Visible;
                 text_PC = new TextBlock() { Width = processorStackPanel1.Width, Height = processorStackPanel1.Height / 2, FontSize = processorStackPanel1.Width / 9 < processorStackPanel1.Height / 3 ? processorStackPanel1.Width / 9 : processorStackPanel1.Height / 3, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
                 processorStackPanel1.Children.Add(text_PC);
-                text_PC.Visibility = Visibility.Visible;
-                processorStackPanel1.Visibility = Visibility.Visible;
 
                 text_CIRName = new TextBlock() { Text = "Current Instruction Register: ", Width = processorStackPanel2.Width, Height = processorStackPanel2.Height / 2, FontSize = processorStackPanel2.Width / 10.5 < processorStackPanel2.Height / 4 ? processorStackPanel2.Width / 10.5 : processorStackPanel2.Height / 4, TextWrapping = TextWrapping.Wrap };
                 processorStackPanel2.Children.Add(text_CIRName);
-                text_CIRName.Visibility = Visibility.Visible;
                 text_CIR = new TextBlock() { Width = processorStackPanel2.Width, Height = processorStackPanel2.Height / 2, FontSize = processorStackPanel2.Width / 9 < processorStackPanel2.Height / 3 ? processorStackPanel2.Width / 9 : processorStackPanel2.Height / 3, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
                 processorStackPanel2.Children.Add(text_CIR);
-                text_CIR.Visibility = Visibility.Visible;
-                processorStackPanel2.Visibility = Visibility.Visible;
+
+                runtimeStackPanel.Children.Add(new TextBlock() { TextWrapping = TextWrapping.Wrap, FontSize = 13, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.LightGreen });
+
+                button_ToggleCode.Click += new RoutedEventHandler(button_ToggleCode_Click_Open);
+                button_PlayRun.Click += new RoutedEventHandler(button_PlayRun_Click);
+                for (int a = 0; a < lookup_MemorySpec[MemorySpec]; a++)
+                {
+                    if (a < lookup_MemorySpec[MemorySpec] / 2)//add textblock to first stackpanel
+                        memoryStackPanel1.Children.Add(new DockPanel() { Children = { texts_MemoryCellNames[a], texts_MemoryCells[a] } });
+                    else
+                    {
+                        memoryStackPanel2.Children.Add(new DockPanel() { Children = { texts_MemoryCellNames[a], texts_MemoryCells[a] } });
+                    }
+                }
             }
             text_PC.Text = text_CIR.Text = "0000 0000";
+            text_PCName.Visibility = Visibility.Visible;
+            text_PC.Visibility = Visibility.Visible;
+            processorStackPanel1.Visibility = Visibility.Visible;
+            text_CIRName.Visibility = Visibility.Visible;
+            text_CIR.Visibility = Visibility.Visible;
+            processorStackPanel2.Visibility = Visibility.Visible;
+            runtimeStackPanel.Visibility = Visibility.Visible;
+            runtimestackpanelBorder.Visibility = Visibility.Visible;
+            (runtimeStackPanel.Children[0] as TextBlock).Text = ">>" + (runTab == 0 ? "No program loaded" : ("Tab " + curTab + " program loaded"));
         }
         #endregion
 
@@ -329,13 +410,13 @@ namespace CSProjectGame
         private void KeyDown_PressAnyToContinue_FirstTime_01(object sender, KeyEventArgs e)
         {
             KeyDown -= KeyDown_PressAnyToContinue_FirstTime_01;
-            ingraph_FirstTime_01_Tutorial_Tabs();
+            ingraph_FirstTime_01_Tabs();
         }
 
         private void KeyDown_PressAnyToContinue_FirstTime_02_1(object sender, KeyEventArgs e)
         {
             KeyDown -= KeyDown_PressAnyToContinue_FirstTime_02_1;
-            ingraph_FirstTime_02_Tutorial_Coding_01();
+            ingraph_FirstTime_02_Coding_01();
         }
         
         private void Code1_Tutorial_01(object sender, RoutedEventArgs e)
@@ -366,7 +447,7 @@ namespace CSProjectGame
         private void KeyDown_PressAnyToContinue_FirstTime_03(object sender, KeyEventArgs e)
         {
             KeyDown -= KeyDown_PressAnyToContinue_FirstTime_03;
-            ingraph_FirstTime_02_Tutorial_Coding_02();
+            ingraph_FirstTime_02_Coding_02();
         }
 
         private void KeyDown_PressAnyToContinue_FirstTime_04(object sender, KeyEventArgs e)
@@ -392,7 +473,6 @@ namespace CSProjectGame
             listInstructions.Items.Add(new TextBlock() { Text = "ORR Rx, Rn, < op > Perform a bitwise logical OR operation between the value in Rn and the value specified by<op>, storing in Rx", TextWrapping = TextWrapping.Wrap, Width = listInstructions.Width });
             myStackPanel.Children.Add(listInstructions);
             myDockPanel.Visibility = Visibility.Collapsed;
-            toolsDockPanel.Visibility = Visibility.Collapsed;
             (sender as Button).Click -= Button_CodeManual_Click_Tutorial_Open;
             (sender as Button).Click += Button_CodeManual_Click_Tutorial_Close;
         }
@@ -401,7 +481,6 @@ namespace CSProjectGame
         {
             myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
             myDockPanel.Visibility = Visibility.Visible;
-            toolsDockPanel.Visibility = Visibility.Visible;
             text_Welcome.Visibility = Visibility.Visible;
             (sender as Button).Click -= Button_CodeManual_Click_Tutorial_Close;
             (sender as Button).Click += Button_CodeManual_Click_Tutorial_Open;
@@ -429,20 +508,44 @@ namespace CSProjectGame
         private void KeyDown_PressAnyToContinue_FirstTime_05(object sender, KeyEventArgs e)
         {
             KeyDown -= KeyDown_PressAnyToContinue_FirstTime_05;
-            ingraph_FirstTime_04_Tutorial_ComputerAnimations();
+            ingraph_FirstTime_04_ComputerAnimations();
+        }
+
+        private void MainTab_Click_Tutorial(object sender, RoutedEventArgs e)
+        {
+            MainTab_Click(sender, e);
+            ingraph_FirstTime_05_RuntimeButtons();
+        }
+
+        private void KeyDown_PressAnyToContinue_FirstTime_06(object sender, KeyEventArgs e)
+        {
+            KeyDown -= KeyDown_PressAnyToContinue_FirstTime_06;
+            ingraph_FirstTime_06_Final();
+        }
+
+        private void KeyDown_PressAnyToContinue_FirstTime_07(object sender, KeyEventArgs e)
+        {
+            KeyDown -= KeyDown_PressAnyToContinue_FirstTime_07;
+            ingraph_FirstTime_07_Reset();
         }
         #endregion
 
         #region Other Event Handlers
         private void DockButton_Click_LoadIntoMemory(object sender, RoutedEventArgs e)
         {
-            byte[] bytes_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text);
-            for (int i = 0; i < bytes_Instructions.Length; i++)
-                texts_MemoryCells[i] = new TextBlock() { Text = bytes_Instructions[i].ToString(), Foreground = Brushes.Black, Background = Brushes.LightGray };
-            bytes_Instructions.CopyTo(bytes_Commands, 0);
+            runTab = curTab;
+            string[] DEBUG = new string[1];
+            int[] ints_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text, DEBUG);
+            int k = ints_Instructions[0];
+            string s = DEBUG[0];
+            throw new NotImplementedException();//LOOK THROUGH KSASSEMBLYCODE.INTERPRET, IS NOT RETURNING PROPERLY
+            for (int i = 0; i < ints_Instructions.Length; i++)
+                texts_MemoryCells[i] = new TextBlock() { Text = ints_Instructions[i].ToString(), Foreground = Brushes.Black, Background = Brushes.LightGray };
+            ints_Commands = new int[ints_Instructions.Length];
+            ints_Instructions.CopyTo(ints_Commands, 0);
         }
 
-        private void Button_CodeManual_Click_Open(object sender, RoutedEventArgs e)
+        private void DockButton_Click_CodeManual_Open(object sender, RoutedEventArgs e)
         {
             myStackPanel.Children.CollapseElements();
             ListView listInstructions = new ListView();
@@ -460,18 +563,18 @@ namespace CSProjectGame
             myStackPanel.Children.Add(listInstructions);
             myDockPanel.Visibility = Visibility.Collapsed;
             toolsDockPanel.Visibility = Visibility.Collapsed;
-            (sender as Button).Click -= Button_CodeManual_Click_Open;
-            (sender as Button).Click += new RoutedEventHandler(Button_CodeManual_Click_Close);
+            (sender as Button).Click -= DockButton_Click_CodeManual_Open;
+            (sender as Button).Click += DockButton_Click_CodeManual_Close;
         }
 
-        private void Button_CodeManual_Click_Close(object sender, RoutedEventArgs e)
+        private void DockButton_Click_CodeManual_Close(object sender, RoutedEventArgs e)
         {
             myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
             texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
             myDockPanel.Visibility = Visibility.Visible;
             toolsDockPanel.Visibility = Visibility.Visible;
-            (sender as Button).Click -= Button_CodeManual_Click_Close;
-            (sender as Button).Click += Button_CodeManual_Click_Open;
+            (sender as Button).Click -= DockButton_Click_CodeManual_Close;
+            (sender as Button).Click += DockButton_Click_CodeManual_Open;
         }
 
         private void stackpanels_Registers_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -481,6 +584,29 @@ namespace CSProjectGame
             char[][] binGroups = new char[][] { DigitGroups[0].ToCharArray(), DigitGroups[1].ToCharArray() };
             int DecimalEq = KSConvert.BinaryToDecimal(binGroups[0]) * 16 + KSConvert.BinaryToDecimal(binGroups[1]);
             stackpanels_Registers[index].ToolTip = "This register currently contains " + DecimalEq + " in decimal";
+        }
+        
+        private void button_ToggleCode_Click_Open(object sender, RoutedEventArgs e)
+        {
+            if (runTab == 0) return;
+            runtimeStackPanel.Children.Add(new TextBox() { Text = texts_Tabs[runTab - 1].Text, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.LightGreen, Visibility = Visibility.Visible, Background = Brushes.Black });
+            runtimeStackPanel.Children[0].Visibility = Visibility.Collapsed;
+            button_ToggleCode.Click -= button_ToggleCode_Click_Open;
+            button_ToggleCode.Click += button_ToggleCode_Click_Close;
+        }
+
+        private void button_ToggleCode_Click_Close(object sender, RoutedEventArgs e)
+        {
+            //FINISH THIS
+            runtimeStackPanel.Children.RemoveAt(runtimeStackPanel.Children.Count - 1);
+            runtimeStackPanel.Children[0].Visibility = Visibility.Visible;
+            button_ToggleCode.Click -= button_ToggleCode_Click_Close;
+            button_ToggleCode.Click += button_ToggleCode_Click_Open;
+        }
+
+        private void button_PlayRun_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void MainWindow_SizeChanged_ResizeElements(object sender, SizeChangedEventArgs e)
@@ -501,7 +627,7 @@ namespace CSProjectGame
                     (myDockPanel.Children[i] as Button).Width = ActualWidth / 14;
             }
 
-            rect_MotherBoardBackGround.Width = 6 * ActualWidth / 7;
+            rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
             rect_MotherBoardBackGround.Height = 299 * ActualHeight / 322;
             registersStackPanel.Width = 3 * ActualWidth / 14;
             registersStackPanel.Height = rect_MotherBoardBackGround.Height - 10;
@@ -534,9 +660,31 @@ namespace CSProjectGame
                 text_CIRName.FontSize = processorStackPanel2.Width / 10.5 < processorStackPanel2.Height / 4 ? processorStackPanel2.Width / 10.5 : processorStackPanel2.Height / 4;
                 text_CIRName.Width = processorStackPanel2.Width;
                 text_CIRName.Height = processorStackPanel2.Height / 2;
-                text_CIR.FontSize = processorStackPanel2.Width / 9 < processorStackPanel2.Height / 3 ? processorStackPanel2.Width / 9 : processorStackPanel2.Height / 3;
+                text_CIR.FontSize = processorStackPanel2.Width / 10 < processorStackPanel2.Height / 3 ? processorStackPanel2.Width / 10 : processorStackPanel2.Height / 3;
                 text_CIR.Width = processorStackPanel2.Width;
                 text_CIR.Height = processorStackPanel2.Height / 2;
+            }
+            runtimeStackPanel.Width = 3 * ActualWidth / 14;
+            runtimestackpanelBorder.Width = runtimeStackPanel.Width;
+            runtimeStackPanel.Height = ActualHeight * 299 / 322;
+            runtimestackpanelBorder.Height = runtimeStackPanel.Height;
+
+            runtimeDockPanel.Width = runtimeStackPanel.Width;
+            runtimeDockPanel.Height = 51 * ActualHeight / 322;
+            button_ToggleCode.Width = button_PlayRun.Width = runtimeDockPanel.Width / 2;
+            button_ToggleCode.Height = button_PlayRun.Height = runtimeDockPanel.Height;
+
+            memoryDockPanel.Width = ActualWidth * 3 / 14 - 5;
+            memoryDockPanel.Height = memoryStackPanel1.Height = memoryStackPanel2.Height = ActualHeight * 289 / 322;
+            memoryStackPanel1.Width = memoryStackPanel2.Width = memoryDockPanel.Width / 2;
+            if (texts_MemoryCellNames != null)
+            {
+                for (int curMem = 0; curMem < lookup_MemorySpec[MemorySpec]; curMem++)
+                {
+                    texts_MemoryCellNames[curMem].Width = memoryStackPanel1.Width / 4;
+                    texts_MemoryCellNames[curMem].FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20;
+                    texts_MemoryCells[curMem].FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20;
+                }
             }
         }
         #endregion
