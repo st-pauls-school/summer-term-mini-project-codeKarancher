@@ -16,5 +16,18 @@ namespace CSProjectGame
             }
             return sum;
         }
+
+        /// <summary>
+        /// Customized algorithm to be used only for one or two digit integers
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static char[] IntTo2DigCharArray(int input)
+        {
+            if (input / 10 == 0)    //single digit
+                return new char[] { '0', (char)(input + '0') };
+            else    //double digit
+                return new char[] { (char)(input / 10 + '0'), (char)(input % 10 + '0') };
+        }
     }
 }
