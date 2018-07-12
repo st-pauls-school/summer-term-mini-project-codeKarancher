@@ -13,10 +13,17 @@ namespace CSProjectGame
         {
             if (sCodeText == null || sCodeText.Length == 0)
                 return null;
-            string[] Lines = sCodeText.Split('\n');
+            string[] RawLines = sCodeText.Split('\n');
+            List<string> CorrectLines = new List<string>();
+            for (int i = 0; i < RawLines.Length; i++)
+            {
+                if (!(RawLines[i] == null || RawLines[i] == ""))
+                    CorrectLines.Add(RawLines[i]);
+            }
+            string[] Lines = CorrectLines.ToArray();
             char[][] ToReturn = new char[Lines.Length][];
             string[] dictAssembly = new string[] { "LDR", "STR", "MOV", "CMP", "B", "ADD", "SUB", "AND", "ORR" };
-            string[] dictBranchConditions = new string[] { "EQ", "NE", "GT", "LT" };
+            string[] dictBranchConditions = new string[] { "", "EQ", "NE", "GT", "LT" };
             char?[] dictAddressingTypes = new char?[] { null, '#', null, '>' };
             int iWhatIsBeingRead;   //0 when reading before command, 1 when reading command, greater than or equal to 2 when reading parameters
             for (int curLine = 0; curLine < Lines.Length; curLine++)
@@ -29,11 +36,13 @@ namespace CSProjectGame
                 List<char> curWord = new List<char>();
                 for (int curChar = 0; curChar < curLineChars.Length; curChar++)
                 {
+                    if (curLineChars[curChar] == '\n')
+                        throw new Exception("New line at line 'curline = " + curLine + "', character 'curChar = " + curChar + "'");//DEBUG
                     if (curLineChars[curChar] == 'R' && IsFirstCharInWord)
                         continue;
                     if (curLineChars[curChar] == ',' || curLineChars[curChar] == ' ' || curLineChars[curChar] == '\t' || curChar == curLineChars.Length - 1)//is a break between words
                     {
-                        if (curChar == curLineChars.Length - 1 && !(curLineChars[curChar] == ',' || curLineChars[curChar] == ' ' || curLineChars[curChar] == '\t'))
+                        if (curChar == curLineChars.Length - 1 && !(curLineChars[curChar] == ',' || curLineChars[curChar] == ' ' || curLineChars[curChar] == '\t' || curLineChars[curChar] == '\n'))
                             curWord.Add(curLineChars[curChar]);
                         if (curWord.Count == 0)//due to multiple consecutive breaks
                             continue;
@@ -42,7 +51,14 @@ namespace CSProjectGame
                         switch (iWhatIsBeingRead)
                         {
                             case 2://command has been read
-                                ToReturn[curLine][0] = (char)(Array.IndexOf(dictAssembly, new string(curWord.ToArray())) + '0');
+                                if (new string(curWord.ToArray()) == "HALT")
+                                {
+                                    ToReturn[curLine] = new char[] { '9', '9', '9', '9', '9', '9' };
+                                    curWord = new List<char>();
+                                    iWhatIsBeingRead = -1;
+                                }
+                                else
+                                    ToReturn[curLine][0] = (char)(Array.IndexOf(dictAssembly, new string(curWord.ToArray())) + '0');
                                 break;
                             case 3://first parameter has been read
                                 ToReturn[curLine][1] = curWord[0];
@@ -112,10 +128,16 @@ namespace CSProjectGame
                                 curWord = new List<char>();
                             }
                         }
+                        if (curWord.Contains('\n'))
+                            throw new Exception("New line at line 'curline = " + curLine + "', character 'curChar = " + curChar + "'");//DEBUG
                     }
                     if (IsFirstCharInWord)
                         IsFirstCharInWord = false;
+                    if (iWhatIsBeingRead == -1)
+                        break;
                 }
+                if (iWhatIsBeingRead == -1)
+                    break;
             }
             return ToReturn;
         }

@@ -33,6 +33,8 @@ namespace CSProjectGame
             }
         }
 
+        Random myUniversalRand;
+
         const int MAXTABS = 12;
 
         TextBlock text_Welcome;
@@ -42,17 +44,20 @@ namespace CSProjectGame
         int[] lookup_ClockSpeedSpec;
         
         List<Shape> shapes_ProcessorParts;
+        Grid[] gridRegWires;
         List<StackPanel> stackpanels_Registers;
         List<TextBlock> texts_RegisterNames;
         List<TextBlock> texts_Registers;
         TextBlock text_AddressBus, text_DataBus, text_ToALU, text_PC, text_PCName, text_CIR, text_CIRName;
-        List<StackPanel> stackpanels_MemLocs;
+        string sTempStoreRuntimeInfo;
+        bool IsCodeChangedRuntime;
         
         TextBlock text_MemoryController;
         TextBlock[] texts_MemoryCellNames;
         TextBlock[] texts_MemoryCells;
         char[][] charars_Commands;
-        
+
+        List<TextBox> texts_TabNames;
         List<TextBox> texts_Tabs;
         int curTab = 1;
         int runTab = 0;
@@ -69,9 +74,15 @@ namespace CSProjectGame
             stackpanels_Registers = new List<StackPanel>();
             texts_Registers = new List<TextBlock>();
             texts_RegisterNames = new List<TextBlock>();
+            texts_TabNames = new List<TextBox>();
             texts_Tabs = new List<TextBox>();
 
             SizeChanged += new SizeChangedEventHandler(MainWindow_SizeChanged_ResizeElements);
+            NumRegisters = 6;//DEBUG TO SHOW WIRES WHEN MAKING, THASAL
+
+            gridRegWires = new Grid[] { gridReg1Wire, gridReg2Wire, gridReg3Wire, gridReg4Wire, gridReg5Wire, gridReg6Wire };
+
+            myUniversalRand = new Random(DateTime.Today.Millisecond);
         }
 
         #region Initialise Graphics
@@ -162,8 +173,12 @@ namespace CSProjectGame
             (runtimeStackPanel.Children[0] as TextBlock).Text = ">>No program loaded";
             text_Welcome.Visibility = Visibility.Collapsed;
             (myDockPanel.Children[0] as Button).Click -= Code1_Tutorial_01;
+            texts_TabNames[0].Text = "Sample Code";
             for (int i = 1; i < myDockPanel.Children.Count - 1; i++)
+            {
                 (myDockPanel.Children[i] as Button).Click += CodeTab_Click;
+                texts_TabNames[i - 1].TextChanged += new TextChangedEventHandler(text_TabName_TextChanged);
+            }
             Button AddTab = (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button);
             AddTab.Click -= DockButton_Click_AddNewTab_Tutorial;
             AddTab.Click += DockButton_Click_AddNewTab;
@@ -176,8 +191,10 @@ namespace CSProjectGame
             (myDockPanel.Children[0] as Button).Click += MainTab_Click;
 
             //Prepare some sample code for the user
+            texts_TabNames[0].Text = "Sample Code";
             texts_Tabs[0].Text = "Some sample code to store the sum of two values in memory to location 2:\n\nLDR 0, 0\nLDR 1, 1\nADD 0, 0, 1\nSTR 0, 2";
             texts_Tabs[0].TextChanged += new TextChangedEventHandler(CodeTab_TextChanged_TutorialTemporary);
+            (myDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
         }
         #endregion
 
@@ -235,11 +252,15 @@ namespace CSProjectGame
         {
             //ALWAYS OPEN INTO TAB 1, BECAUSE CURTAB = 1
             myStackPanel.Children.CollapseElements();
-            binaryReader.BaseStream.Position = 0;
-            int numtabs = KSFileManagement.GetNumTabs(binaryReader);
-            string[] texts = KSFileManagement.GetTabTexts(binaryReader);
+            KSFileManagement.RetrieveProgress(binaryReader);
+            int numtabs = KSFileManagement.NumTabsFromFile;
+            string[] tnames = KSFileManagement.TabNamesFromFile;
+            string[] texts = KSFileManagement.TabTextsFromFile;
             for (int i = 0; i < numtabs; i++)
             {
+                texts_TabNames.Add(new TextBox { FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, Text = tnames[i], TextWrapping = TextWrapping.Wrap, AcceptsReturn = false });
+                myStackPanel.Children.Add(texts_TabNames[i]);
+                texts_TabNames[i].Visibility = Visibility.Collapsed;
                 texts_Tabs.Add(new TextBox { FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Text = texts[i], TextWrapping = TextWrapping.Wrap, AcceptsReturn = true });
                 myStackPanel.Children.Add(texts_Tabs[i]);
                 texts_Tabs[i].Visibility = Visibility.Collapsed;
@@ -247,8 +268,8 @@ namespace CSProjectGame
             }
             myDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });
             (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockButton_Click_AddNewTab);
-            NumRegisters = KSFileManagement.GetNumRegisters(binaryReader);
-            MemorySpec = KSFileManagement.GetMemorySpec(binaryReader);
+            NumRegisters = KSFileManagement.NumRegFromFile;
+            MemorySpec = KSFileManagement.MemSpecFromFile;
             texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
             texts_MemoryCellNames = new TextBlock[lookup_MemorySpec[MemorySpec]];
             charars_Commands = new char[lookup_MemorySpec[MemorySpec]][];
@@ -258,8 +279,9 @@ namespace CSProjectGame
                 texts_MemoryCellNames[i] = new TextBlock() { Text = i.ToString() + ":" };
                 charars_Commands[i] = new char[8];
             }
-            ALUSpec = KSFileManagement.GetALUSpec(binaryReader);
-            ClockSpeedSpec = KSFileManagement.GetClockSpeedSpec(binaryReader);
+            ALUSpec = KSFileManagement.ALUSpecFromFile;
+            ClockSpeedSpec = KSFileManagement.ClockSpeedSpecFromFile;
+            texts_TabNames[0].Visibility = Visibility.Visible;
             texts_Tabs[0].Visibility = Visibility.Visible;
         }
         #endregion
@@ -279,8 +301,10 @@ namespace CSProjectGame
 
         private void Code1_Tutorial_01(object sender, RoutedEventArgs e)
         {
+            texts_TabNames.Add(new TextBox() { Text = "Your tab can be named here", FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, TextWrapping = TextWrapping.Wrap, AcceptsReturn = false });
             texts_Tabs.Add(new TextBox() { Text = "Enter your code here and click 'Load To Memory' on the top right panel to load it into your computer's RAM\n\npress any key to continue...", Visibility = Visibility.Visible, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Background = Brushes.White, TextWrapping = TextWrapping.Wrap, AcceptsReturn = true });
             myStackPanel.Children.CollapseElements();
+            myStackPanel.Children.Add(texts_TabNames[0]);
             myStackPanel.Children.Add(texts_Tabs[0]);
             toolsDockPanel.Visibility = Visibility.Visible;
             button_LoadIntoMem.Visibility = Visibility.Visible;
@@ -328,7 +352,8 @@ namespace CSProjectGame
             listInstructions.Items.Add(new TextBlock() { Text = "B <num> Always branch to line number <num>", TextWrapping = TextWrapping.Wrap });
             listInstructions.Items.Add(new TextBlock() { Text = "B<condition> <num> Branch to line number <num> if the last comparison met the criterion specified by <condition>.\n\tPossible values for <condition> and their meanings are:\n\tEQ: equal to NE: not equal to\n\tGT: greater than LT: less than", TextWrapping = TextWrapping.Wrap });
             listInstructions.Items.Add(new TextBlock() { Text = "AND Rx, Rn, <op> Perform a bitwise logical AND operation between the value in Rn and the value specified by <op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "ORR Rx, Rn, < op > Perform a bitwise logical OR operation between the value in Rn and the value specified by<op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "ORR Rx, Rn, <op> Perform a bitwise logical OR operation between the value in Rn and the value specified by<op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "HALT Ends the fetch execute cycle", TextWrapping = TextWrapping.Wrap });
             myStackPanel.Children.Add(listInstructions);
             myDockPanel.Visibility = Visibility.Collapsed;
             (sender as Button).Click -= Button_CodeManual_Click_Tutorial_Open;
@@ -347,6 +372,7 @@ namespace CSProjectGame
         private void DockButton_Click_AddNewTab_Tutorial(object sender, RoutedEventArgs e)
         {
             DockButton_Click_AddNewTab(sender, e);
+            texts_TabNames[curTab - 1].Visibility = Visibility.Collapsed;
             texts_Tabs[curTab - 1].Visibility = Visibility.Collapsed;
             text_Welcome.Visibility = Visibility.Visible;
         }
@@ -355,6 +381,7 @@ namespace CSProjectGame
         {
             if (texts_Tabs.Count == 1)
                 return;
+            texts_TabNames.RemoveAt(curTab - 1);
             texts_Tabs.RemoveAt(curTab - 1);
             myDockPanel.Children.RemoveAt(curTab);
             (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Visibility = Visibility.Visible;
@@ -409,42 +436,6 @@ namespace CSProjectGame
         #endregion
 
         #region Tabs Functions
-        private void DockButton_Click_AddNewTab(object sender, RoutedEventArgs e)
-        {
-            int numtabs = myDockPanel.Children.Count;
-            Button NewTab = new Button() { Width = ActualWidth / 14 };
-            NewTab.Content = numtabs - 1;
-            Button AddTab = myDockPanel.Children[myDockPanel.Children.Count - 1] as Button;
-            myDockPanel.Children.RemoveAt(myDockPanel.Children.Count - 1);
-            myDockPanel.Children.Add(NewTab);
-            myDockPanel.Children.Add(AddTab);
-            myDockPanel.Children.ShowAllElements();
-            if (numtabs - 1 == MAXTABS)
-            {
-                AddTab.Visibility = Visibility.Collapsed;
-            }
-
-            Random r = new Random(DateTime.Today.Millisecond);
-            int i = r.Next(2);
-            texts_Tabs.Add(new TextBox() { FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Background = Brushes.LightSkyBlue, TextWrapping = TextWrapping.Wrap, AcceptsReturn = true });
-
-            texts_Tabs[(curTab = numtabs - 1) - 1].Text = (i == 0) ? "Enter code here" : ((i == 1) ? "Making something new?" : "New idea? Put it into code here");
-            myStackPanel.Children.CollapseElements();
-            texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
-        }
-
-        private void DockButton_Click_DeleteTab(object sender, RoutedEventArgs e)
-        {
-            //texts_Tabs, myDockPanel must be edited
-            if (texts_Tabs.Count == 1)
-                return;
-            texts_Tabs.RemoveAt(curTab - 1);
-            myDockPanel.Children.RemoveAt(curTab);
-            myDockPanel.Children[myDockPanel.Children.Count - 1].Visibility = Visibility.Visible;
-            curTab--;
-            if (curTab == 0)
-                curTab = 1;
-        }
 
         private void NewTab(string TabContent)
         {
@@ -469,13 +460,139 @@ namespace CSProjectGame
                 myStackPanel.Visibility = Visibility.Visible;
                 toolsDockPanel.Visibility = Visibility.Visible;
                 memoryDockPanel.Visibility = Visibility.Collapsed;
+                for (int i = 0; i < NumRegisters; i++)
+                    gridRegWires[i].Visibility = Visibility.Collapsed;
             }
             curTab = myDockPanel.Children.IndexOf(sender as Button);
             myStackPanel.Children.CollapseElements();
+            texts_TabNames[curTab - 1].Visibility = Visibility.Visible;
             texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
             (myDockPanel.Children[curTab] as Button).Background = Brushes.SteelBlue;
         }
 
+        private void DockButton_Click_AddNewTab(object sender, RoutedEventArgs e)
+        {
+            if (curTab == 0)
+                CodeTab_Click(myDockPanel.Children[1], e);
+            int numtabs = myDockPanel.Children.Count;
+            Button NewTab = new Button() { Width = ActualWidth / 14 };
+            NewTab.Content = TabTextFromProjectName("Project " + (curTab = numtabs - 1).ToString());
+            NewTab.Click += CodeTab_Click;
+            Button AddTab = myDockPanel.Children[myDockPanel.Children.Count - 1] as Button;
+            myDockPanel.Children.RemoveAt(myDockPanel.Children.Count - 1);
+            myDockPanel.Children.Add(NewTab);
+            myDockPanel.Children.Add(AddTab);
+            myDockPanel.Children.ShowAllElements();
+            if (numtabs - 1 == MAXTABS)
+            {
+                AddTab.Visibility = Visibility.Collapsed;
+            }
+
+            int i = myUniversalRand.Next() % 3;
+            texts_TabNames.Add(new TextBox() { Text = "Project " + curTab, FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, TextWrapping = TextWrapping.Wrap, AcceptsReturn = false });
+            texts_Tabs.Add(new TextBox() { FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Background = Brushes.White, TextWrapping = TextWrapping.Wrap, AcceptsReturn = true });
+            texts_Tabs[curTab - 1].Text = (i == 0) ? "Enter code here" : ((i == 1) ? "Making something new?" : "New idea? Put it into code here");
+            myStackPanel.Children.Add(texts_TabNames[curTab - 1]);
+            myStackPanel.Children.Add(texts_Tabs[curTab - 1]);
+            myStackPanel.Children.CollapseElements();
+            texts_TabNames[curTab - 1].Visibility = Visibility.Visible;
+            texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
+        }
+
+        private string TabTextFromProjectName(string ProjectName)
+        {
+            if (ProjectName.Length == 0)
+                return "Project " + curTab;
+            List<char> ToReturn = new List<char>();
+            char[] cArProjName = ProjectName.ToCharArray();
+            if (cArProjName[0] >= 'A' && cArProjName[0] <= 'Z')
+                ToReturn.Add(cArProjName[0]);
+            int num = 0;
+            for (int i = 0; i < cArProjName.Length; i++)
+            {
+                if (cArProjName[i] >= '0' && cArProjName[i] <= '9')
+                    num = num * 10 + (cArProjName[i] - '0');
+                else if (i > 0)
+                {
+                    if (cArProjName[i - 1] == ' ')
+                        ToReturn.Add(cArProjName[i]);
+                }
+            }
+            return new string(ToReturn.ToArray()) + num.ToString();
+        }
+
+        #endregion
+
+        #region All Other Event Handlers
+
+        #region Tools Dockpanel - DockButtons
+        private void DockButton_Click_LoadIntoMemory(object sender, RoutedEventArgs e)
+        {
+            runTab = curTab;
+            (runtimeStackPanel.Children[0] as TextBlock).Text = texts_Tabs[curTab - 1].Text;
+            char[][] charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text);
+            for (int i = 0; i < texts_MemoryCells.Length; i++)
+            {
+                if (i < charars_Instructions.Length)
+                    texts_MemoryCells[i].Text = new string(charars_Instructions[i]);
+                else
+                    texts_MemoryCells[i].Text = "000000";
+            }
+            charars_Commands = new char[charars_Instructions.Length][];
+            for (int i = 0; i < charars_Instructions.Length; i++)
+                charars_Instructions[i].CopyTo((charars_Commands[i] = new char[8]), 0);
+        }
+
+        private void DockButton_Click_DeleteTab(object sender, RoutedEventArgs e)
+        {
+            //texts_Tabs, myDockPanel must be edited
+            if (texts_Tabs.Count == 1)
+                return;
+            texts_TabNames.RemoveAt(curTab - 1);
+            texts_Tabs.RemoveAt(curTab - 1);
+            myDockPanel.Children.RemoveAt(curTab);
+            myDockPanel.Children[myDockPanel.Children.Count - 1].Visibility = Visibility.Visible;
+            curTab--;
+            if (curTab == 0)
+                curTab = 1;
+        }
+
+        private void DockButton_Click_CodeManual_Open(object sender, RoutedEventArgs e)
+        {
+            myStackPanel.Children.CollapseElements();
+            ListView listInstructions = new ListView();
+            listInstructions.Items.Add(new TextBlock() { Text = "The following statements can be used in the coding tabs. <op> can be a register, number or memory cell. Rn represents the nth register. Rx will generally be used for the target register.", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "LDR Rx, <mem>\tCopies value in location <mem> into Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "STR Rx, <mem>\tCopies the value in Rx into location <mem>", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "ADD Rx, Rn, <op> Add the value specified in <op> to the value in Rn, store in Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "SUB Rx, Rn, <op> Subtract the value specified by <op> from the value in Rn, store in Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "MOV Rx, <op> Copy the value specified by <op> int Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "CMP Rn, <op> Compare the value stored in Rn with <op>", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "B <num> Always branch to line number <num>", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "B<condition> <num> Branch to line number <num> if the last comparison met the criterion specified by <condition>.\n\tPossible values for <condition> and their meanings are:\n\tEQ: equal to NE: not equal to\n\tGT: greater than LT: less than", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "AND Rx, Rn, <op> Perform a bitwise logical AND operation between the value in Rn and the value specified by <op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "ORR Rx, Rn, <op> Perform a bitwise logical OR operation between the value in Rn and the value specified by<op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
+            listInstructions.Items.Add(new TextBlock() { Text = "HALT Ends the fetch execute cycle", TextWrapping = TextWrapping.Wrap });
+            myStackPanel.Children.Add(listInstructions);
+            myDockPanel.Visibility = Visibility.Collapsed;
+            toolsDockPanel.Visibility = Visibility.Collapsed;
+            (sender as Button).Click -= DockButton_Click_CodeManual_Open;
+            (sender as Button).Click += DockButton_Click_CodeManual_Close;
+        }
+
+        private void DockButton_Click_CodeManual_Close(object sender, RoutedEventArgs e)
+        {
+            myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
+            texts_TabNames[curTab - 1].Visibility = Visibility.Visible;
+            texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
+            myDockPanel.Visibility = Visibility.Visible;
+            toolsDockPanel.Visibility = Visibility.Visible;
+            (sender as Button).Click -= DockButton_Click_CodeManual_Close;
+            (sender as Button).Click += DockButton_Click_CodeManual_Open;
+        }
+        #endregion
+
+        #region Main Tab
         private void MainTab_Click(object sender, RoutedEventArgs e)
         {
             myStackPanel.Children.CollapseElements();
@@ -523,7 +640,7 @@ namespace CSProjectGame
                 text_CIR = new TextBlock() { Width = processorStackPanel2.Width, Height = processorStackPanel2.Height / 2, FontSize = text_PC.FontSize, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap };
                 processorStackPanel2.Children.Add(text_CIR);
 
-                runtimeStackPanel.Children.Add(new TextBlock() { TextWrapping = TextWrapping.Wrap, FontSize = 13, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.LightGreen });
+                runtimeStackPanel.Children.Add(new TextBlock() { TextWrapping = TextWrapping.Wrap, FontSize = 13, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.LightGreen });//Add scroll bar
 
                 button_ToggleCode.Click += new RoutedEventHandler(button_ToggleCode_Click_Open);
                 button_PlayRun.Click += new RoutedEventHandler(button_PlayRun_Click);
@@ -547,64 +664,11 @@ namespace CSProjectGame
             processorStackPanel2.Visibility = Visibility.Visible;
             runtimeStackPanel.Visibility = Visibility.Visible;
             runtimestackpanelBorder.Visibility = Visibility.Visible;
-            //(runtimeStackPanel.Children[0] as TextBlock).Text = ">>" + (runTab == 0 ? "No program loaded" : ("Tab " + curTab + " program loaded"));
-        }
-        #endregion
-
-        #region All Other Event Handlers
-
-        #region Tools Dockpanel
-        private void DockButton_Click_LoadIntoMemory(object sender, RoutedEventArgs e)
-        {
-            runTab = curTab;
-            (runtimeStackPanel.Children[0] as TextBlock).Text = texts_Tabs[curTab - 1].Text;
-            char[][] charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text);
-            for (int i = 0; i < texts_MemoryCells.Length; i++)
-            {
-                if (i < charars_Instructions.Length)
-                    texts_MemoryCells[i].Text = new string(charars_Instructions[i]);
-                else
-                    texts_MemoryCells[i].Text = "000000";
-            }
-            charars_Commands = new char[charars_Instructions.Length][];
-            for (int i = 0; i < charars_Instructions.Length; i++)
-                charars_Instructions[i].CopyTo((charars_Commands[i] = new char[8]), 0);
+            (runtimeStackPanel.Children[0] as TextBlock).Text = ">>" + (runTab == 0 ? "No program loaded" : (texts_TabNames[runTab - 1].Text + " program loaded"));
+            for (int i = 0; i < NumRegisters; i++)
+                gridRegWires[i].Visibility = Visibility.Visible;
         }
 
-        private void DockButton_Click_CodeManual_Open(object sender, RoutedEventArgs e)
-        {
-            myStackPanel.Children.CollapseElements();
-            ListView listInstructions = new ListView();
-            listInstructions.Items.Add(new TextBlock() { Text = "The following statements can be used in the coding tabs. <op> can be a register, number or memory cell. Rn represents the nth register. Rx will generally be used for the target register.", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "LDR Rx, <mem>\tCopies value in location <mem> into Rx", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "STR Rx, <mem>\tCopies the value in Rx into location <mem>", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "ADD Rx, Rn, <op> Add the value specified in <op> to the value in Rn, store in Rx", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "SUB Rx, Rn, <op> Subtract the value specified by <op> from the value in Rn, store in Rx", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "MOV Rx, <op> Copy the value specified by <op> int Rx", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "CMP Rn, <op> Compare the value stored in Rn with <op>", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "B <num> Always branch to line number <num>", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "B<condition> <num> Branch to line number <num> if the last comparison met the criterion specified by <condition>.\n\tPossible values for <condition> and their meanings are:\n\tEQ: equal to NE: not equal to\n\tGT: greater than LT: less than", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "AND Rx, Rn, <op> Perform a bitwise logical AND operation between the value in Rn and the value specified by <op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
-            listInstructions.Items.Add(new TextBlock() { Text = "ORR Rx, Rn, < op > Perform a bitwise logical OR operation between the value in Rn and the value specified by<op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
-            myStackPanel.Children.Add(listInstructions);
-            myDockPanel.Visibility = Visibility.Collapsed;
-            toolsDockPanel.Visibility = Visibility.Collapsed;
-            (sender as Button).Click -= DockButton_Click_CodeManual_Open;
-            (sender as Button).Click += DockButton_Click_CodeManual_Close;
-        }
-
-        private void DockButton_Click_CodeManual_Close(object sender, RoutedEventArgs e)
-        {
-            myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
-            texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
-            myDockPanel.Visibility = Visibility.Visible;
-            toolsDockPanel.Visibility = Visibility.Visible;
-            (sender as Button).Click -= DockButton_Click_CodeManual_Close;
-            (sender as Button).Click += DockButton_Click_CodeManual_Open;
-        }
-        #endregion
-
-        #region Main Tab
         private void stackpanels_Registers_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             int index;
@@ -620,7 +684,9 @@ namespace CSProjectGame
             TextBox tb;
             runtimeStackPanel.Children.Add(tb = new TextBox() { Text = texts_Tabs[runTab - 1].Text, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.LightGreen, Visibility = Visibility.Visible, Background = Brushes.Black, AcceptsReturn = true });
             tb.TextChanged += text_ToggleCode_TextChanged;
+            sTempStoreRuntimeInfo = (runtimeStackPanel.Children[0] as TextBlock).Text;
             runtimeStackPanel.Children[0].Visibility = Visibility.Collapsed;
+            IsCodeChangedRuntime = false;
             button_ToggleCode.Click -= button_ToggleCode_Click_Open;
             button_ToggleCode.Click += button_ToggleCode_Click_Close;
         }
@@ -632,15 +698,16 @@ namespace CSProjectGame
             button_ToggleCode.Click -= button_ToggleCode_Click_Close;
             button_ToggleCode.Click += button_ToggleCode_Click_Open;
             curTab = runTab;    //for DockButton_Click_LoadIntoMemory
-            DockButton_Click_LoadIntoMemory((object)button_LoadIntoMem, e);
+            DockButton_Click_LoadIntoMemory(button_LoadIntoMem, e);
             curTab = 0;         //because in reality, the user is on the main tab
             TextBlock tb = runtimeStackPanel.Children[0] as TextBlock;
-            tb.Text += "\n>>Code changed\n>>Program re-loaded into memory";
+            tb.Text = sTempStoreRuntimeInfo + ((IsCodeChangedRuntime) ? "\n>>Code changed\n>>Program re-loaded into memory" : "");
         }
 
         private void text_ToggleCode_TextChanged(object sender, TextChangedEventArgs e)
         {
             texts_Tabs[runTab - 1].Text = (sender as TextBox).Text;
+            IsCodeChangedRuntime = true;
         }
 
         private void button_PlayRun_Click(object sender, RoutedEventArgs e)
@@ -650,6 +717,11 @@ namespace CSProjectGame
         #endregion
 
         #region Miscellaneous
+        private void text_TabName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            (myDockPanel.Children[curTab] as Button).Content = TabTextFromProjectName((sender as TextBox).Text);
+        }
+
         private void button_Go_Click(object sender, RoutedEventArgs e)
         {
             text_Title.Visibility = Visibility.Collapsed;
@@ -735,10 +807,52 @@ namespace CSProjectGame
                 }
             }
 
-            canvasReg1Wire.Margin = new Thickness(myGrid.ColumnDefinitions[0].ActualWidth - 3.4, registersStackPanel.Height / 12, myGrid.ColumnDefinitions[3].ActualWidth - 10.823, 5 * processorStackPanel1.Height / 6);
-            canvasReg1Wire.Width = ActualWidth / 7 + 14.223;
-            canvasReg1Wire.Height = registersStackPanel.Height / 12 + 51 * ActualHeight / 322 + processorStackPanel.Height / 12;
-            linearrowReg1Wire_1.Width = 
+            gridReg1Wire.Width = ActualWidth * 3 / 28;
+            gridReg1Wire.Height = ActualHeight * 73 / 161;
+            rect_Reg1Wire_1.Width = ActualWidth * (43 * 3) / (73 * 28);
+            rect_Reg1Wire_2.Height = ActualHeight * (73 * 5) / (161 * 9);
+            rect_Reg1Wire_3.Width = ActualWidth * (30 * 3) / (73 * 28);
+
+            if (NumRegisters > 1)
+            {
+                gridReg2Wire.Width = gridReg1Wire.Width;
+                gridReg2Wire.Height = gridReg1Wire.Height;
+                rect_Reg2Wire_1.Width = ActualWidth * (39 * 3) / (73 * 28);
+                rect_Reg2Wire_2.Height = ActualHeight * 73 / (161 * 3);
+                rect_Reg2Wire_3.Width = ActualWidth * (34 * 3) / (73 * 28);
+                if (NumRegisters > 2)
+                {
+                    gridReg3Wire.Width = gridReg2Wire.Width;
+                    gridReg3Wire.Height = gridReg2Wire.Height;
+                    rect_Reg3Wire_1.Width = ActualWidth * (35 * 3) / (73 * 28);
+                    rect_Reg3Wire_2.Height = ActualHeight * 73 / (161 * 9);
+                    rect_Reg3Wire_3.Width = ActualWidth * (38 * 3) / (73 * 28);
+                    if (NumRegisters > 3)
+                    {
+                        gridReg4Wire.Width = gridReg3Wire.Width;
+                        gridReg4Wire.Height = gridReg3Wire.Height;
+                        rect_Reg4Wire_1.Width = rect_Reg3Wire_1.Width + 1.5;
+                        rect_Reg4Wire_2.Height = rect_Reg3Wire_2.Height;
+                        rect_Reg4Wire_3.Width = rect_Reg3Wire_3.Width;
+                        if (NumRegisters > 4)
+                        {
+                            gridReg5Wire.Width = gridReg4Wire.Width;
+                            gridReg5Wire.Height = gridReg4Wire.Height;
+                            rect_Reg5Wire_1.Width = rect_Reg2Wire_1.Width + 1.5;
+                            rect_Reg5Wire_2.Height = rect_Reg2Wire_2.Height;
+                            rect_Reg5Wire_3.Width = rect_Reg2Wire_3.Width;
+                            if (NumRegisters == 6)//Limit
+                            {
+                                gridReg6Wire.Width = gridReg5Wire.Width;
+                                gridReg6Wire.Height = gridReg5Wire.Height;
+                                rect_Reg6Wire_1.Width = rect_Reg1Wire_1.Width + 1.5;
+                                rect_Reg6Wire_2.Height = rect_Reg1Wire_2.Height;
+                                rect_Reg6Wire_3.Width = rect_Reg1Wire_3.Width;
+                            }
+                        }
+                    }
+                }
+            }
         }
         #endregion
 

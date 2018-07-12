@@ -137,22 +137,22 @@
             <RowDefinition Height="51*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6*"/>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-        <Rectangle x:Name="rect_MotherBoardBackGround" Grid.ColumnSpan="10" HorizontalAlignment="Left" Height="297.143" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="406.214" Fill="#FF00810C" Stroke="Black" StrokeThickness="5" Visibility="Visible"/>
-        <TextBlock x:Name="text_Title" HorizontalAlignment="Left" VerticalAlignment="Center" Height="77.778" Margin="0,5.465,0,11.167" TextWrapping="Wrap" Text="Inside Your Computer" Width="170.133" FontFamily="HP Simplified" FontSize="25 " TextDecorations="{x:Null}" Grid.ColumnSpan="5" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Visibility="Collapsed">
+        <Rectangle x:Name="rect_MotherBoardBackGround" Grid.ColumnSpan="10" HorizontalAlignment="Left" Height="297.143" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="406.214" Fill="#FF00810C" Stroke="Black" StrokeThickness="5" Visibility="Collapsed"/>
+        <TextBlock x:Name="text_Title" HorizontalAlignment="Left" VerticalAlignment="Center" Height="77.778" Margin="0,7,0,9.632" TextWrapping="Wrap" Text="Inside Your Computer" Width="170.133" FontFamily="HP Simplified" FontSize="25 " TextDecorations="{x:Null}" Grid.ColumnSpan="6" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Visibility="Visible">
             <TextBlock.Foreground>
                 <RadialGradientBrush>
                     <GradientStop Color="#FF15554C"/>
@@ -160,11 +160,10 @@
                 </RadialGradientBrush>
             </TextBlock.Foreground>
         </TextBlock>
-        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="101.052" Grid.Row="3" Grid.RowSpan="2" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="184.643" Click="button_Go_Click" Grid.ColumnSpan="5" Grid.Column="5" Visibility="Collapsed"/>
+        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="101.052" Grid.Row="3" Grid.RowSpan="2" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="184.643" Click="button_Go_Click" Grid.ColumnSpan="5" Grid.Column="5" Visibility="Visible"/>
         <StackPanel x:Name="myStackPanel"  Grid.ColumnSpan="12" HorizontalAlignment="Left" Height="202.733" Grid.Row="2" Grid.RowSpan="4" VerticalAlignment="Top" Width="443.487" Background="White" Opacity="0.6" Margin="36.584,0,0,0" Visibility="Collapsed"/>
         <Button x:Name="tab_Main" Content="" HorizontalAlignment="Left" Height="16.842" Style="{DynamicResource ButtonStyle4}" VerticalAlignment="Top" Width="68.933" Visibility="Collapsed"/>
-        <Button x:Name="tab_Code1" Content="Button" Height="16.592" Style="{DynamicResource ButtonStyleTab}" VerticalAlignment="Top" Grid.Column="1" Margin="0,0.25,0,0" Visibility="Collapsed"/>
-        <DockPanel x:Name="myDockPanel" Grid.ColumnSpan="14" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0" Visibility="Collapsed"/>
+        <DockPanel x:Name="myDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0" Visibility="Visible"/>
         <DockPanel x:Name="toolsDockPanel" Grid.Column="9" HorizontalAlignment="Left" Height="38.727" VerticalAlignment="Top" Width="123.119" Grid.ColumnSpan="4" Grid.Row="1" Margin="24.595,0,0,0" Visibility="Collapsed">
             <DockPanel.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -192,7 +191,7 @@
                 </Button.Background>
             </Button>
         </DockPanel>
-        <StackPanel x:Name="registersStackPanel" HorizontalAlignment="Left" Height="286.535" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="69" Margin="5,5,0,0" Visibility="Visible" Grid.ColumnSpan="2">
+        <StackPanel x:Name="registersStackPanel" HorizontalAlignment="Left" Height="286.535" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="101.966" Margin="5,5,0,0" Visibility="Collapsed">
             <StackPanel.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <GradientStop Color="#FF5F5F5F" Offset="1"/>
@@ -200,7 +199,7 @@
                 </LinearGradientBrush>
             </StackPanel.Background>
         </StackPanel>
-        <StackPanel x:Name="processorStackPanel" Grid.ColumnSpan="3" Grid.Column="3" Margin="0,0.315,0,0" Orientation="Vertical" Grid.Row="3" Grid.RowSpan="2" Background="#FF3C3C3C" Visibility="Visible">
+        <StackPanel x:Name="processorStackPanel" Grid.ColumnSpan="3" Grid.Column="3" Margin="0,0.315,0,0" Orientation="Vertical" Grid.Row="3" Grid.RowSpan="2" Background="#FF3C3C3C" Visibility="Collapsed">
             <StackPanel x:Name="processorStackPanel1" HorizontalAlignment="Left" Height="50.683" VerticalAlignment="Top" Width="110.786" Visibility="Visible">
                 <StackPanel.Background>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -218,9 +217,9 @@
                 </StackPanel.Background>
             </StackPanel>
         </StackPanel>
-        <StackPanel x:Name="runtimeStackPanel" Grid.ColumnSpan="3" Grid.Column="10" HorizontalAlignment="Left" Height="246.46" Grid.Row="1" Grid.RowSpan="5" VerticalAlignment="Top" Width="110.786" Visibility="Visible" Background="#FF3A3A3A"/>
-        <Border x:Name="runtimestackpanelBorder" BorderBrush="Black" BorderThickness="1" Grid.ColumnSpan="3" Grid.Column="10" HorizontalAlignment="Left" Height="246.46" Grid.Row="1" Grid.RowSpan="5" VerticalAlignment="Top" Width="110.786" Visibility="Visible" Padding="0,0,13,0"/>
-        <DockPanel x:Name="runtimeDockPanel" Grid.ColumnSpan="3" Grid.Column="10" HorizontalAlignment="Left" Height="50.683" LastChildFill="False" Grid.Row="6" VerticalAlignment="Top" Width="110.786" Background="#FFA0A0A0" Visibility="Visible">
+        <StackPanel x:Name="runtimeStackPanel" Grid.ColumnSpan="3" Grid.Column="10" HorizontalAlignment="Left" Height="246.46" Grid.Row="1" Grid.RowSpan="5" VerticalAlignment="Top" Width="110.786" Visibility="Collapsed" Background="#FF3A3A3A"/>
+        <Border x:Name="runtimestackpanelBorder" BorderBrush="Black" BorderThickness="1" Grid.ColumnSpan="3" Grid.Column="10" HorizontalAlignment="Left" Height="246.46" Grid.Row="1" Grid.RowSpan="5" VerticalAlignment="Top" Width="110.786" Visibility="Collapsed" Padding="0,0,13,0"/>
+        <DockPanel x:Name="runtimeDockPanel" Grid.ColumnSpan="3" Grid.Column="10" HorizontalAlignment="Left" Height="50.683" LastChildFill="False" Grid.Row="6" VerticalAlignment="Top" Width="110.786" Background="#FFA0A0A0" Visibility="Collapsed">
             <Button x:Name="button_PlayRun" Content="" Height="50.683" VerticalAlignment="Top" Width="51.149" BorderBrush="#FF707070">
                 <Button.Background>
                     <ImageBrush ImageSource="Capture.PNG"/>
@@ -237,20 +236,93 @@
                 </Button.Background>
             </Button>
         </DockPanel>
-        <DockPanel x:Name="memoryDockPanel" Background="#FFD0ECCE" Grid.ColumnSpan="3" Grid.Column="7" HorizontalAlignment="Left" Height="286.535" Margin="0,5,0,0" Grid.Row="1" Grid.RowSpan="6" Visibility="Visible" VerticalAlignment="Top" Width="105.785" >
+        <DockPanel x:Name="memoryDockPanel" Background="#FFD0ECCE" Grid.ColumnSpan="3" Grid.Column="7" HorizontalAlignment="Left" Height="286.535" Margin="0,5,0,0" Grid.Row="1" Grid.RowSpan="6" Visibility="Collapsed" VerticalAlignment="Top" Width="105.785" >
             <StackPanel x:Name="memoryStackPanel1" Height="286.535" VerticalAlignment="Top" Width="52.8925" Background="#FFCBE4C9"/>
             <StackPanel x:Name="memoryStackPanel2" Height="286.535" VerticalAlignment="Top" Width="52.8925" Background="#FFC3D8C2"/>
         </DockPanel>
-        <Grid x:Name="gridReg1Wire" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Left" Height="145.093" Margin="0.143,0,0,0" Grid.Row="1" Grid.RowSpan="3" VerticalAlignment="Top" Width="73.714">
+        <Grid x:Name="gridReg1Wire" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Left" Grid.Row="1" Grid.RowSpan="3" Width="53.482" Visibility="Collapsed">
             <Grid.RowDefinitions>
-                <RowDefinition Height="18*"/>
-                <RowDefinition Height="47*"/>
-                <RowDefinition Height="25*"/>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="9*"/>
+                <RowDefinition Height="6*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="43*"/>
                 <ColumnDefinition Width="30*"/>
             </Grid.ColumnDefinitions>
+            <Rectangle x:Name="rect_Reg1Wire_1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" StrokeThickness="5" VerticalAlignment="Top" Width="30.396" Margin="0,0,0,0" RenderTransformOrigin="0.5,0.5" Grid.Row="1"/>
+            <Rectangle x:Name="rect_Reg1Wire_2" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="75.77" Grid.Row="1" StrokeThickness="5" VerticalAlignment="Top" Width="1.5"/>
+            <Rectangle x:Name="rect_Reg1Wire_3" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="2" StrokeThickness="5" VerticalAlignment="Top" Width="30.293"/>
+        </Grid>
+        <Grid x:Name="gridReg2Wire" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Left" Grid.Row="1" Grid.RowSpan="3" Width="53.482" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="9*"/>
+                <RowDefinition Height="5*"/>
+                <RowDefinition Height="4*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="39*"/>
+                <ColumnDefinition Width="34*"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle x:Name="rect_Reg2Wire_1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" StrokeThickness="5" VerticalAlignment="Top" Width="30.396" Margin="0,0,0,0" RenderTransformOrigin="0.5,0.5" Grid.Row="1"/>
+            <Rectangle x:Name="rect_Reg2Wire_2" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="48.364" Grid.Row="1" StrokeThickness="5" VerticalAlignment="Top" Width="1.5"/>
+            <Rectangle x:Name="rect_Reg2Wire_3" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="2" StrokeThickness="5" VerticalAlignment="Top" Width="30.293"/>
+        </Grid>
+        <Grid x:Name="gridReg3Wire" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Left" Grid.Row="1" Grid.RowSpan="3" Width="53.482" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="15*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="2*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="35*"/>
+                <ColumnDefinition Width="38*"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle x:Name="rect_Reg3Wire_1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" StrokeThickness="5" VerticalAlignment="Top" Width="25.642" RenderTransformOrigin="0.5,0.5" Grid.Row="1"/>
+            <Rectangle x:Name="rect_Reg3Wire_2" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="16.121" Grid.Row="1" StrokeThickness="5" VerticalAlignment="Top" Width="1.5"/>
+            <Rectangle x:Name="rect_Reg3Wire_3" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="2" StrokeThickness="5" VerticalAlignment="Top" Width="27.84"/>
+        </Grid>
+        <Grid x:Name="gridReg4Wire" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Left" Height="152.05" Grid.Row="4" Grid.RowSpan="3" VerticalAlignment="Top" Width="53.482" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="15*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="35*"/>
+                <ColumnDefinition Width="38*"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle x:Name="rect_Reg4Wire_1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" StrokeThickness="5" VerticalAlignment="Top" Width="25.642" RenderTransformOrigin="0.5,0.5" Grid.Row="2"/>
+            <Rectangle x:Name="rect_Reg4Wire_2" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="16.895" StrokeThickness="5" VerticalAlignment="Top" Width="1.5" Grid.Row="1"/>
+            <Rectangle x:Name="rect_Reg4Wire_3" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="1" StrokeThickness="5" VerticalAlignment="Top" Width="27.84"/>
+        </Grid>
+        <Grid x:Name="gridReg5Wire" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Left" Height="152.05" Grid.Row="4" Grid.RowSpan="3" VerticalAlignment="Top" Width="53.482" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="6*"/>
+                <RowDefinition Height="9*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="39*"/>
+                <ColumnDefinition Width="34*"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle x:Name="rect_Reg5Wire_1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" StrokeThickness="5" VerticalAlignment="Top" Width="28.573" RenderTransformOrigin="0.5,0.5" Grid.Row="2"/>
+            <Rectangle x:Name="rect_Reg5Wire_2" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="50.683" StrokeThickness="5" VerticalAlignment="Top" Width="1.5" Grid.Row="1"/>
+            <Rectangle x:Name="rect_Reg5Wire_3" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="1" StrokeThickness="5" VerticalAlignment="Top" Width="24.909"/>
+        </Grid>
+        <Grid x:Name="gridReg6Wire" Grid.ColumnSpan="2" Grid.Column="1" HorizontalAlignment="Left" Height="152.05" Grid.Row="4" Grid.RowSpan="3" VerticalAlignment="Top" Width="53.482" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="5*"/>
+                <RowDefinition Height="10*"/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="43*"/>
+                <ColumnDefinition Width="30*"/>
+            </Grid.ColumnDefinitions>
+            <Rectangle x:Name="rect_Reg6Wire_1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" StrokeThickness="5" VerticalAlignment="Top" Width="30.396" RenderTransformOrigin="0.5,0.5" Grid.Row="2"/>
+            <Rectangle x:Name="rect_Reg6Wire_2" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="84.472" StrokeThickness="5" VerticalAlignment="Top" Width="1.5" Grid.Row="1"/>
+            <Rectangle x:Name="rect_Reg6Wire_3" Grid.Column="1" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="1" StrokeThickness="5" VerticalAlignment="Top" Width="21.979"/>
         </Grid>
     </Grid>
 </Window>

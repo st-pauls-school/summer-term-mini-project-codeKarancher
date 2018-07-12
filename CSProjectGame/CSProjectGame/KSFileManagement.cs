@@ -9,79 +9,77 @@ namespace CSProjectGame
     {
         /*Formatting of file:
          * 1 byte: Number of tabs (x)
-         * (x) number of strings representing different tabs
+         * (x) number of couples representing different tabs
+         * * Each couple consists of a string representing the name of the tab, then a TABSEP, then a string representing the text in the tab, then a TABEND
          * 1 byte: Number of registers
          * 1 byte: ALU spec
          * 1 byte: Clock Speed spec
          * 1 byte: Memory spec
          */
 
-        const byte EOS = 1;
-        public static int GetNumTabs(BinaryReader binRead)
+        /*How to use class:
+         * Reading from the game file:
+         *  First execute 'RetrieveProgress'
+         *  Fields will now contain respective values obtained from the file
+         *  Use fields to assign variables outside the class
+         *  
+         * Writing to the game file:
+         *  Just use 'SaveProgress'
+         */
+
+        const byte TABSEP = 1;
+        const byte TABEND = 2;
+
+        public static int NumTabsFromFile;
+        public static string[] TabNamesFromFile;
+        public static string[] TabTextsFromFile;
+        public static int NumRegFromFile;
+        public static int ALUSpecFromFile;
+        public static int ClockSpeedSpecFromFile;
+        public static int MemSpecFromFile;
+
+        public static void RetrieveProgress(BinaryReader binRead)
         {
             binRead.BaseStream.Position = 0;
-            return binRead.ReadByte();
-        }
-
-        public static string[] GetTabTexts(BinaryReader binRead)
-        {
-            int NumTabs = GetNumTabs(binRead);
-            string[] TabTexts = new string[NumTabs];
-            for (int curTab = 0; curTab < NumTabs; curTab++)
+            NumTabsFromFile = binRead.ReadByte();
+            TabNamesFromFile = new string[NumTabsFromFile];
+            TabTextsFromFile = new string[NumTabsFromFile];
+            for (int curTab = 0; curTab < NumTabsFromFile; curTab++)
             {
                 byte curByte;
                 List<char> curCharString = new List<char>();
-                while ((curByte = binRead.ReadByte()) != EOS)
+                while ((curByte = binRead.ReadByte()) != TABSEP)
                 {
                     binRead.BaseStream.Position--;
                     curCharString.Add(binRead.ReadChar());
                 }
-                TabTexts[curTab] = new string(curCharString.ToArray());
+                TabNamesFromFile[curTab] = new string(curCharString.ToArray());
+                while ((curByte = binRead.ReadByte()) != TABEND)
+                {
+                    binRead.BaseStream.Position--;
+                    curCharString.Add(binRead.ReadChar());
+                }
+                TabTextsFromFile[curTab] = new string(curCharString.ToArray());
             }
-            return TabTexts;
+            NumRegFromFile = binRead.ReadByte();
+            ALUSpecFromFile = binRead.ReadByte();
+            ClockSpeedSpecFromFile = binRead.ReadByte();
+            MemSpecFromFile = binRead.ReadByte();
         }
 
-        static int GetInfoAfterTabTexts(BinaryReader binRead, int info)
-        {
-            int NumTabs = GetNumTabs(binRead);
-            for (int i = 0; i < NumTabs; i++)
-            {
-                while (binRead.ReadChar() != EOS)
-                    continue;
-            }
-            for (int i = 0; i < info; i++)
-                binRead.ReadByte();
-            return binRead.ReadByte();
-        }
-
-        public static int GetNumRegisters(BinaryReader binRead)
-        {
-            return GetInfoAfterTabTexts(binRead, 0);
-        }
-
-        public static int GetALUSpec(BinaryReader binRead)
-        {
-            return GetInfoAfterTabTexts(binRead, 1);
-        }
-
-        public static int GetClockSpeedSpec(BinaryReader binRead)
-        {
-            return GetInfoAfterTabTexts(binRead, 2);
-        }
-
-        public static int GetMemorySpec(BinaryReader binRead)
-        {
-            return GetInfoAfterTabTexts(binRead, 3);
-        }
-
-        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec)
+        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec)
         {
             binWrite.Write((byte)NumTabs);
             for (int i = 0; i < NumTabs; i++)
             {
-                char[] cAr = TabTexts[i].ToCharArray();
+                char[] cArName = TabNames[i].ToCharArray();
+                for (int j = 0; j < TabNames[i].Length; j++)
+                    binWrite.Write(cArName[i]);
+                binWrite.Write(TABSEP);
+                char[] cArText = TabTexts[i].ToCharArray();
                 for (int j = 0; j < TabTexts[i].Length; j++)
-                    binWrite.Write(cAr[j]);
+                    binWrite.Write(cArText[j]);
+                binWrite.Write(TABEND);
             }
             binWrite.Write((byte)NumRegisters);
             binWrite.Write((byte)ALUSpec);
