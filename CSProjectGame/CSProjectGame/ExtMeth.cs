@@ -20,15 +20,6 @@ namespace CSProjectGame
 {
     public static class ExtMeth
     {
-        public static void PrepForDisplay(this TextBlock control)
-        {
-            control.Visibility = Visibility.Visible;
-            control.VerticalAlignment = VerticalAlignment.Center;
-            control.HorizontalAlignment = HorizontalAlignment.Center;
-            control.Height = 400;
-            control.Width = 400;
-        }
-
         public static void CollapseElements(this UIElementCollection list)
         {
             foreach (UIElement a in list)
@@ -45,6 +36,43 @@ namespace CSProjectGame
         {
             foreach (UIElement a in list)
                 a.Visibility = Visibility.Hidden;
+        }
+
+        /// <summary>
+        /// Splits the string into an array of strings which were seperated by the string divider given
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="divider"></param>
+        public static string[] Split(this string s, string divider)
+        {
+            List<string> ls = new List<string>();
+            List<char> curWord = new List<char>();
+            char[] sAr = s.ToCharArray();
+            char[] dAr = divider.ToCharArray();
+            for (int i = 0; i < sAr.Length; i++)
+            {
+                if (sAr[i] == dAr[0])
+                {
+                    int i2;
+                    for (i2 = 1; i2 < dAr.Length; i2++)
+                    {
+                        if (sAr[i + i2] != dAr[i2])
+                            break;
+                    }
+                    if (i2 == dAr.Length && curWord.Count > 0)
+                    {
+                        ls.Add(new string(curWord.ToArray()));
+                        curWord = new List<char>();
+                        i += i2 - 1;
+                    }
+                    else
+                        curWord.Add(sAr[i]);
+                }
+                else
+                    curWord.Add(sAr[i]);
+            }
+            ls.Add(new string(curWord.ToArray()));
+            return ls.ToArray();
         }
     }
 }

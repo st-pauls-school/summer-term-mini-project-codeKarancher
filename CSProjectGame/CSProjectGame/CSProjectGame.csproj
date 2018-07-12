@@ -113,5 +113,11 @@
   <ItemGroup>
     <Resource Include="Capture.PNG" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="questsswordsandshieldforgame.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="saveclipartforgame.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

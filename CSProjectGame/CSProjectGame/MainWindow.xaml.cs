@@ -11,8 +11,10 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using CSProjectGame;
 
 namespace CSProjectGame
@@ -65,6 +67,7 @@ namespace CSProjectGame
         public MainWindow()
         {
             InitializeComponent();
+            Title = "Inside Your Computer";
             if (!Directory.Exists(sGameFilesPath))
                 Directory.CreateDirectory(sGameFilesPath);
             lookup_MemorySpec = new int[] { 20, 25, 30, 35, 40, 45, 50 };   //lookup_MemorySpec[memoryspec] will give the number of bytes of memory that the player has
@@ -181,7 +184,7 @@ namespace CSProjectGame
             }
             Button AddTab = (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button);
             AddTab.Click -= DockButton_Click_AddNewTab_Tutorial;
-            AddTab.Click += DockButton_Click_AddNewTab;
+            AddTab.Click += DockPanelButton_Click_AddNewTab;
             button_DeleteTab.Click -= DockButton_Click_DeleteTab_Tutorial;
             button_DeleteTab.Click += DockButton_Click_DeleteTab;
             button_CodeManual.Click -= Button_CodeManual_Click_Tutorial_Open;
@@ -192,7 +195,7 @@ namespace CSProjectGame
 
             //Prepare some sample code for the user
             texts_TabNames[0].Text = "Sample Code";
-            texts_Tabs[0].Text = "Some sample code to store the sum of two values in memory to location 2:\n\nLDR 0, 0\nLDR 1, 1\nADD 0, 0, 1\nSTR 0, 2";
+            texts_Tabs[0].Text = "Some sample code to store the sum of two values in memory to location 2:\n\nLDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2";
             texts_Tabs[0].TextChanged += new TextChangedEventHandler(CodeTab_TextChanged_TutorialTemporary);
             (myDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
         }
@@ -241,7 +244,7 @@ namespace CSProjectGame
             myDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyle4"], Width = ActualWidth / 14 });    //Main button
             NewTab("1");   //Tab 1
             myDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });   //+ tab
-            (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockButton_Click_AddNewTab);   //+ tab event handler
+            (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockPanelButton_Click_AddNewTab);   //+ tab event handler
             myDockPanel.Children.ShowAllElements();
             button_CodeManual.Visibility = Visibility.Collapsed;
             button_DeleteTab.Click += new RoutedEventHandler(DockButton_Click_DeleteTab);
@@ -259,6 +262,7 @@ namespace CSProjectGame
             for (int i = 0; i < numtabs; i++)
             {
                 texts_TabNames.Add(new TextBox { FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, Text = tnames[i], TextWrapping = TextWrapping.Wrap, AcceptsReturn = false });
+                texts_TabNames[i].TextChanged += text_TabName_TextChanged;
                 myStackPanel.Children.Add(texts_TabNames[i]);
                 texts_TabNames[i].Visibility = Visibility.Collapsed;
                 texts_Tabs.Add(new TextBox { FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Text = texts[i], TextWrapping = TextWrapping.Wrap, AcceptsReturn = true });
@@ -267,7 +271,7 @@ namespace CSProjectGame
                 NewTab((i + 1).ToString());
             }
             myDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });
-            (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockButton_Click_AddNewTab);
+            (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockPanelButton_Click_AddNewTab);
             NumRegisters = KSFileManagement.NumRegFromFile;
             MemorySpec = KSFileManagement.MemSpecFromFile;
             texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
@@ -317,7 +321,7 @@ namespace CSProjectGame
         {
             Button add = myDockPanel.Children[myDockPanel.Children.Count - 1] as Button;
             add.Visibility = Visibility.Visible;
-            add.Click -= DockButton_Click_AddNewTab;
+            add.Click -= DockPanelButton_Click_AddNewTab;
             add.Click += DockButton_Click_AddNewTab_Tutorial;
             myStackPanel.Children.CollapseElements();
             text_Welcome.Text = "Use the ‘+’ button above to add more tabs. You can have a maximum of " + MAXTABS + " tabs running at once...\n\npress any key to continue...";
@@ -371,7 +375,7 @@ namespace CSProjectGame
 
         private void DockButton_Click_AddNewTab_Tutorial(object sender, RoutedEventArgs e)
         {
-            DockButton_Click_AddNewTab(sender, e);
+            DockPanelButton_Click_AddNewTab(sender, e);
             texts_TabNames[curTab - 1].Visibility = Visibility.Collapsed;
             texts_Tabs[curTab - 1].Visibility = Visibility.Collapsed;
             text_Welcome.Visibility = Visibility.Visible;
@@ -392,9 +396,9 @@ namespace CSProjectGame
 
         private void DockButton_Click_LoadIntoMemory_Tab1(object sender, RoutedEventArgs e)
         {
-            if (texts_Tabs[0].Text == "Some sample code to store the sum of two values in memory to location 2:\n\nLDR 0, 0\nLDR 1, 1\nADD 0, 0, 1\nSTR 0, 2")
+            if (texts_Tabs[0].Text == "Some sample code to store the sum of two values in memory to location 2:\n\nLDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2")
             {
-                texts_Tabs[0].Text = "LDR 0, 0\nLDR 1, 1\nADD 0, 0, 1\nSTR 0, 2";
+                texts_Tabs[0].Text = "LDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2";
                 texts_Tabs[0].TextChanged -= CodeTab_TextChanged_TutorialTemporary;
                 button_LoadIntoMem.Click -= DockButton_Click_LoadIntoMemory_Tab1;
                 button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory;
@@ -428,7 +432,7 @@ namespace CSProjectGame
 
         private void CodeTab_TextChanged_TutorialTemporary(object sender, TextChangedEventArgs e)
         {
-            texts_Tabs[0].Text = "LDR 0, 0\nLDR 1, 1\nADD 0, 0, 1\nSTR 0, 2";
+            texts_Tabs[0].Text = "LDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2";
             texts_Tabs[0].TextChanged -= CodeTab_TextChanged_TutorialTemporary;
             button_LoadIntoMem.Click -= DockButton_Click_LoadIntoMemory_Tab1;
             button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory;
@@ -462,6 +466,9 @@ namespace CSProjectGame
                 memoryDockPanel.Visibility = Visibility.Collapsed;
                 for (int i = 0; i < NumRegisters; i++)
                     gridRegWires[i].Visibility = Visibility.Collapsed;
+                button_QstSave.Visibility = Visibility.Collapsed;
+                button_Quests.Visibility = Visibility.Collapsed;
+                button_SaveProgress.Visibility = Visibility.Collapsed;
             }
             curTab = myDockPanel.Children.IndexOf(sender as Button);
             myStackPanel.Children.CollapseElements();
@@ -470,10 +477,10 @@ namespace CSProjectGame
             (myDockPanel.Children[curTab] as Button).Background = Brushes.SteelBlue;
         }
 
-        private void DockButton_Click_AddNewTab(object sender, RoutedEventArgs e)
+        private void DockPanelButton_Click_AddNewTab(object sender, RoutedEventArgs e)
         {
             if (curTab == 0)
-                CodeTab_Click(myDockPanel.Children[1], e);
+                CodeTab_Click(myDockPanel.Children[1], e);  //If the user is currently on the main tab, change to show tab 1 so that all main tab elements disappear. Putting this function here simplifies such that you don't have to worry which elements to clear, as this function will already clear everything and show tab 1's elements
             int numtabs = myDockPanel.Children.Count;
             Button NewTab = new Button() { Width = ActualWidth / 14 };
             NewTab.Content = TabTextFromProjectName("Project " + (curTab = numtabs - 1).ToString());
@@ -489,7 +496,9 @@ namespace CSProjectGame
             }
 
             int i = myUniversalRand.Next() % 3;
-            texts_TabNames.Add(new TextBox() { Text = "Project " + curTab, FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, TextWrapping = TextWrapping.Wrap, AcceptsReturn = false });
+            TextBox newTabName;
+            texts_TabNames.Add(newTabName = new TextBox() { Text = "Project " + curTab, FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, TextWrapping = TextWrapping.Wrap, AcceptsReturn = false });
+            newTabName.TextChanged += text_TabName_TextChanged;
             texts_Tabs.Add(new TextBox() { FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Background = Brushes.White, TextWrapping = TextWrapping.Wrap, AcceptsReturn = true });
             texts_Tabs[curTab - 1].Text = (i == 0) ? "Enter code here" : ((i == 1) ? "Making something new?" : "New idea? Put it into code here");
             myStackPanel.Children.Add(texts_TabNames[curTab - 1]);
@@ -505,8 +514,7 @@ namespace CSProjectGame
                 return "Project " + curTab;
             List<char> ToReturn = new List<char>();
             char[] cArProjName = ProjectName.ToCharArray();
-            if (cArProjName[0] >= 'A' && cArProjName[0] <= 'Z')
-                ToReturn.Add(cArProjName[0]);
+            ToReturn.Add(cArProjName[0]);
             int num = 0;
             for (int i = 0; i < cArProjName.Length; i++)
             {
@@ -551,10 +559,11 @@ namespace CSProjectGame
             texts_TabNames.RemoveAt(curTab - 1);
             texts_Tabs.RemoveAt(curTab - 1);
             myDockPanel.Children.RemoveAt(curTab);
-            myDockPanel.Children[myDockPanel.Children.Count - 1].Visibility = Visibility.Visible;
-            curTab--;
-            if (curTab == 0)
-                curTab = 1;
+            myDockPanel.Children[myDockPanel.Children.Count - 1].Visibility = Visibility.Visible;   //make visible the 'add new tab' button
+            curTab = (curTab == 1) ? 1 : curTab - 1;
+            myStackPanel.Children.CollapseElements();
+            texts_TabNames[curTab - 1].Visibility = Visibility.Visible;
+            texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
         }
 
         private void DockButton_Click_CodeManual_Open(object sender, RoutedEventArgs e)
@@ -575,7 +584,6 @@ namespace CSProjectGame
             listInstructions.Items.Add(new TextBlock() { Text = "HALT Ends the fetch execute cycle", TextWrapping = TextWrapping.Wrap });
             myStackPanel.Children.Add(listInstructions);
             myDockPanel.Visibility = Visibility.Collapsed;
-            toolsDockPanel.Visibility = Visibility.Collapsed;
             (sender as Button).Click -= DockButton_Click_CodeManual_Open;
             (sender as Button).Click += DockButton_Click_CodeManual_Close;
         }
@@ -667,6 +675,8 @@ namespace CSProjectGame
             (runtimeStackPanel.Children[0] as TextBlock).Text = ">>" + (runTab == 0 ? "No program loaded" : (texts_TabNames[runTab - 1].Text + " program loaded"));
             for (int i = 0; i < NumRegisters; i++)
                 gridRegWires[i].Visibility = Visibility.Visible;
+
+            button_QstSave.Visibility = Visibility.Visible;
         }
 
         private void stackpanels_Registers_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -680,7 +690,15 @@ namespace CSProjectGame
         
         private void button_ToggleCode_Click_Open(object sender, RoutedEventArgs e)
         {
-            if (runTab == 0) return;
+            if (runTab == 0)
+            {
+                (runtimeStackPanel.Children[0] as TextBlock).Foreground = Brushes.Red;
+                DispatcherTimer dt = new DispatcherTimer(DispatcherPriority.Normal);
+                dt.Interval = TimeSpan.FromMilliseconds(1500);
+                dt.Tick += RuntimeStackpanelTimer_Tick_SetForegroundBack;
+                dt.Start();
+                return;
+            }
             TextBox tb;
             runtimeStackPanel.Children.Add(tb = new TextBox() { Text = texts_Tabs[runTab - 1].Text, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.LightGreen, Visibility = Visibility.Visible, Background = Brushes.Black, AcceptsReturn = true });
             tb.TextChanged += text_ToggleCode_TextChanged;
@@ -689,6 +707,12 @@ namespace CSProjectGame
             IsCodeChangedRuntime = false;
             button_ToggleCode.Click -= button_ToggleCode_Click_Open;
             button_ToggleCode.Click += button_ToggleCode_Click_Close;
+        }
+
+        private void RuntimeStackpanelTimer_Tick_SetForegroundBack(object sender, EventArgs e)
+        {
+            (runtimeStackPanel.Children[0] as TextBlock).Foreground = Brushes.LightGreen;
+            (sender as DispatcherTimer).Stop();
         }
 
         private void button_ToggleCode_Click_Close(object sender, RoutedEventArgs e)
@@ -714,6 +738,40 @@ namespace CSProjectGame
         {
 
         }
+
+        private void button_QstSave_Click_Open(object sender, RoutedEventArgs e)
+        {
+            DoubleAnimation opacityfadeForRuntimeStackpanel = new DoubleAnimation(0.3, TimeSpan.FromMilliseconds(200));
+            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityfadeForRuntimeStackpanel);
+
+            button_Quests.Opacity = button_SaveProgress.Opacity = 0;
+            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Visible;
+            DoubleAnimation opacityappearForButtons = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
+            button_Quests.BeginAnimation(OpacityProperty, opacityappearForButtons);
+            button_SaveProgress.BeginAnimation(OpacityProperty, opacityappearForButtons);
+
+            button_ToggleCode.Click += button_QstSave_Click_Close;
+            button_PlayRun.Click += button_QstSave_Click_Close;
+            button_QstSave.Click -= button_QstSave_Click_Open;
+            button_QstSave.Click += button_QstSave_Click_Close;
+        }
+
+        private void button_QstSave_Click_Close(object sender, RoutedEventArgs e)
+        {
+            DoubleAnimation opacityfadeForButtons = new DoubleAnimation(0, TimeSpan.FromMilliseconds(300));
+            button_Quests.BeginAnimation(OpacityProperty, opacityfadeForButtons);
+            button_SaveProgress.BeginAnimation(OpacityProperty, opacityfadeForButtons);
+
+            DoubleAnimation opacityappearForRuntimeStackpanel = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
+            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityappearForRuntimeStackpanel);
+            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Collapsed;
+
+            button_ToggleCode.Click -= button_QstSave_Click_Close;
+            button_PlayRun.Click -= button_QstSave_Click_Close;
+            button_QstSave.Click -= button_QstSave_Click_Close;
+            button_QstSave.Click += button_QstSave_Click_Open;
+        }
+        
         #endregion
 
         #region Miscellaneous
@@ -807,6 +865,7 @@ namespace CSProjectGame
                 }
             }
 
+            #region Register Wire Grid Sizing (confusing at first sight)
             gridReg1Wire.Width = ActualWidth * 3 / 28;
             gridReg1Wire.Height = ActualHeight * 73 / 161;
             rect_Reg1Wire_1.Width = ActualWidth * (43 * 3) / (73 * 28);
@@ -853,6 +912,20 @@ namespace CSProjectGame
                     }
                 }
             }
+            #endregion
+
+            button_Quests.Width = ActualWidth / 14;
+            button_Quests.Height = ActualHeight * 44 / 322;
+            button_Quests.FontSize = (111 * ActualHeight / 483 < ActualWidth / 70) ? 111 * ActualHeight / 483 : ActualWidth / 70;
+
+            button_SaveProgress.Width = button_Quests.Width;
+            button_SaveProgress.Height = button_Quests.Height;
+            button_SaveProgress.FontSize = (22 * ActualHeight / 805 < ActualWidth / 56) ? 22 * ActualHeight / 805 : ActualWidth / 56;
+
+            int button_QstSave_Width = 5;
+            button_QstSave.Height = ActualHeight * 44 / 322;
+            button_QstSave.Width = button_QstSave_Width;
+            button_QstSave.Margin = new Thickness(ActualWidth / 14 - button_QstSave_Width, 0, 0, 0);
         }
         #endregion
 

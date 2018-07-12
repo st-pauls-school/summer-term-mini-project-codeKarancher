@@ -13,7 +13,7 @@ namespace CSProjectGame
         {
             if (sCodeText == null || sCodeText.Length == 0)
                 return null;
-            string[] RawLines = sCodeText.Split('\n');
+            string[] RawLines = sCodeText.Split("\r\n");
             List<string> CorrectLines = new List<string>();
             for (int i = 0; i < RawLines.Length; i++)
             {
@@ -36,8 +36,9 @@ namespace CSProjectGame
                 List<char> curWord = new List<char>();
                 for (int curChar = 0; curChar < curLineChars.Length; curChar++)
                 {
-                    if (curLineChars[curChar] == '\n')
-                        throw new Exception("New line at line 'curline = " + curLine + "', character 'curChar = " + curChar + "'");//DEBUG
+                    if (curLineChars[curChar] == '\r')
+                        if (curLineChars[curChar + 1] == '\n')
+                        throw new Exception("Got 'em!!");//DEBUG
                     if (curLineChars[curChar] == 'R' && IsFirstCharInWord)
                         continue;
                     if (curLineChars[curChar] == ',' || curLineChars[curChar] == ' ' || curLineChars[curChar] == '\t' || curChar == curLineChars.Length - 1)//is a break between words
@@ -128,8 +129,6 @@ namespace CSProjectGame
                                 curWord = new List<char>();
                             }
                         }
-                        if (curWord.Contains('\n'))
-                            throw new Exception("New line at line 'curline = " + curLine + "', character 'curChar = " + curChar + "'");//DEBUG
                     }
                     if (IsFirstCharInWord)
                         IsFirstCharInWord = false;

@@ -8,6 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("capture.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("saveclipartforgame.png")]
 
 
