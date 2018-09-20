@@ -54,6 +54,7 @@ namespace CSProjectGame
                     curCharString.Add(binRead.ReadChar());
                 }
                 TabNamesFromFile[curTab] = new string(curCharString.ToArray());
+                curCharString = new List<char>();
                 while ((curByte = binRead.ReadByte()) != TABEND)
                 {
                     binRead.BaseStream.Position--;
@@ -65,16 +66,18 @@ namespace CSProjectGame
             ALUSpecFromFile = binRead.ReadByte();
             ClockSpeedSpecFromFile = binRead.ReadByte();
             MemSpecFromFile = binRead.ReadByte();
+            binRead.Close();
         }
 
         public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec)
         {
+            binWrite.BaseStream.Position = 0;
             binWrite.Write((byte)NumTabs);
             for (int i = 0; i < NumTabs; i++)
             {
                 char[] cArName = TabNames[i].ToCharArray();
                 for (int j = 0; j < TabNames[i].Length; j++)
-                    binWrite.Write(cArName[i]);
+                    binWrite.Write(cArName[j]);
                 binWrite.Write(TABSEP);
                 char[] cArText = TabTexts[i].ToCharArray();
                 for (int j = 0; j < TabTexts[i].Length; j++)
@@ -85,6 +88,7 @@ namespace CSProjectGame
             binWrite.Write((byte)ALUSpec);
             binWrite.Write((byte)ClockSpeedSpec);
             binWrite.Write((byte)MemSpec);
+            binWrite.Close();
         }
     }
 }

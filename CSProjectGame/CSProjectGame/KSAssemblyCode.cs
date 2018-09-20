@@ -9,6 +9,34 @@ namespace CSProjectGame
 {
     public class KSAssemblyCode
     {
+        /* How instructions are stored:
+         * 
+         * First digit is the index of the instruction (or instruction type) in the below array 'dictAssembly'
+         *  If the first digit indicates an instruction with index less than 4 (either of the first four instructions), the first parameter is a register number, and the second one is always an <operand>/<mem>, so:
+         *      digit 2: register number
+         *      digit 3: type of addressing (look at case 4)
+         *      digit 4: memory location/number - 1st digit
+         *      digit 5: memory location/number - 2nd digit
+         *      
+         *  If the first digit indicates a branching instruction (index 4)
+         *      digit 2: type of branch (condition) - 
+         *          0: branch no matter what
+         *          1: branch if last comparison result was: equal
+         *          2: branch if last comparison result was: not equal
+         *          3: branch if last comparison result was: greater than
+         *          4: branch if last comparison result was: lesser than
+         *      digit 3: line number - 1st digit
+         *      digit 4: line number - 2nd digit
+         *          
+         *  If the first digit was more than 4, the first and second parameters are both register numbers, then the third parameter is an <operand>
+         *      digit 2: target register number
+         *      digit 3: parameter register number
+         *      digit 4: type of addressing (look at case 4)
+         *      digit 5: memory location/number - 1st digit
+         *      digit 6: memory location/number - 2nd digit
+         * 
+         */
+
         public static char[][] Interpret(string sCodeText)
         {
             if (sCodeText == null || sCodeText.Length == 0)
@@ -68,7 +96,7 @@ namespace CSProjectGame
                                 if (ToReturn[curLine][0] < '4') // LDR, STR, MOV, CMP -- 3 digits 'xyz' (x-> 0-immediate(#)/1-direct/2-indirect addressing(>), yz-> number)
                                 {
                                     int a = Array.IndexOf(dictAddressingTypes, curWord[0]); //will return -1 if direct addressing is being used
-                                    ToReturn[curLine][2] = (char)((a + 2) % 3 + '0');
+                                    ToReturn[curLine][2] = (char)((a + 2) % 3 + '0');//'0' for immediate addressing, '1' for direct, '2' for indirect addressing
                                     switch (a)
                                     {
                                         case -1://curWord is a 1 or 2-digit number

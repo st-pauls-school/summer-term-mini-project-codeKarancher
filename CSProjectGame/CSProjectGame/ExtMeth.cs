@@ -74,5 +74,25 @@ namespace CSProjectGame
             ls.Add(new string(curWord.ToArray()));
             return ls.ToArray();
         }
+
+        public static double MyWidth(this ColumnDefinition cd)
+        {
+            Grid ParentGrid = cd.Parent as Grid;
+            double Numerator = cd.Width.Value;
+            double Denominator = 0;
+            for (int i = 0; i < ParentGrid.ColumnDefinitions.Count; i++)
+                Denominator += ParentGrid.ColumnDefinitions[i].Width.Value;
+            return ParentGrid.Width * Numerator / Denominator;
+        }
+
+        public static double MyHeight(this RowDefinition rd)
+        {
+            Grid ParentGrid = rd.Parent as Grid;
+            double Numerator = rd.Height.Value;
+            double Denominator = 0;
+            for (int i = 0; i < ParentGrid.RowDefinitions.Count; i++)
+                Denominator += ParentGrid.RowDefinitions[i].Height.Value;
+            return ParentGrid.Height * Numerator / Denominator;
+        }
     }
 }
