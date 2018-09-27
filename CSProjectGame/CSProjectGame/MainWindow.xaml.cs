@@ -1547,6 +1547,8 @@ namespace CSProjectGame
             #endregion
             ToPlay.Children.Add(tanimAddressTransfer);
 
+            //todo: Create tanimDataTransfer
+
             #region Create tanimDataTransfer
             ThicknessAnimation tanimDataTransfer = new ThicknessAnimation();
             tanimDataTransfer.From = new Thickness(0, 0, gridProcToMem.Width - text_DataBus.Width, gridProcToMem.RowDefinitions[2].MyHeight() - text_DataBus.Height);
