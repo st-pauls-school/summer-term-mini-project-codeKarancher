@@ -1167,7 +1167,7 @@ namespace CSProjectGame
             animation3.Completed += delegate (object sender, EventArgs e)
             {
                 if (iRegisterIndex > NumRegisters - 1)
-                    ;//messagebox
+                    ;//messagebox; message: Your computer chip does not have a (iRegisterIndex)th register. Program halting...
                 else
                     texts_Registers[iRegisterIndex].Text = new string(KSConvert.DecimalToBinaryForRegisters(int.Parse(text_ToRegister.Text)));
                 text_ToRegister.Margin = new Thickness(0);
@@ -1178,7 +1178,6 @@ namespace CSProjectGame
 
             return ToReturn;
         }
-
         private ThicknessAnimation[] GetAnimationsNumberFromRegister(int iRegisterIndex, double doubleDurationInMilliseconds)
         {
             ThicknessAnimation[] ToReturn = new ThicknessAnimation[3];
@@ -1238,89 +1237,48 @@ namespace CSProjectGame
             return ToReturn;
         }
 
-        #region AnimateNumberToRegister
-        private void AnimateNumberToRegister(int iRegisterIndex, string sContent, double doubleDurationInMilliseconds, Action<object, EventArgs> RunWhenCompleted)
+        #region Dispatcher Timer Eventhandlers
+        private void Revealtext_NumberToRegister_Tick(object sender, EventArgs e)
         {
-            Storyboard sb_FirstMove = new Storyboard();
-
-            #region Initialise text_ToRegister
-            text_ToRegister.Text = sContent;
-            Grid Parentgrid = gridsRegWires[iRegisterIndex];
-            Parentgrid.Children.Add(text_ToRegister);
-            Grid.SetRow(text_ToRegister, 2);
-            Grid.SetColumn(text_ToRegister, 1);
-            text_ToRegister.Margin = new Thickness(Parentgrid.ColumnDefinitions[1].MyWidth() - text_ToRegister.Width, 0, 0, Parentgrid.RowDefinitions[2].MyHeight() - text_ToRegister.Height);
-            #endregion
-
-            #region Create tanimFirstMove
-            ThicknessAnimation tanimFirstMove = new ThicknessAnimation();
-            tanimFirstMove.To = new Thickness(0, 0, text_ToRegister.Margin.Left, text_ToRegister.Margin.Bottom);
-            tanimFirstMove.Duration = TimeSpan.FromMilliseconds(doubleDurationInMilliseconds / 3);
-            tanimFirstMove.EasingFunction = new SineEase();
-            Storyboard.SetTargetName(tanimFirstMove, "text_ToRegister");
-            Storyboard.SetTargetProperty(tanimFirstMove, new PropertyPath(MarginProperty));
-            #endregion
-
-            sb_FirstMove.Children.Add(tanimFirstMove);
-            sb_FirstMove.Completed += delegate (object sender, EventArgs e)
-            {
-                AnimateNumberToRegister2(iRegisterIndex, doubleDurationInMilliseconds / 3, RunWhenCompleted);
-            };
-
-            sb_FirstMove.Begin(this);
+            text_ToRegister.Visibility = Visibility.Visible;
+            //DEBUG - ((memoryDockPanel.Children[0] as StackPanel).Children[int.Parse(text_PC.Text) + 6] as DockPanel).Background = Brushes.SlateGray;
+            (sender as DispatcherTimer).Stop();
         }
-
-        private void AnimateNumberToRegister2(int iRegisterIndex, double doubleDurationInMilliseconds, Action<object, EventArgs> RunWhenCompleted)
+        private void Removetext_DataBus_Tick(object sender, EventArgs e)
         {
-            Storyboard sb_SecMove = new Storyboard();
-            Grid.SetRowSpan(text_ToRegister, 2);
-            Grid.SetRow(text_ToRegister, 1);
-
-            #region Create tanimSecMove
-            ThicknessAnimation tanimSecMove = new ThicknessAnimation();
-            tanimSecMove.From = new Thickness(0, gridsRegWires[iRegisterIndex].RowDefinitions[1].MyHeight(), text_ToRegister.Margin.Right, text_ToRegister.Margin.Bottom);
-            tanimSecMove.To = new Thickness(0, 0, text_ToRegister.Margin.Right, text_ToRegister.Margin.Bottom + gridsRegWires[iRegisterIndex].RowDefinitions[1].MyHeight());
-            tanimSecMove.Duration = TimeSpan.FromMilliseconds(doubleDurationInMilliseconds);
-            tanimSecMove.EasingFunction = new CubicEase();
-            Storyboard.SetTargetName(tanimSecMove, "text_ToRegister");
-            Storyboard.SetTargetProperty(tanimSecMove, new PropertyPath(MarginProperty));
-            #endregion
-            sb_SecMove.Children.Add(tanimSecMove);
-            sb_SecMove.Completed += delegate (object sender, EventArgs e)
-            {
-                AnimateNumberToRegister3(iRegisterIndex, doubleDurationInMilliseconds, RunWhenCompleted);
-            };
-
-            sb_SecMove.Begin(this);
+            (text_DataBus.Parent as Grid).Children.Remove(text_DataBus);
+            (sender as DispatcherTimer).Stop();
         }
-
-        private void AnimateNumberToRegister3(int iRegisterIndex, double doubleDurationInMilliseconds, Action<object, EventArgs> RunWhenCompleted)
+        private void EmphasisData_Tick_1(object sender, EventArgs e)
         {
-            Storyboard sb_ThirdMove = new Storyboard();
-            Grid.SetColumnSpan(text_ToRegister, 2);
-            Grid.SetColumn(text_ToRegister, 0);
-
-            #region Create tanimThirdMove
-            ThicknessAnimation tanimThirdMove = new ThicknessAnimation();
-            tanimThirdMove.From = new Thickness(gridsRegWires[iRegisterIndex].ColumnDefinitions[0].Width.Value, 0, text_ToRegister.Margin.Right, text_ToRegister.Margin.Bottom);
-            tanimThirdMove.To = new Thickness(0, 0, gridsRegWires[iRegisterIndex].Width - text_ToRegister.ActualWidth, text_ToRegister.Margin.Bottom);
-            tanimThirdMove.Duration = TimeSpan.FromMilliseconds(doubleDurationInMilliseconds);
-            tanimThirdMove.EasingFunction = new SineEase();
-            Storyboard.SetTargetName(tanimThirdMove, "text_ToRegister");
-            Storyboard.SetTargetProperty(tanimThirdMove, new PropertyPath(MarginProperty));
-            #endregion
-            sb_ThirdMove.Children.Add(tanimThirdMove);
-            sb_ThirdMove.Completed += delegate (object sender, EventArgs e)
+            int InstNumber = int.Parse(text_AddressBus.Text);
+            StackPanel MemPanel = (InstNumber > lookup_MemorySpec[MemorySpec] / 2) ? memoryStackPanel2 : memoryStackPanel1;
+            ((MemPanel.Children[InstNumber % 10] as DockPanel).Children[1] as TextBlock).Background = Brushes.Blue;
+            gridProcToMem.Children.Remove(text_AddressBus);
+            (sender as DispatcherTimer).Tick -= EmphasisData_Tick_1;
+            (sender as DispatcherTimer).Tick += EmphasisData_Tick_2;
+        }
+        private void EmphasisData_Tick_2(object sender, EventArgs e)
+        {
+            for (int panelnum = 0; panelnum < 2; panelnum++)
             {
-                texts_Registers[iRegisterIndex].Text = new string(KSConvert.DecimalToBinaryForRegisters(int.Parse(text_ToRegister.Text)));
-                (text_ToRegister.Parent as Grid).Children.Remove(text_ToRegister);
-                if (RunWhenCompleted == null)
-                    return;
-                RunWhenCompleted(sender, e);
-            };
-
-            sb_ThirdMove.Begin(this);
-
+                for (int memnum = 0; memnum < lookup_MemorySpec[MemorySpec] / 2; memnum++)
+                    texts_MemoryCells[panelnum * lookup_MemorySpec[MemorySpec] / 2 + memnum].Background = Brushes.Transparent;
+            }
+            (sender as DispatcherTimer).Tick -= EmphasisData_Tick_1;
+            (sender as DispatcherTimer).Stop();
+            text_DataBus.Visibility = Visibility.Visible;
+        }
+        private void Removetext_ToALU_Tick(object sender, EventArgs e)
+        {
+            gridToALU.Children.Remove(text_ToALU);
+            (sender as DispatcherTimer).Stop();
+        }
+        private void dtRevealtext_AddressBus_Tick(object sender, EventArgs e)
+        {
+            text_AddressBus.Visibility = Visibility.Visible;
+            (sender as DispatcherTimer).Tick -= dtRevealtext_AddressBus_Tick;
+            (sender as DispatcherTimer).Stop();
         }
         #endregion
 
@@ -1453,63 +1411,13 @@ namespace CSProjectGame
             dtRevealtext_ToRegister.Start();
         }
         
-        private void Revealtext_NumberToRegister_Tick(object sender, EventArgs e)
-        {
-            text_ToRegister.Visibility = Visibility.Visible;
-            //DEBUG - ((memoryDockPanel.Children[0] as StackPanel).Children[int.Parse(text_PC.Text) + 6] as DockPanel).Background = Brushes.SlateGray;
-            (sender as DispatcherTimer).Stop();
-        }
-
-        private void Removetext_DataBus_Tick(object sender, EventArgs e)
-        {
-            (text_DataBus.Parent as Grid).Children.Remove(text_DataBus);
-            (sender as DispatcherTimer).Stop();
-        }
-
-        private void EmphasisData_Tick_1(object sender, EventArgs e)
-        {
-            int InstNumber = int.Parse(text_AddressBus.Text);
-            StackPanel MemPanel = (InstNumber > lookup_MemorySpec[MemorySpec] / 2) ? memoryStackPanel2 : memoryStackPanel1;
-            ((MemPanel.Children[InstNumber % 10] as DockPanel).Children[1] as TextBlock).Background = Brushes.Blue;
-            gridProcToMem.Children.Remove(text_AddressBus);
-            (sender as DispatcherTimer).Tick -= EmphasisData_Tick_1;
-            (sender as DispatcherTimer).Tick += EmphasisData_Tick_2;
-        }
-
-        private void EmphasisData_Tick_2(object sender, EventArgs e)
-        {
-            for (int panelnum = 0; panelnum < 2; panelnum++)
-            {
-                for (int memnum = 0; memnum < lookup_MemorySpec[MemorySpec] / 2; memnum++)
-                    texts_MemoryCells[panelnum * lookup_MemorySpec[MemorySpec] / 2 + memnum].Background = Brushes.Transparent;
-            }
-            (sender as DispatcherTimer).Tick -= EmphasisData_Tick_1;
-            (sender as DispatcherTimer).Stop();
-            text_DataBus.Visibility = Visibility.Visible;
-        }
-
-        private void Removetext_ToALU_Tick(object sender, EventArgs e)
-        {
-            gridToALU.Children.Remove(text_ToALU);
-            (sender as DispatcherTimer).Stop();
-        }
-
         private void ExecuteInstruction_STR(string AssemblyLine)
         {
             char[] cAr = AssemblyLine.ToCharArray();
             int RegisterNumber = cAr[1] - '0';
             int MemoryLocIndex = int.Parse(new string(new char[] { cAr[3], cAr[4] }));
+            string ToStore = KSConvert.BinaryToDecimal(texts_Registers[RegisterNumber].Text.ToCharArray()).ToString();
             Storyboard ToPlay = new Storyboard();
-            #region Initialise text_ToRegister
-            text_ToRegister.Text = KSConvert.BinaryToDecimal(texts_Registers[RegisterNumber].Text.ToCharArray()).ToString();
-            Grid ParentGrid = gridsRegWires[RegisterNumber];
-            ParentGrid.Children.Add(text_ToRegister);
-            Grid.SetRow(text_ToRegister, 1);
-            Grid.SetColumn(text_ToRegister, 0);
-            Grid.SetRowSpan(text_ToRegister, 2);
-            Grid.SetColumnSpan(text_ToRegister, 2);
-            text_ToRegister.Margin = new Thickness(0, ParentGrid.RowDefinitions[0].MyHeight() + ((RegisterNumber < 3) ? 0 : ParentGrid.RowDefinitions[1].MyHeight()), ParentGrid.ColumnDefinitions[0].MyWidth() + ParentGrid.ColumnDefinitions[1].MyWidth() - text_ToRegister.Width, ParentGrid.RowDefinitions[2].MyHeight() + ((RegisterNumber < 3) ? ParentGrid.RowDefinitions[1].MyHeight() : 0) - text_ToRegister.Height);
-            #endregion
 
             #region Get tanimsFromReg
             ThicknessAnimation[] tanimsFromReg = GetAnimationsNumberFromRegister(RegisterNumber, lookup_MemorySpec[MemorySpec] / 4);
@@ -1522,17 +1430,17 @@ namespace CSProjectGame
             ToPlay.Children.Add(tanimsFromReg[1]);
             ToPlay.Children.Add(tanimsFromReg[2]);
 
-            #region Create dtRemoveToRegister
-            DispatcherTimer dtRemoveToRegister = new DispatcherTimer();
-            dtRemoveToRegister.Interval = TimeSpan.FromMilliseconds(lookup_MemorySpec[MemorySpec] / 4 + 10);
-            dtRemoveToRegister.Tick += Removetext_ToRegister_Tick;
-            #endregion
-            //dtRemoveToRegister can be begun as soon as ToPlay is begun
-
             #region Initialise text_AddressBus
             text_AddressBus.Text = new string(new char[] { cAr[3], cAr[4] });
             gridProcToMem.Children.Add(text_AddressBus);
             Grid.SetRow(text_AddressBus, 1);
+            text_AddressBus.Visibility = Visibility.Collapsed;
+            #endregion
+
+            #region Create dtRevealtext_AddressBus
+            DispatcherTimer dtRevealtext_AddressBus = new DispatcherTimer();
+            dtRevealtext_AddressBus.Interval = TimeSpan.FromMilliseconds(lookup_MemorySpec[MemorySpec] / 4);
+            dtRevealtext_AddressBus.Tick += dtRevealtext_AddressBus_Tick;
             #endregion
 
             #region Create tanimAddressTransfer
@@ -1547,7 +1455,17 @@ namespace CSProjectGame
             #endregion
             ToPlay.Children.Add(tanimAddressTransfer);
 
-            //todo: Create tanimDataTransfer
+            #region Initialize text_DataBus
+            text_DataBus.Text = ToStore;
+            gridProcToMem.Children.Add(text_DataBus);
+            Grid.SetRow(text_DataBus, 2);
+            text_DataBus.Visibility = Visibility.Collapsed;
+            #endregion
+
+            #region Create dtRevealtext_DataBus
+            DispatcherTimer dtRevealtext_DataBus = new DispatcherTimer();
+
+            #endregion
 
             #region Create tanimDataTransfer
             ThicknessAnimation tanimDataTransfer = new ThicknessAnimation();
@@ -1560,6 +1478,8 @@ namespace CSProjectGame
             tanimDataTransfer.BeginTime = tanimAddressTransfer.BeginTime;
             #endregion
             ToPlay.Children.Add(tanimDataTransfer);
+
+            ToPlay.Begin(this);
         }
 
         private void Removetext_ToRegister_Tick(object sender, EventArgs e)
