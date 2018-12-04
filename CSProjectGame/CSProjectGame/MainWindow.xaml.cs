@@ -51,12 +51,11 @@ namespace CSProjectGame
         List<StackPanel> stackpanels_Registers;
         List<TextBlock> texts_RegisterNames;
         List<TextBlock> texts_Registers;
-        internal static TextBlock text_AddressBus, text_DataBus, text_ToALU, text_PC, text_PCName, text_CIR, text_CIRName;
+        TextBlock text_AddressBus, text_DataBus, text_ToALU, text_CMP, text_PC, text_PCName, text_CIR, text_CIRName;
         TextBlock[] texts_ToRegister;
         string sTempStoreRuntimeInfo;
         bool IsCodeChangedRuntime;
-        
-        TextBlock text_MemoryController;
+
         TextBlock[] texts_MemoryCellNames;
         TextBlock[] texts_MemoryCells;
         char[][] charars_Commands;
@@ -65,7 +64,7 @@ namespace CSProjectGame
         List<TextBox> texts_Tabs;
         int curTab = 1;
         int runTab = 0;
-
+        
         Dictionary<string, Brush> myBrushes;
         byte[] listQuestsStatus;//0 => to be completed, 1 => completed, 2 => completed and redeemed
         //Quests declared in MainWindow()
@@ -81,7 +80,7 @@ namespace CSProjectGame
                 Directory.CreateDirectory(sGameFilesPath);
             lookup_MemorySpec = new int[] { 20, 25, 30, 35, 40, 45, 50 };   //lookup_MemorySpec[memoryspec] will give the number of bytes of memory that the player has
             lookup_ClockSpeedSpec = new int[] { 6000/*3000*/, 2540, 2080, 1620, 1160, 700, 240 }; //lookup_ClockSpeedSpec[clockspeedspec] will give the number of milliseconds to take per operation
-
+            
             shapes_ProcessorParts = new List<Shape>();
             stackpanels_Registers = new List<StackPanel>();
             texts_Registers = new List<TextBlock>();
@@ -90,7 +89,6 @@ namespace CSProjectGame
             texts_Tabs = new List<TextBox>();
 
             SizeChanged += new SizeChangedEventHandler(MainWindow_SizeChanged_ResizeElements);
-            NumRegisters = 6;//DEBUG TO SHOW WIRES WHEN MAKING, THASAL
 
             gridsRegWires = new Grid[] { gridReg1Wire, gridReg2Wire, gridReg3Wire, gridReg4Wire, gridReg5Wire, gridReg6Wire };
 
@@ -603,7 +601,6 @@ namespace CSProjectGame
                     stackpanels_Registers[curReg].Children.Add(texts_RegisterNames[curReg]);
                     texts_Registers.Add(new TextBlock() { FontSize = registersStackPanel.Width / 8 < stackpanels_Registers[curReg].Height / 4 ? registersStackPanel.Width / 8 : stackpanels_Registers[curReg].Height / 4, FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Height = stackpanels_Registers[curReg].Height / 3 });
                     stackpanels_Registers[curReg].Children.Add(texts_Registers[curReg]);
-
                     stackpanels_Registers[curReg].IsMouseDirectlyOverChanged += new DependencyPropertyChangedEventHandler(stackpanels_Registers_IsMouseDirectlyOverChanged);
                 }
                 texts_Registers[curReg].Text = "0000 0000";
@@ -637,6 +634,12 @@ namespace CSProjectGame
                     }
                 }
 
+                text_CMP = new TextBlock();
+                stackpanel_CMP.Children.Add(text_CMP);
+                text_CMP.Width = stackpanel_CMP.Width;
+                text_CMP.Height = stackpanel_CMP.Height;
+                text_CMP.FontFamily = new FontFamily("HP Simplified Light");
+
                 text_AddressBus = new TextBlock(); text_DataBus = new TextBlock(); text_ToALU = new TextBlock();
                 texts_ToRegister = new TextBlock[NumRegisters];
                 for (int i = 0; i < NumRegisters; i++)
@@ -646,7 +649,7 @@ namespace CSProjectGame
                     texts_ToRegister[i].Height = 15;
                     texts_ToRegister[i].FontSize = 12;
                     texts_ToRegister[i].Background = Brushes.White;
-                    RegisterName("texts_ToRegister[" + i + "]", texts_ToRegister[i]);
+                    RegisterName("texts_ToRegister" + i, texts_ToRegister[i]);
                 }
                 text_AddressBus.Width = text_ToALU.Width = 25;
                 text_DataBus.Width = 50;
@@ -679,7 +682,6 @@ namespace CSProjectGame
 
         private void stackpanels_Registers_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            int index;
             int DecimalEq = KSConvert.BinaryToDecimalForRegisters(texts_Registers[stackpanels_Registers.IndexOf(sender as StackPanel)].Text.ToCharArray());
             stackpanels_Registers[stackpanels_Registers.IndexOf(sender as StackPanel)].ToolTip = "This register currently contains " + DecimalEq + " in decimal";
         }
@@ -1119,7 +1121,7 @@ namespace CSProjectGame
             ThicknessAnimation[] ToReturn = new ThicknessAnimation[3];
             #region Initialise Appropriate text_ToRegister
             TextBlock text_ToRegister = texts_ToRegister[iRegisterIndex];
-            string text_ToRegister_RegisteredName = "text_ToRegister[" + iRegisterIndex + "]";
+            string text_ToRegister_RegisteredName = "texts_ToRegister" + iRegisterIndex;
             text_ToRegister.Text = sContent;
             Grid Parentgrid = gridsRegWires[iRegisterIndex];
             Parentgrid.Children.Add(text_ToRegister);
@@ -1127,7 +1129,6 @@ namespace CSProjectGame
             Grid.SetColumn(text_ToRegister, 0);
             Grid.SetRowSpan(text_ToRegister, 2);
             Grid.SetColumnSpan(text_ToRegister, 2);
-            text_ToRegister.Margin = new Thickness(Parentgrid.ColumnDefinitions[0].MyWidth() + Parentgrid.ColumnDefinitions[1].MyWidth() - text_ToRegister.Width, (iRegisterIndex < 3) ? Parentgrid.RowDefinitions[1].MyHeight() : 0, 0, (iRegisterIndex >= 3) ? Parentgrid.RowDefinitions[1].MyHeight() : 0 + Parentgrid.RowDefinitions[2].MyHeight() - text_ToRegister.Height);
             #endregion
 
             #region Create animation1
@@ -1179,26 +1180,27 @@ namespace CSProjectGame
 
             return ToReturn;
         }
-        private ThicknessAnimation[] GetAnimationsNumberFromRegister(int iRegisterIndex, double doubleDurationInMilliseconds, TextBlock ToUse)
+        private ThicknessAnimation[] GetAnimationsNumberFromRegister(int iRegisterIndex, double doubleDurationInMilliseconds)
         {
             ThicknessAnimation[] ToReturn = new ThicknessAnimation[3];
-            #region Initialise Appropriate text_FromRegister
+            #region Initialize Appropriate text_FromRegister
             TextBlock text_FromRegister = texts_ToRegister[iRegisterIndex];
-            string text_FromRegister_RegisteredName = "text_FromRegister[" + iRegisterIndex + "]";
             text_FromRegister.Text = KSConvert.BinaryToDecimalForRegisters(texts_Registers[iRegisterIndex].Text.ToCharArray()).ToString();
-            Grid Parentgrid = gridsRegWires[iRegisterIndex];
-            Parentgrid.Children.Add(text_FromRegister);
+            string text_FromRegister_RegisteredName = "texts_ToRegister" + iRegisterIndex;
+            Grid ParentGrid = gridsRegWires[iRegisterIndex];
+            if (!ParentGrid.Children.Contains(text_FromRegister))
+                ParentGrid.Children.Add(text_FromRegister);
             Grid.SetRow(text_FromRegister, 1);
             Grid.SetColumn(text_FromRegister, 0);
             Grid.SetRowSpan(text_FromRegister, 2);
             Grid.SetColumnSpan(text_FromRegister, 2);
-            text_FromRegister.Margin = new Thickness(0, (iRegisterIndex < 3) ? 0 : Parentgrid.RowDefinitions[1].MyHeight(), Parentgrid.ColumnDefinitions[0].MyWidth() + Parentgrid.ColumnDefinitions[1].MyWidth() - text_FromRegister.Width, (iRegisterIndex < 3) ? (Parentgrid.RowDefinitions[1].MyHeight() + Parentgrid.RowDefinitions[2].MyHeight()) : Parentgrid.RowDefinitions[2].MyHeight() - text_FromRegister.Height);
             #endregion
 
             #region Create animation1
             ThicknessAnimation animation1 = new ThicknessAnimation();
-            animation1.From = new Thickness(0, (iRegisterIndex < 3) ? 0 : Parentgrid.RowDefinitions[1].MyHeight(), Parentgrid.ColumnDefinitions[0].MyWidth() + Parentgrid.ColumnDefinitions[1].MyWidth() - text_FromRegister.Width, (iRegisterIndex < 3) ? (Parentgrid.RowDefinitions[1].MyHeight() + Parentgrid.RowDefinitions[2].MyHeight()) : Parentgrid.RowDefinitions[2].MyHeight() - text_FromRegister.Height);
-            animation1.By = new Thickness(Parentgrid.ColumnDefinitions[0].MyWidth(), 0, -Parentgrid.ColumnDefinitions[0].MyWidth(), 0);
+            text_FromRegister.Margin = new Thickness(0, ((iRegisterIndex < 3) ? 0 : ParentGrid.RowDefinitions[1].MyHeight()), ParentGrid.Width - text_FromRegister.Width, ParentGrid.RowDefinitions[2].MyHeight() + ((iRegisterIndex < 3) ? ParentGrid.RowDefinitions[1].MyHeight() : 0) - text_FromRegister.Height);
+            animation1.From = new Thickness(0, ((iRegisterIndex < 3) ? 0 : ParentGrid.RowDefinitions[1].MyHeight()), ParentGrid.Width - text_FromRegister.Width, ParentGrid.RowDefinitions[2].MyHeight() + ((iRegisterIndex < 3) ? ParentGrid.RowDefinitions[1].MyHeight() : 0) - text_FromRegister.Height);
+            animation1.By = new Thickness(ParentGrid.ColumnDefinitions[0].MyWidth(), 0, -ParentGrid.ColumnDefinitions[0].MyWidth(), 0);
             animation1.Duration = TimeSpan.FromMilliseconds(doubleDurationInMilliseconds / 3);
             animation1.EasingFunction = new SineEase();
             Storyboard.SetTargetName(animation1, text_FromRegister_RegisteredName);
@@ -1208,16 +1210,9 @@ namespace CSProjectGame
 
             #region Create animation2
             ThicknessAnimation animation2 = new ThicknessAnimation();
-            if (iRegisterIndex < 3)
-            {
-                animation2.By = new Thickness(0, Parentgrid.RowDefinitions[1].MyHeight(), 0, -Parentgrid.RowDefinitions[1].MyHeight());
-            }
-            else
-            {
-                animation2.By = new Thickness(0, -Parentgrid.RowDefinitions[1].MyHeight(), 0, Parentgrid.RowDefinitions[1].MyHeight());
-            }
+            animation2.By = new Thickness(0, ((iRegisterIndex < 3) ? 1 : -1) * ParentGrid.RowDefinitions[1].MyHeight(), 0, ((iRegisterIndex < 3) ? -1 : 1) * ParentGrid.RowDefinitions[1].MyHeight());
             animation2.Duration = TimeSpan.FromMilliseconds(doubleDurationInMilliseconds / 3);
-            animation2.EasingFunction = new CubicEase();
+            animation2.EasingFunction = new SineEase();
             Storyboard.SetTargetName(animation2, text_FromRegister_RegisteredName);
             Storyboard.SetTargetProperty(animation2, new PropertyPath(MarginProperty));
             #endregion
@@ -1225,13 +1220,14 @@ namespace CSProjectGame
 
             #region Create animation3
             ThicknessAnimation animation3 = new ThicknessAnimation();
-            animation3.By = new Thickness(Parentgrid.ColumnDefinitions[1].MyWidth() - text_FromRegister.Width, 0, -Parentgrid.ColumnDefinitions[1].MyWidth() + text_FromRegister.Width, 0);
+            animation3.To = new Thickness(ParentGrid.Width - text_FromRegister.Width, ((iRegisterIndex < 3) ? ParentGrid.RowDefinitions[1].MyHeight() : 0), 0, ParentGrid.RowDefinitions[2].MyHeight() + ((iRegisterIndex < 3) ? 0 : ParentGrid.RowDefinitions[1].MyHeight()) - text_FromRegister.Height);
             animation3.Duration = TimeSpan.FromMilliseconds(doubleDurationInMilliseconds / 3);
-            animation3.EasingFunction = new SineEase();
+            animation3.EasingFunction = new CubicEase();
             Storyboard.SetTargetName(animation3, text_FromRegister_RegisteredName);
             Storyboard.SetTargetProperty(animation3, new PropertyPath(MarginProperty));
             #endregion
             ToReturn[2] = animation3;
+
             return ToReturn;
         }
 
@@ -1410,7 +1406,7 @@ namespace CSProjectGame
             Storyboard ToPlay = new Storyboard();
             
             #region Get tanimsFromReg
-            ThicknessAnimation[] tanimsFromReg = GetAnimationsNumberFromRegister(RegisterNumber, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4, text_FromRegister);
+            ThicknessAnimation[] tanimsFromReg = GetAnimationsNumberFromRegister(RegisterNumber, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
             for (int i = 0; i < tanimsFromReg.Length; i++)
             {
                 tanimsFromReg[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
@@ -1497,7 +1493,7 @@ namespace CSProjectGame
 
             #region Make filler animation to end ToPlay after information has been stored
             DoubleAnimation filler = new DoubleAnimation() { Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 8), BeginTime = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 8)};
-            Storyboard.SetTargetName(filler, "texts_ToRegister[0]");//doesn't matter
+            Storyboard.SetTargetName(filler, "texts_ToRegister0");//doesn't matter
             Storyboard.SetTargetProperty(filler, new PropertyPath(OpacityProperty));//doesn't matter
             #endregion
             ToPlay.Children.Add(filler);
@@ -1531,11 +1527,20 @@ namespace CSProjectGame
             char[] cArLine = AssemblyLine.ToCharArray();
             int MainRegisterNumber = cArLine[1] - '0';
             TextBlock text_MainRegister = texts_ToRegister[MainRegisterNumber];
-            string ContentToLoad = "";
+            int Comparand1 = KSConvert.BinaryToDecimalForRegisters(texts_Registers[MainRegisterNumber].Text.ToCharArray());
+            int Comparand2 = 0;
+            int SecondRegisterNumber = -1;
+            if (cArLine[2] == '1')//direct addressing
+                SecondRegisterNumber = (cArLine[3] - '0') * 10 + (cArLine[4] - '0');
             Storyboard ToPlay = new Storyboard();
+            /* interval size: lookup_ClockSpeed[ClockSpeed] / 12
+             * first three intervals: register data and <op> data transferred
+             * fourth interval: moving data to the ALU
+             * fifth and sixth intervals: show new cmp value
+             */
 
             #region Create tanimsNumberFromRegister
-            ThicknessAnimation[] tanimsNumberFromRegister = GetAnimationsNumberFromRegister(MainRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12, text_MainRegister);
+            ThicknessAnimation[] tanimsNumberFromRegister = GetAnimationsNumberFromRegister(MainRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
             for (int i = 0; i < tanimsNumberFromRegister.Length; i++)
             {
                 tanimsNumberFromRegister[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
@@ -1547,7 +1552,7 @@ namespace CSProjectGame
 
             #region Create dtRemovetext_MainRegister
             DispatcherTimer dtRemovetext_MainRegister = new DispatcherTimer();
-            dtRemovetext_MainRegister.Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+            dtRemovetext_MainRegister.Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
             dtRemovetext_MainRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_MainRegister));
             #endregion
 
@@ -1581,31 +1586,47 @@ namespace CSProjectGame
             {
                 
             }
-            else if (cArLine[2] == '1')//direct addressing
+            else if (cArLine[2] == '1' && SecondRegisterNumber != MainRegisterNumber && SecondRegisterNumber != -1)//direct addressing
             {
-                int SecondRegisterNumber = (cArLine[3] - '0') * 10 + (cArLine[4] - '0');
-                #region Create tanimsNumberFromRegister2
-                ThicknessAnimation[] tanimsNumberFromRegister2 = GetAnimationsNumberFromRegister(MainRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12, texts_ToRegister[SecondRegisterNumber]);
+                #region Initialize text_SecondRegister
+                TextBlock text_SecondRegister = new TextBlock();
+                text_SecondRegister.Text = KSConvert.BinaryToDecimalForRegisters(texts_Registers[SecondRegisterNumber].Text.ToCharArray()).ToString();
+                Grid ParentGrid2 = gridsRegWires[SecondRegisterNumber];
+                ParentGrid2.Children.Add(text_SecondRegister);
+                Grid.SetRow(text_SecondRegister, 1);
+                Grid.SetColumn(text_SecondRegister, 0);
+                Grid.SetRowSpan(text_SecondRegister, 2);
+                Grid.SetColumnSpan(text_SecondRegister, 2);
+                #endregion
+
+                #region Get tanimsDataFromSecondReg
+                ThicknessAnimation[] tanimsDataFromSecondReg = GetAnimationsNumberFromRegister(SecondRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
                 for (int i = 0; i < 3; i++)
                 {
-                    tanimsNumberFromRegister2[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
+                    tanimsDataFromSecondReg[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
                 }
                 #endregion
-                ToPlay.Children.Add(tanimsNumberFromRegister2[0]);
-                ToPlay.Children.Add(tanimsNumberFromRegister[1]);
-                ToPlay.Children.Add(tanimsNumberFromRegister[2]);
-                
+                ToPlay.Children.Add(tanimsDataFromSecondReg[0]);
+                ToPlay.Children.Add(tanimsDataFromSecondReg[1]);
+                ToPlay.Children.Add(tanimsDataFromSecondReg[2]);
             }
 
             #region Create dtRemovetext_ToALU
             DispatcherTimer dtRemovetext_ToALU = new DispatcherTimer();
             dtRemovetext_ToALU.Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
-            dtRemovetext_ToALU.Tick += dtRemovetext_ToALU_Tick;
+            dtRemovetext_ToALU.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_ToALU));
             #endregion
 
             ToPlay.Completed += delegate (object senderc, EventArgs c)
             {
-                ;
+                int cmp = Comparand1.CompareTo(Comparand2);
+                if (cmp > 0)
+                    text_CMP.Text = ">";//greater than
+                else if (cmp == 0)
+                    text_CMP.Text = "=";//equal to
+                else
+                    text_CMP.Text = "<";//less than
+                Fetch();
             };
             ToPlay.Begin(this);
             dtRemovetext_MainRegister.Start();
