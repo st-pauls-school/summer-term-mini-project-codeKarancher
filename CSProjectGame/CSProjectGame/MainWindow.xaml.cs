@@ -639,6 +639,7 @@ namespace CSProjectGame
                 text_CMP.Width = stackpanel_CMP.Width;
                 text_CMP.Height = stackpanel_CMP.Height;
                 text_CMP.FontFamily = new FontFamily("HP Simplified Light");
+                text_CMP.Foreground = Brushes.Black;
 
                 text_AddressBus = new TextBlock(); text_DataBus = new TextBlock(); text_ToALU = new TextBlock();
                 texts_ToRegister = new TextBlock[NumRegisters];
@@ -1617,6 +1618,15 @@ namespace CSProjectGame
             dtRemovetext_ToALU.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_ToALU));
             #endregion
 
+            #region Create tanimFiller (to allow time for user to see change of text_CMP)
+            ThicknessAnimation tanimFiller = new ThicknessAnimation();
+            tanimFiller.Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
+            tanimFiller.BeginTime = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
+            Storyboard.SetTargetName(tanimFiller, "text_ToALU");
+            Storyboard.SetTargetProperty(tanimFiller, new PropertyPath(MarginProperty));
+            #endregion
+            ToPlay.Children.Add(tanimFiller);
+
             ToPlay.Completed += delegate (object senderc, EventArgs c)
             {
                 int cmp = Comparand1.CompareTo(Comparand2);
@@ -1626,6 +1636,7 @@ namespace CSProjectGame
                     text_CMP.Text = "=";//equal to
                 else
                     text_CMP.Text = "<";//less than
+                text_CMP.Visibility = Visibility.Visible;
                 Fetch();
             };
             ToPlay.Begin(this);
@@ -1890,11 +1901,18 @@ namespace CSProjectGame
             text_ALU.Width = ActualWidth * 3 / 14;
             text_ALU.Height = ActualHeight * 51 / 322;
             text_ALU.FontSize = (ActualWidth * (3 * 2) / (14 * 11) < ActualHeight * (51 * 2) / (322 * 5)) ? ActualWidth * (3 * 2) / (14 * 11) : ActualHeight * (51 * 2) / (322 * 5);
+            stackpanel_CMP.Width = 0.5 * text_ALU.Width;
+            stackpanel_CMP.Height = 0.15 * text_ALU.Height;
+            if (text_CMP != null)
+            {
+                text_CMP.Width = stackpanel_CMP.Width;
+                text_CMP.Height = stackpanel_CMP.Height;
+                text_CMP.FontSize = Math.Min(text_CMP.Width * 2.5, text_CMP.Height);
+            }
 
             gridProcToMem.Width = rect_AddressBusWire.Width = rect_DataBusWire.Width = ActualWidth / 14;
             gridProcToMem.Height = ActualHeight * 102 / 322;
-
-
+            
             button_Quests.Width = ActualWidth / 14;
             button_Quests.Height = ActualHeight * 44 / 322;
             button_Quests.FontSize = (111 * ActualHeight / 483 < ActualWidth / 70) ? 111 * ActualHeight / 483 : ActualWidth / 70;
@@ -1909,7 +1927,6 @@ namespace CSProjectGame
             button_QstSave.Margin = new Thickness(ActualWidth / 14 - button_QstSave_Width, 0, 0, 0);
         }
         #endregion
-
         #endregion
     }
 }
