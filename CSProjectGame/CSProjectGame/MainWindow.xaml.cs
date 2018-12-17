@@ -95,6 +95,8 @@ namespace CSProjectGame
             myUniversalRand = new Random(DateTime.Today.Millisecond);
             myBrushes = new Dictionary<string, Brush>();
 
+            NumRegisters = 3;//DEBUG
+
             //Contains all quests in order of difficulty and reward, can be referenced using listQuests[QuestNumber][0]. Item1 contains the 'message' or 'challenge' in English. Item2 contains the number of 'portions' that are attained upon completion
             lookup_Quests = new Tuple<string, int>[] { new Tuple<string, int>("Store the numbers 1 to 5 in memory locations 10 to 14", 100), new Tuple<string, int>("Challenge 2", 100), new Tuple<string, int>("Challenge 3", 150), new Tuple<string, int>("Challenge 4", 200), new Tuple<string, int>("Challenge 5", 200), new Tuple<string, int>("Challenge 6", 250), new Tuple<string, int>("Challenge 7", 300), new Tuple<string, int>("Challenge 8", 350), new Tuple<string, int>("Challenge 9", 400), new Tuple<string, int>("Challenge 10", 450) };
             listQuestsStatus = new byte[lookup_Quests.Length];
@@ -304,7 +306,7 @@ namespace CSProjectGame
                 AddNewTab((i + 1).ToString());
             }
             myDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });
-            NumRegisters = KSFileManagement.NumRegFromFile;
+            //DEBUGNumRegisters = KSFileManagement.NumRegFromFile;
             MemorySpec = KSFileManagement.MemSpecFromFile;
             texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
             texts_MemoryCellNames = new TextBlock[lookup_MemorySpec[MemorySpec]];
@@ -1271,6 +1273,29 @@ namespace CSProjectGame
             dtEmphasiseStoredData.Start();
             (sender as DispatcherTimer).Stop();
         }
+        private void dtShowComparison_Tick(object sender, EventArgs e)
+        {
+            char[] carInstruction = text_CIR.Text.ToCharArray();
+            int mainregnum = carInstruction[1] - '0';
+            int comp1 = KSConvert.BinaryToDecimalForRegisters(texts_Registers[mainregnum].Text.ToCharArray());
+            int secondregnum;
+            int comp2;
+            if (carInstruction[2] == '1')
+            {
+                secondregnum = (carInstruction[3] - '0') * 10 + (carInstruction[4] - '0');
+                comp2 = KSConvert.BinaryToDecimalForRegisters(texts_Registers[secondregnum].Text.ToCharArray());
+            }
+            else
+                comp2 = (carInstruction[3] - '0') * 10 + (carInstruction[4] - '0');
+            text_CMP.Text = comp1 + " CMP " + comp2;
+            (sender as DispatcherTimer).Stop();
+        }
+        private void dtShowComparand2_Tick(object sender, EventArgs e)
+        {
+            char[] car = text_CIR.Text.ToCharArray();
+            text_CMP.Text = ((car[3] - '0') * 10 + (car[4] - '0')).ToString();
+            (sender as DispatcherTimer).Stop();
+        }
         #endregion
 
         private void ExecuteInstruction_LDR(string AssemblyLine)
@@ -1515,11 +1540,92 @@ namespace CSProjectGame
 
         private void ExecuteInstruction_MOV(string AssemblyLine)
         {
-            #region Initialise text_AddressBus
-            text_AddressBus.Text = int.Parse(text_PC.Text).ToString();
-            gridProcToMem.Children.Add(text_AddressBus);
-            Grid.SetRow(text_AddressBus, 1);
+            char[] cArLine = AssemblyLine.ToCharArray();
+            int MainRegisterNumber = cArLine[1] - '0';
+            TextBlock text_MainRegister = texts_ToRegister[MainRegisterNumber];
+            TextBlock text_ToRegister = texts_ToRegister[MainRegisterNumber];
+            string ContentToCopy;
+            Storyboard ToPlay = new Storyboard();
+
+            if (cArLine[2] == '0')//immediate addressing
+            {
+                #region Initialise text_ToALU
+                text_ToALU.Text = new string(new char[] { cArLine[3], cArLine[4] });
+                gridToALU.Children.Add(text_ToALU);
+                Grid.SetColumn(text_ToALU, 0);
+                Grid.SetColumnSpan(text_ToALU, 2);
+                text_ToALU.Margin = new Thickness(gridToALU.ColumnDefinitions[0].ActualWidth - text_ToALU.Width / 2, gridToALU.ActualHeight - text_ToALU.Height, gridToALU.ColumnDefinitions[1].ActualWidth - text_ToALU.Width / 2, 0);
+                text_ToALU.Visibility = Visibility.Visible;
+                #endregion
+
+                #region Create tanimNumberFromALU
+                ThicknessAnimation tanimNumberFromALU = new ThicknessAnimation();
+                tanimNumberFromALU.From = new Thickness(text_ToALU.Margin.Left, gridToALU.ActualHeight - text_ToALU.Height, text_ToALU.Margin.Right, 0);
+                tanimNumberFromALU.To = new Thickness(text_ToALU.Margin.Left, 0, text_ToALU.Margin.Right, gridToALU.ActualHeight - text_ToALU.Height);
+                tanimNumberFromALU.Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+                tanimNumberFromALU.EasingFunction = new CubicEase();
+                Storyboard.SetTargetName(tanimNumberFromALU, "text_ToALU");
+                Storyboard.SetTargetProperty(tanimNumberFromALU, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimNumberFromALU);
+
+                DispatcherTimer dtToRemovetext_ToALU = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4) };
+                dtToRemovetext_ToALU.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_ToALU));
+
+                ContentToCopy = new string(new char[] { cArLine[3], cArLine[4] });
+
+                dtToRemovetext_ToALU.Start();
+            }
+            else//direct addressing
+            {
+                int DepartureRegisterNumber = (cArLine[3] - '0') * 10 + (cArLine[4] - '0');
+                TextBlock text_FromRegister = texts_ToRegister[DepartureRegisterNumber];
+
+                #region Get tanimsContentFromReg
+                ThicknessAnimation[] tanimsContentFromReg = GetAnimationsNumberFromRegister(DepartureRegisterNumber, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+                for (int i = 0; i < 3; i++)
+                    tanimsContentFromReg[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
+                #endregion
+                ToPlay.Children.Add(tanimsContentFromReg[0]);
+                ToPlay.Children.Add(tanimsContentFromReg[1]);
+                ToPlay.Children.Add(tanimsContentFromReg[2]);
+
+                #region Create dtRemovetext_FromRegister
+                DispatcherTimer dtRemovetext_FromRegister = new DispatcherTimer();
+                dtRemovetext_FromRegister.Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+                dtRemovetext_FromRegister.Tick +=new EventHandler(KSTimerEvHandlers.Generate("Remove", text_FromRegister));
+                #endregion
+
+                ContentToCopy = KSConvert.BinaryToDecimalForRegisters(texts_Registers[DepartureRegisterNumber].Text.ToCharArray()).ToString();
+
+                dtRemovetext_FromRegister.Start();
+            }
+
+            #region Get tanimsNumberToRegister
+            ThicknessAnimation[] tanimsNumberToRegister = GetAnimationsNumberToRegister(MainRegisterNumber, ContentToCopy, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4, text_ToRegister);
+            for (int i = 0; i < tanimsNumberToRegister.Length; i++)
+            {
+                tanimsNumberToRegister[i].BeginTime = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4 + i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
+            }
             #endregion
+            text_ToRegister.Visibility = Visibility.Collapsed;
+            ToPlay.Children.Add(tanimsNumberToRegister[0]);
+            ToPlay.Children.Add(tanimsNumberToRegister[1]);
+            ToPlay.Children.Add(tanimsNumberToRegister[2]);
+
+            #region Create dtRevealtext_ToRegister
+            DispatcherTimer dtRevealtext_ToRegister = new DispatcherTimer();
+            dtRevealtext_ToRegister.Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+            dtRevealtext_ToRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Reveal", text_ToRegister));
+            #endregion
+
+            ToPlay.Completed += delegate (object sender, EventArgs e)
+            {
+                (runtimeStackPanel.Children[0] as TextBlock).Text += "\n>>Instruction executed...\n\tNext instruction";
+                Fetch();
+            };
+            ToPlay.Begin(this);
+            dtRevealtext_ToRegister.Start();
         }
 
         private void ExecuteInstruction_CMP(string AssemblyLine)
@@ -1585,7 +1691,14 @@ namespace CSProjectGame
 
             if (cArLine[2] == '0')//immediate addressing
             {
-                
+                #region Create dtShowComparand2
+                DispatcherTimer dtShowComparand2 = new DispatcherTimer();
+                dtShowComparand2.Interval = TimeSpan.FromMilliseconds(0);
+                dtShowComparand2.Tick += dtShowComparand2_Tick;
+                #endregion
+                //set comparand 2
+                Comparand2 = (cArLine[3] - '0') * 10 + (cArLine[4] - '0');
+                dtShowComparand2.Start();
             }
             else if (cArLine[2] == '1' && SecondRegisterNumber != MainRegisterNumber && SecondRegisterNumber != -1)//direct addressing
             {
@@ -1611,11 +1724,19 @@ namespace CSProjectGame
                 ToPlay.Children.Add(tanimsDataFromSecondReg[1]);
                 ToPlay.Children.Add(tanimsDataFromSecondReg[2]);
             }
+            else if (SecondRegisterNumber == MainRegisterNumber)
+                Comparand2 = Comparand1;
 
             #region Create dtRemovetext_ToALU
             DispatcherTimer dtRemovetext_ToALU = new DispatcherTimer();
             dtRemovetext_ToALU.Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
             dtRemovetext_ToALU.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_ToALU));
+            #endregion
+
+            #region Create dtShowComparison
+            DispatcherTimer dtShowComparison = new DispatcherTimer();
+            dtShowComparison.Interval = TimeSpan.FromMilliseconds(9 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 24);
+            dtShowComparison.Tick += dtShowComparison_Tick;
             #endregion
 
             #region Create tanimFiller (to allow time for user to see change of text_CMP)
@@ -1637,12 +1758,14 @@ namespace CSProjectGame
                 else
                     text_CMP.Text = "<";//less than
                 text_CMP.Visibility = Visibility.Visible;
+                (runtimeStackPanel.Children[0] as TextBlock).Text += "\n>>Instruction executed...\n\tNext instruction";
                 Fetch();
             };
             ToPlay.Begin(this);
             dtRemovetext_MainRegister.Start();
             dtRevealtext_ToALU.Start();
             dtRemovetext_ToALU.Start();
+            dtShowComparison.Start();
         }
 
         private void ExecuteInstruction_Branch(string AssemblyLine)
@@ -1679,6 +1802,7 @@ namespace CSProjectGame
             {
                 texts_Registers[i].Text = "0000 0000";
             }
+            text_CMP.Text = "";
             return;
         }
         #endregion
@@ -1907,7 +2031,7 @@ namespace CSProjectGame
             {
                 text_CMP.Width = stackpanel_CMP.Width;
                 text_CMP.Height = stackpanel_CMP.Height;
-                text_CMP.FontSize = Math.Min(text_CMP.Width * 2.5, text_CMP.Height);
+                text_CMP.FontSize = Math.Min(text_CMP.Width * 2.3, text_CMP.Height * 0.9);
             }
 
             gridProcToMem.Width = rect_AddressBusWire.Width = rect_DataBusWire.Width = ActualWidth / 14;

@@ -357,7 +357,7 @@
             <ContentControl Content="Quests"  Foreground="LightYellow" VerticalContentAlignment="Bottom"/>
         </Button>
         <Button x:Name="button_QstSave" Content="" Grid.Column="12" HorizontalAlignment="Left" Height="43.724" Margin="33.925,0,0,0" Grid.Row="1" Style="{DynamicResource ButtonStyleQstSave}" VerticalAlignment="Top" Width="3" Grid.RowSpan="1" Click="button_QstSave_Click_Open" Visibility="Collapsed"/>
-        <TextBlock x:Name="text_ALU" Grid.ColumnSpan="3" Grid.Column="3" HorizontalAlignment="Left" Height="50.683" Grid.Row="6" TextWrapping="Wrap" VerticalAlignment="Top" Width="110.786" FontFamily="HP Simplified" FontSize="20" TextAlignment="Center" Visibility="Visible">
+        <TextBlock x:Name="text_ALU" Grid.ColumnSpan="3" Grid.Column="3" HorizontalAlignment="Left" Height="50.683" Grid.Row="6" TextWrapping="Wrap" VerticalAlignment="Top" Width="110.786" FontFamily="HP Simplified" FontSize="20" TextAlignment="Center" Visibility="Collapsed">
             <TextBlock.Foreground>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                     <GradientStop Color="#FFB4B4B4" Offset="1"/>

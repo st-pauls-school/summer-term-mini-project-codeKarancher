@@ -64,9 +64,6 @@ namespace CSProjectGame
                 List<char> curWord = new List<char>();
                 for (int curChar = 0; curChar < curLineChars.Length; curChar++)
                 {
-                    if (curLineChars[curChar] == '\r')
-                        if (curLineChars[curChar + 1] == '\n')
-                        throw new Exception("Got 'em!!");//DEBUG
                     if (curLineChars[curChar] == 'R' && IsFirstCharInWord)
                         continue;
                     if (curLineChars[curChar] == ',' || curLineChars[curChar] == ' ' || curLineChars[curChar] == '\t' || curChar == curLineChars.Length - 1)//is a break between words
