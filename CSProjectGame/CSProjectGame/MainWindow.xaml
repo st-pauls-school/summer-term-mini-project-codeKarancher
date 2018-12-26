@@ -41,11 +41,11 @@
                         <Grid>
                             <Rectangle>
                                 <Rectangle.Fill>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="#FF527AE6" Offset="0"/>
-                                        <GradientStop Color="#FF263E80" Offset="1"/>
-                                    </LinearGradientBrush>
+                                    <SolidColorBrush Color="#FF395CA0"/>
                                 </Rectangle.Fill>
+                                <Rectangle.Stroke>
+                                    <SolidColorBrush Color="#FF90C0FF"/>
+                                </Rectangle.Stroke>
                             </Rectangle>
                             <ContentPresenter  RecognizesAccessKey="True"/>
                             <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="Go!" Foreground="GhostWhite" FontSize="14"/>
@@ -171,7 +171,7 @@
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-        <Rectangle x:Name="rect_MotherBoardBackGround" Grid.ColumnSpan="10" HorizontalAlignment="Left" Height="297.143" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="406.214" Fill="#FF00810C" Stroke="Black" StrokeThickness="5" Visibility="Visible"/>
+        <Rectangle x:Name="rect_MotherBoardBackGround" Grid.ColumnSpan="10" HorizontalAlignment="Left" Height="297.143" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="406.214" Fill="#FF00810C" Stroke="Black" StrokeThickness="5" Visibility="Collapsed"/>
         <TextBlock x:Name="text_Title" HorizontalAlignment="Left" VerticalAlignment="Center" Height="77.778" Margin="0,7,0,9.632" TextWrapping="Wrap" Text="Inside Your Computer" Width="170.133" FontFamily="HP Simplified" FontSize="25 " TextDecorations="{x:Null}" Grid.ColumnSpan="6" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Visibility="Visible">
             <TextBlock.Foreground>
                 <RadialGradientBrush>
