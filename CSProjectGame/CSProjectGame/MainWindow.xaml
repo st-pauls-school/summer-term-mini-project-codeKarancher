@@ -48,7 +48,7 @@
                                 </Rectangle.Stroke>
                             </Rectangle>
                             <ContentPresenter  RecognizesAccessKey="True"/>
-                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="Go!" Foreground="GhostWhite" FontSize="14"/>
+                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="Go!" Foreground="GhostWhite" FontSize="10"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True"/>
@@ -172,7 +172,7 @@
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
         <Rectangle x:Name="rect_MotherBoardBackGround" Grid.ColumnSpan="10" HorizontalAlignment="Left" Height="297.143" Grid.Row="1" Grid.RowSpan="6" VerticalAlignment="Top" Width="406.214" Fill="#FF00810C" Stroke="Black" StrokeThickness="5" Visibility="Collapsed"/>
-        <TextBlock x:Name="text_Title" HorizontalAlignment="Left" VerticalAlignment="Center" Height="77.778" Margin="0,7,0,9.632" TextWrapping="Wrap" Text="Inside Your Computer" Width="170.133" FontFamily="HP Simplified" FontSize="25 " TextDecorations="{x:Null}" Grid.ColumnSpan="6" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Visibility="Visible">
+        <TextBlock x:Name="text_Title" HorizontalAlignment="Center" VerticalAlignment="Center" Height="44" TextWrapping="Wrap" Text="Inside Your Computer" Width="296" FontFamily="HP Simplified" FontSize="28" TextDecorations="{x:Null}" Grid.ColumnSpan="8" Grid.Row="1" Visibility="Visible" TextAlignment="Center" Grid.Column="2">
             <TextBlock.Foreground>
                 <RadialGradientBrush>
                     <GradientStop Color="#FF15554C"/>
@@ -180,10 +180,10 @@
                 </RadialGradientBrush>
             </TextBlock.Foreground>
         </TextBlock>
-        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="101.052" Grid.Row="3" Grid.RowSpan="2" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="184.643" Click="button_Go_Click" Grid.ColumnSpan="5" Grid.Column="5" Visibility="Visible"/>
+        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="32" Grid.Row="6" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="111" Click="button_Go_Click" Grid.ColumnSpan="4" Grid.Column="4" Visibility="Visible" Margin="17,0,0,19"/>
         <StackPanel x:Name="myStackPanel"  Grid.ColumnSpan="12" HorizontalAlignment="Left" Height="202.733" Grid.Row="2" Grid.RowSpan="4" VerticalAlignment="Top" Width="443.487" Background="White" Opacity="0.6" Margin="36.584,0,0,0" Visibility="Collapsed"/>
         <Button x:Name="tab_Main" Content="" HorizontalAlignment="Left" Height="16.842" Style="{DynamicResource ButtonStyle4}" VerticalAlignment="Top" Width="68.933" Visibility="Collapsed"/>
-        <DockPanel x:Name="myDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0" Visibility="Visible"/>
+        <DockPanel x:Name="tabsDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0" Visibility="Visible"/>
         <DockPanel x:Name="toolsDockPanel" Grid.Column="9" HorizontalAlignment="Left" Height="38.727" VerticalAlignment="Top" Width="123.119" Grid.ColumnSpan="4" Grid.Row="1" Margin="24.595,0,0,0" Visibility="Collapsed">
             <DockPanel.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -390,5 +390,15 @@
             <Rectangle x:Name="rect_AddressBusWire" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="1" StrokeThickness="5" VerticalAlignment="Top" Width="36.929"/>
             <Rectangle x:Name="rect_DataBusWire" Fill="#FFC1A90D" HorizontalAlignment="Left" Height="1.5" Grid.Row="2" StrokeThickness="5" VerticalAlignment="Top" Width="36.929"/>
         </Grid>
+        <Canvas x:Name="canvas_LoginDetails_Username" Grid.ColumnSpan="6" Grid.Column="3" Margin="19,0,19,26" Grid.Row="3" Width="184" Height="24">
+            <Ellipse HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="26" Fill="White"/>
+            <TextBox x:Name="text_LoginDetails_Username" Height="25" TextWrapping="Wrap" Text="Username" VerticalAlignment="Top" Foreground="#FF2A977E" ToolTip="Enter your username" FontFamily="HP Simplified Light" UndoLimit="1000" BorderThickness="0" HorizontalAlignment="Left" Width="159" Canvas.Left="14" FontSize="15"/>
+            <Ellipse HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="26" Fill="White" Canvas.Left="159"/>
+        </Canvas>
+        <Canvas x:Name="canvas_LoginDetails_Password" Grid.ColumnSpan="6" Grid.Column="3" Margin="19,25,19,0" Grid.Row="4" Width="184" Height="26">
+            <Ellipse HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="26" Fill="White"/>
+            <TextBox x:Name="text_LoginDetails_Password" Height="25" TextWrapping="Wrap" Text="Password" VerticalAlignment="Top" Foreground="#FF2A977E" ToolTip="Enter your password" FontFamily="HP Simplified Light" UndoLimit="1000" BorderThickness="0" HorizontalAlignment="Left" Width="159" Canvas.Left="14" FontSize="15"/>
+            <Ellipse HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="26" Fill="White" Canvas.Left="159"/>
+        </Canvas>
     </Grid>
 </Window>

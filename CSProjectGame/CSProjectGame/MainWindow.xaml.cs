@@ -75,6 +75,7 @@ namespace CSProjectGame
         public MainWindow()
         {
             InitializeComponent();
+            WindowState = WindowState.Maximized;
             Title = "Inside Your Computer";
             if (!Directory.Exists(sGameFilesPath))
                 Directory.CreateDirectory(sGameFilesPath);
@@ -101,7 +102,79 @@ namespace CSProjectGame
             lookup_Quests = new Tuple<string, int>[] { new Tuple<string, int>("Store the numbers 1 to 5 in memory locations 10 to 14", 100), new Tuple<string, int>("Challenge 2", 100), new Tuple<string, int>("Challenge 3", 150), new Tuple<string, int>("Challenge 4", 200), new Tuple<string, int>("Challenge 5", 200), new Tuple<string, int>("Challenge 6", 250), new Tuple<string, int>("Challenge 7", 300), new Tuple<string, int>("Challenge 8", 350), new Tuple<string, int>("Challenge 9", 400), new Tuple<string, int>("Challenge 10", 450) };
             listQuestsStatus = new byte[lookup_Quests.Length];
 
-            
+            canvas_LoginDetails_Username.Opacity = 0;
+            RegisterName("canvas_LoginDetails_Username", canvas_LoginDetails_Username);
+            canvas_LoginDetails_Password.Opacity = 0;
+            RegisterName("canvas_LoginDetails_Password", canvas_LoginDetails_Password);
+            LoginBoxAnimations(canvas_LoginDetails_Username, "canvas_LoginDetails_Username", canvas_LoginDetails_Username.Margin).Begin(this);
+            LoginBoxAnimations(canvas_LoginDetails_Password, "canvas_LoginDetails_Password", canvas_LoginDetails_Password.Margin).Begin(this);
+            GoButtonAnimation();
+            text_LoginDetails_Username.GotMouseCapture += text_LoginDetails_ClearText;
+            text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
+        }
+
+        private void button_Go_Click(object sender, RoutedEventArgs e)
+        {
+            //if account details are correct
+            text_Title.Visibility = Visibility.Collapsed;
+            canvas_LoginDetails_Username.Visibility = Visibility.Collapsed;
+            canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
+            button_Go.Visibility = Visibility.Collapsed;
+            ingraph_Initialise();
+        }
+
+        private void text_LoginDetails_ClearText(object sender, MouseEventArgs e)
+        {
+            (sender as TextBox).Text = "";
+            (sender as TextBox).GotMouseCapture -= text_LoginDetails_ClearText;
+        }
+
+        Storyboard LoginBoxAnimations(Canvas loginbox, string regname, Thickness marginBeforeAnimation)
+        {
+            const int iTimespan = 1200;
+            const int iStartTime = 1200;
+            Storyboard ToReturn = new Storyboard();
+
+            #region Create tanimLB
+            ThicknessAnimation tanimLB = new ThicknessAnimation();
+            tanimLB.From = new Thickness(marginBeforeAnimation.Left, marginBeforeAnimation.Top + this.Height / 16, marginBeforeAnimation.Right, marginBeforeAnimation.Bottom - this.Height / 16);
+            tanimLB.To = marginBeforeAnimation;
+            tanimLB.EasingFunction = new QuadraticEase();
+            tanimLB.Duration = TimeSpan.FromMilliseconds(iTimespan);
+            tanimLB.BeginTime = TimeSpan.FromMilliseconds(iStartTime);
+            Storyboard.SetTargetName(tanimLB, regname);
+            Storyboard.SetTargetProperty(tanimLB, new PropertyPath(MarginProperty));
+            #endregion
+            ToReturn.Children.Add(tanimLB);
+
+            #region Create danimOpacityLB
+            DoubleAnimation danimOpacityLB = new DoubleAnimation();
+            danimOpacityLB.From = 0;
+            danimOpacityLB.To = 1;
+            danimOpacityLB.EasingFunction = new SineEase();
+            danimOpacityLB.Duration = TimeSpan.FromMilliseconds(iTimespan);
+            danimOpacityLB.BeginTime = TimeSpan.FromMilliseconds(iStartTime);
+            Storyboard.SetTargetName(danimOpacityLB, regname);
+            Storyboard.SetTargetProperty(danimOpacityLB, new PropertyPath(OpacityProperty));
+            #endregion
+            ToReturn.Children.Add(danimOpacityLB);
+
+            return ToReturn;
+        }
+
+        void GoButtonAnimation()
+        {
+            button_Go.Opacity = 0;
+            DoubleAnimation danim = new DoubleAnimation();
+            danim.From = 0;
+            danim.To = 1;
+            danim.Duration = TimeSpan.FromMilliseconds(2000);
+            danim.EasingFunction = new CubicEase();
+            Storyboard.SetTarget(danim, button_Go);
+            Storyboard.SetTargetProperty(danim, new PropertyPath(OpacityProperty));
+            danim.BeginTime = TimeSpan.FromMilliseconds(3000);
+            Storyboard s = new Storyboard() { Children = new TimelineCollection() { danim } };
+            s.Begin(this);
         }
 
         #region Initialise Graphics
@@ -115,23 +188,23 @@ namespace CSProjectGame
             myStackPanel.Children.Add(text_Welcome);
             KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_01);
             myStackPanel.Visibility = Visibility.Visible;
-            myDockPanel.Children.CollapseElements();
+            tabsDockPanel.Children.CollapseElements();
             toolsDockPanel.Visibility = Visibility.Collapsed;
         }
 
         private void ingraph_FirstTime_01_Tabs()
         {
             text_Welcome.Text = "Use the tabs above to switch between your computer and your code... 'Main' will show you the computer. Numbered tabs can be used for multiple coding solutions\n\npress any key to continue...";
-            myDockPanel.Children.ShowAllElements();
-            myDockPanel.Children[myDockPanel.Children.Count - 1].Visibility = Visibility.Collapsed;
-            (myDockPanel.Children[myDockPanel.Children.Count - 2] as Button).Click -= CodeTab_Click;
+            tabsDockPanel.Children.ShowAllElements();
+            tabsDockPanel.Children[tabsDockPanel.Children.Count - 1].Visibility = Visibility.Collapsed;
+            (tabsDockPanel.Children[tabsDockPanel.Children.Count - 2] as Button).Click -= CodeTab_Click;
             KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_02_1);
         }
 
         private void ingraph_FirstTime_02_Coding_01()
         {
             text_Welcome.Text = "Click on the coding tab to continue..";
-            (myDockPanel.Children[1] as Button).Click += new RoutedEventHandler(Code1_Tutorial_01);
+            (tabsDockPanel.Children[1] as Button).Click += new RoutedEventHandler(Code1_Tutorial_01);
         }
 
         private void ingraph_FirstTime_02_Coding_02()
@@ -168,7 +241,7 @@ namespace CSProjectGame
             }
             ALUSpec = 0;
             ClockSpeedSpec = 0;
-            (myDockPanel.Children[0] as Button).Click += new RoutedEventHandler(MainTab_Click_Tutorial);
+            (tabsDockPanel.Children[0] as Button).Click += new RoutedEventHandler(MainTab_Click_Tutorial);
             text_Welcome.Text = "You will start with just 1 register, " + lookup_MemorySpec[MemorySpec] + " memory locations, a basic ALU and minimal clock speed... Click on the 'Main' tab to see your brand new computer hot out of the oven!";
         }
 
@@ -193,14 +266,13 @@ namespace CSProjectGame
         {
             (runtimeStackPanel.Children[0] as TextBlock).Text = ">>No program loaded";
             text_Welcome.Visibility = Visibility.Collapsed;
-            (myDockPanel.Children[0] as Button).Click -= Code1_Tutorial_01;
-            texts_TabNames[0].Text = "Sample Code";
-            for (int i = 1; i < myDockPanel.Children.Count - 1; i++)
+            (tabsDockPanel.Children[0] as Button).Click -= Code1_Tutorial_01;
+            for (int i = 1; i < tabsDockPanel.Children.Count - 1; i++)
             {
-                (myDockPanel.Children[i] as Button).Click += CodeTab_Click;
+                (tabsDockPanel.Children[i] as Button).Click += CodeTab_Click;
                 texts_TabNames[i - 1].TextChanged += new TextChangedEventHandler(text_TabName_TextChanged);
             }
-            Button AddTab = (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button);
+            Button AddTab = (tabsDockPanel.Children[tabsDockPanel.Children.Count - 1] as Button);
             AddTab.Click -= DockButton_Click_AddNewTab_Tutorial;
             AddTab.Click += DockPanelButton_Click_AddNewTab;
             button_DeleteTab.Click -= DockButton_Click_DeleteTab_Tutorial;
@@ -208,14 +280,16 @@ namespace CSProjectGame
             button_CodeManual.Click -= Button_CodeManual_Click_Tutorial_Open;
             button_CodeManual.Click += DockButton_Click_CodeManual_Open;
             button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory_Tab1;
-            (myDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
-            (myDockPanel.Children[0] as Button).Click += MainTab_Click;
+            (tabsDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
+            (tabsDockPanel.Children[0] as Button).Click += MainTab_Click;
 
             //Prepare some sample code for the user
             texts_TabNames[0].Text = "Sample Code";
-            texts_Tabs[0].Text = "Some sample code to store the sum of two values in memory to location 2:\n\nLDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2";
+            texts_Tabs[0].Text = "Some sample code to store the first few natural numbers in memory:\n\nLDR 0, #1\r\nSTR 0, 10\r\nLDR 0, #2\r\nSTR 0, 11\r\nLDR 0, #3\r\nSTR 0, 12\r\nHALT";
             texts_Tabs[0].TextChanged += new TextChangedEventHandler(CodeTab_TextChanged_TutorialTemporary);
-            (myDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
+            (tabsDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
+
+            button_SaveProgress_Click(button_SaveProgress, new RoutedEventArgs());
         }
         #endregion
 
@@ -246,7 +320,7 @@ namespace CSProjectGame
                     ingraph_SetEventHandlers();
                     GraphicsForMotherBoard();
                     curTab = 0;
-                    CodeTab_Click(myDockPanel.Children[1] as Button, new RoutedEventArgs());
+                    CodeTab_Click(tabsDockPanel.Children[1] as Button, new RoutedEventArgs());
                 }
 
             }
@@ -255,12 +329,12 @@ namespace CSProjectGame
         
         private void ingraph_SetEventHandlers()
         {
-            for (int i = 1; i < myDockPanel.Children.Count - 1; i++)
+            for (int i = 1; i < tabsDockPanel.Children.Count - 1; i++)
             {
-                (myDockPanel.Children[i] as Button).Click += CodeTab_Click;
+                (tabsDockPanel.Children[i] as Button).Click += CodeTab_Click;
                 texts_TabNames[i - 1].TextChanged += new TextChangedEventHandler(text_TabName_TextChanged);
             }
-            Button AddTab = (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button);
+            Button AddTab = (tabsDockPanel.Children[tabsDockPanel.Children.Count - 1] as Button);
             AddTab.Click -= DockButton_Click_AddNewTab_Tutorial;
             AddTab.Click += DockPanelButton_Click_AddNewTab;
             //button_Quests.Click += button_Quests_Click_Open;
@@ -270,18 +344,18 @@ namespace CSProjectGame
             button_CodeManual.Click -= Button_CodeManual_Click_Tutorial_Open;
             button_CodeManual.Click += DockButton_Click_CodeManual_Open;
             button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory_Tab1;
-            (myDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
-            (myDockPanel.Children[0] as Button).Click += MainTab_Click;
+            (tabsDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
+            (tabsDockPanel.Children[0] as Button).Click += MainTab_Click;
         }
 
         private void ingraph_InitialiseTabs_Tutorial()
         {
-            myDockPanel.Visibility = Visibility.Visible;
-            myDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyle4"], Width = ActualWidth / 14 });    //Main button
+            tabsDockPanel.Visibility = Visibility.Visible;
+            tabsDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyle4"], Width = ActualWidth / 14 });    //Main button
             AddNewTab("P1");   //Tab 1
-            myDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });   //+ tab
-            (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockPanelButton_Click_AddNewTab);   //+ tab event handler
-            myDockPanel.Children.ShowAllElements();
+            tabsDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });   //+ tab
+            (tabsDockPanel.Children[tabsDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockPanelButton_Click_AddNewTab);   //+ tab event handler
+            tabsDockPanel.Children.ShowAllElements();
             button_CodeManual.Visibility = Visibility.Collapsed;
             button_DeleteTab.Click += new RoutedEventHandler(DockButton_Click_DeleteTab);
             button_LoadIntoMem.Click += new RoutedEventHandler(DockButton_Click_LoadIntoMemory);
@@ -295,7 +369,7 @@ namespace CSProjectGame
             int numtabs = KSFileManagement.NumTabsFromFile;
             string[] tnames = KSFileManagement.TabNamesFromFile;
             string[] texts = KSFileManagement.TabTextsFromFile;
-            myDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyle4"], Width = ActualWidth / 14 });    //Main button
+            tabsDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyle4"], Width = ActualWidth / 14 });    //Main button
             for (int i = 0; i < numtabs; i++)
             {
                 texts_TabNames.Add(new TextBox { FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, Text = tnames[i], TextWrapping = TextWrapping.Wrap, AcceptsReturn = false, Visibility = Visibility.Collapsed });
@@ -305,7 +379,7 @@ namespace CSProjectGame
                 myStackPanel.Children.Add(texts_Tabs[i]);
                 AddNewTab((i + 1).ToString());
             }
-            myDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });
+            tabsDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });
             //DEBUGNumRegisters = KSFileManagement.NumRegFromFile;
             MemorySpec = KSFileManagement.MemSpecFromFile;
             texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
@@ -356,7 +430,7 @@ namespace CSProjectGame
 
         private void KeyDown_PressAnyToContinue_FirstTime_02_2(object sender, KeyEventArgs e)
         {
-            Button add = myDockPanel.Children[myDockPanel.Children.Count - 1] as Button;
+            Button add = tabsDockPanel.Children[tabsDockPanel.Children.Count - 1] as Button;
             add.Visibility = Visibility.Visible;
             add.Click -= DockPanelButton_Click_AddNewTab;
             add.Click += DockButton_Click_AddNewTab_Tutorial;
@@ -396,7 +470,7 @@ namespace CSProjectGame
             listInstructions.Items.Add(new TextBlock() { Text = "ORR Rx, Rn, <op> Perform a bitwise logical OR operation between the value in Rn and the value specified by<op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
             listInstructions.Items.Add(new TextBlock() { Text = "HALT Ends the fetch execute cycle", TextWrapping = TextWrapping.Wrap });
             myStackPanel.Children.Add(listInstructions);
-            myDockPanel.Visibility = Visibility.Collapsed;
+            tabsDockPanel.Visibility = Visibility.Collapsed;
             (sender as Button).Click -= Button_CodeManual_Click_Tutorial_Open;
             (sender as Button).Click += Button_CodeManual_Click_Tutorial_Close;
         }
@@ -404,7 +478,7 @@ namespace CSProjectGame
         private void Button_CodeManual_Click_Tutorial_Close(object sender, RoutedEventArgs e)
         {
             myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
-            myDockPanel.Visibility = Visibility.Visible;
+            tabsDockPanel.Visibility = Visibility.Visible;
             text_Welcome.Visibility = Visibility.Visible;
             (sender as Button).Click -= Button_CodeManual_Click_Tutorial_Close;
             (sender as Button).Click += Button_CodeManual_Click_Tutorial_Open;
@@ -424,8 +498,8 @@ namespace CSProjectGame
                 return;
             texts_TabNames.RemoveAt(curTab - 1);
             texts_Tabs.RemoveAt(curTab - 1);
-            myDockPanel.Children.RemoveAt(curTab);
-            (myDockPanel.Children[myDockPanel.Children.Count - 1] as Button).Visibility = Visibility.Visible;
+            tabsDockPanel.Children.RemoveAt(curTab);
+            (tabsDockPanel.Children[tabsDockPanel.Children.Count - 1] as Button).Visibility = Visibility.Visible;
             curTab--;
             if (curTab == 0)
                 curTab = 1;
@@ -483,7 +557,7 @@ namespace CSProjectGame
             Button NewTab = new Button() { Width = ActualWidth / 14 };
             NewTab.Content = TabContent;
             NewTab.Click += new RoutedEventHandler(CodeTab_Click);
-            myDockPanel.Children.Add(NewTab);
+            tabsDockPanel.Children.Add(NewTab);
         }
 
         private void CodeTab_Click(object sender, RoutedEventArgs e)
@@ -510,30 +584,30 @@ namespace CSProjectGame
                 button_Quests.Visibility = Visibility.Collapsed;
                 button_SaveProgress.Visibility = Visibility.Collapsed;
             }
-            curTab = myDockPanel.Children.IndexOf(sender as Button);
+            curTab = tabsDockPanel.Children.IndexOf(sender as Button);
             myStackPanel.Children.CollapseElements();
             texts_TabNames[curTab - 1].Visibility = Visibility.Visible;
             texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
-            for (int i = 1; i < myDockPanel.Children.Count; i++)
+            for (int i = 1; i < tabsDockPanel.Children.Count; i++)
             {
-                (myDockPanel.Children[i] as Button).Background = Brushes.White;
+                (tabsDockPanel.Children[i] as Button).Background = Brushes.White;
             }
-            (myDockPanel.Children[curTab] as Button).Background = Brushes.SteelBlue;
+            (tabsDockPanel.Children[curTab] as Button).Background = Brushes.SteelBlue;
         }
 
         private void DockPanelButton_Click_AddNewTab(object sender, RoutedEventArgs e)
         {
             if (curTab == 0)
-                CodeTab_Click(myDockPanel.Children[1], e);  //If the user is currently on the main tab, change to show tab 1 so that all main tab elements disappear. Putting this function here simplifies such that you don't have to worry which elements to clear, as this function will already clear everything and show tab 1's elements
-            int numtabs = myDockPanel.Children.Count;
+                CodeTab_Click(tabsDockPanel.Children[1], e);  //If the user is currently on the main tab, change to show tab 1 so that all main tab elements disappear. Putting this function here simplifies such that you don't have to worry which elements to clear, as this function will already clear everything and show tab 1's elements
+            int numtabs = tabsDockPanel.Children.Count;
             Button NewTab = new Button() { Width = ActualWidth / 14 };
             NewTab.Content = TabTextFromProjectName("Project " + (curTab = numtabs - 1).ToString());
             NewTab.Click += CodeTab_Click;
-            Button AddTab = myDockPanel.Children[myDockPanel.Children.Count - 1] as Button;
-            myDockPanel.Children.RemoveAt(myDockPanel.Children.Count - 1);
-            myDockPanel.Children.Add(NewTab);
-            myDockPanel.Children.Add(AddTab);
-            myDockPanel.Children.ShowAllElements();
+            Button AddTab = tabsDockPanel.Children[tabsDockPanel.Children.Count - 1] as Button;
+            tabsDockPanel.Children.RemoveAt(tabsDockPanel.Children.Count - 1);
+            tabsDockPanel.Children.Add(NewTab);
+            tabsDockPanel.Children.Add(AddTab);
+            tabsDockPanel.Children.ShowAllElements();
             if (numtabs - 1 == MAXTABS)
             {
                 AddTab.Visibility = Visibility.Collapsed;
@@ -784,7 +858,7 @@ namespace CSProjectGame
             runtimeDockPanel.Visibility = Visibility.Collapsed;
             runtimestackpanelBorder.Visibility = Visibility.Collapsed;
             memoryDockPanel.Visibility = Visibility.Collapsed;
-            myDockPanel.Visibility = Visibility.Collapsed;
+            tabsDockPanel.Visibility = Visibility.Collapsed;
             for (int i = 0; i < NumRegisters; i++)
                 gridsRegWires[i].Visibility = Visibility.Collapsed;
             gridToALU.Visibility = Visibility.Collapsed;
@@ -874,7 +948,7 @@ namespace CSProjectGame
             gridProcToMem.Visibility = Visibility.Visible;
             button_QstSave.Visibility = Visibility.Visible;
             button_SaveProgress.Visibility = Visibility.Visible;
-            myDockPanel.Visibility = Visibility.Visible;
+            tabsDockPanel.Visibility = Visibility.Visible;
 
             button_Quests.Click -= button_Quests_Click_Close;
             button_Quests.Click += button_Quests_Click_Open;
@@ -1838,8 +1912,8 @@ namespace CSProjectGame
                 return;
             texts_TabNames.RemoveAt(curTab - 1);
             texts_Tabs.RemoveAt(curTab - 1);
-            myDockPanel.Children.RemoveAt(curTab);
-            myDockPanel.Children[myDockPanel.Children.Count - 1].Visibility = Visibility.Visible;   //make visible the 'add new tab' button
+            tabsDockPanel.Children.RemoveAt(curTab);
+            tabsDockPanel.Children[tabsDockPanel.Children.Count - 1].Visibility = Visibility.Visible;   //make visible the 'add new tab' button
             curTab = (curTab == 1) ? 1 : curTab - 1;
             myStackPanel.Children.CollapseElements();
             texts_TabNames[curTab - 1].Visibility = Visibility.Visible;
@@ -1863,7 +1937,7 @@ namespace CSProjectGame
             listInstructions.Items.Add(new TextBlock() { Text = "ORR Rx, Rn, <op> Perform a bitwise logical OR operation between the value in Rn and the value specified by<op>, storing in Rx", TextWrapping = TextWrapping.Wrap });
             listInstructions.Items.Add(new TextBlock() { Text = "HALT Ends the fetch execute cycle", TextWrapping = TextWrapping.Wrap });
             myStackPanel.Children.Add(listInstructions);
-            myDockPanel.Visibility = Visibility.Collapsed;
+            tabsDockPanel.Visibility = Visibility.Collapsed;
             (sender as Button).Click -= DockButton_Click_CodeManual_Open;
             (sender as Button).Click += DockButton_Click_CodeManual_Close;
         }
@@ -1873,7 +1947,7 @@ namespace CSProjectGame
             myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
             texts_TabNames[curTab - 1].Visibility = Visibility.Visible;
             texts_Tabs[curTab - 1].Visibility = Visibility.Visible;
-            myDockPanel.Visibility = Visibility.Visible;
+            tabsDockPanel.Visibility = Visibility.Visible;
             toolsDockPanel.Visibility = Visibility.Visible;
             (sender as Button).Click -= DockButton_Click_CodeManual_Close;
             (sender as Button).Click += DockButton_Click_CodeManual_Open;
@@ -1883,32 +1957,32 @@ namespace CSProjectGame
         #region Miscellaneous
         private void text_TabName_TextChanged(object sender, TextChangedEventArgs e)
         {
-            (myDockPanel.Children[curTab] as Button).Content = TabTextFromProjectName((sender as TextBox).Text);
-        }
-
-        private void button_Go_Click(object sender, RoutedEventArgs e)
-        {
-            text_Title.Visibility = Visibility.Collapsed;
-            button_Go.Visibility = Visibility.Collapsed;
-            ingraph_Initialise();
+            (tabsDockPanel.Children[curTab] as Button).Content = TabTextFromProjectName((sender as TextBox).Text);
         }
 
         private void MainWindow_SizeChanged_ResizeElements(object sender, SizeChangedEventArgs e)
         {
+            double AmountStickingOut = canvas_LoginDetails_Username.Width - 4 * myGrid.ColumnDefinitions[4].ActualWidth;
+            canvas_LoginDetails_Username.Margin = new Thickness(myGrid.ColumnDefinitions[3].ActualWidth - AmountStickingOut / 2, 0, myGrid.ColumnDefinitions[3].ActualWidth - AmountStickingOut / 2, myGrid.RowDefinitions[3].ActualHeight - canvas_LoginDetails_Username.Height);
+            canvas_LoginDetails_Password.Margin = new Thickness(canvas_LoginDetails_Username.Margin.Left, canvas_LoginDetails_Username.Margin.Bottom, canvas_LoginDetails_Username.Margin.Right, 0);
+
+            button_Go.Width = myGrid.ColumnDefinitions[5].ActualWidth * 3;
+            button_Go.Height = myGrid.RowDefinitions[3].ActualHeight * 0.65;
+            button_Go.Margin = new Thickness(myGrid.ColumnDefinitions[5].ActualWidth / 2, 0, myGrid.ColumnDefinitions[5].ActualWidth / 2, myGrid.RowDefinitions[3].ActualHeight * 0.35);
+
             myStackPanel.Width = ActualWidth * 6 / 7;
             myStackPanel.Height = ActualHeight * 5 / 6;
-            toolsDockPanel.Width = ActualWidth * 0.225;
-            toolsDockPanel.Height = ActualHeight / 10;
+            toolsDockPanel.Width = 3.2 * (toolsDockPanel.Height = ActualHeight / 10);
             button_CodeManual.Height = button_LoadIntoMem.Height = button_DeleteTab.Height = toolsDockPanel.Height;
             button_CodeManual.Width = toolsDockPanel.Width * 0.375;
             button_LoadIntoMem.Width = button_DeleteTab.Width = toolsDockPanel.Width * 5 / 16;
             button_DeleteTab.FontSize = button_DeleteTab.Width / 4;
-            myDockPanel.Width = ActualWidth;
-            if (myDockPanel.Children.Count > 0)
+            tabsDockPanel.Width = ActualWidth;
+            if (tabsDockPanel.Children.Count > 0)
             {
-                (myDockPanel.Children[0] as Button).Width = ActualWidth / 7;
-                for (int i = 1; i < myDockPanel.Children.Count; i++)
-                    (myDockPanel.Children[i] as Button).Width = ActualWidth / 14;
+                (tabsDockPanel.Children[0] as Button).Width = ActualWidth / 7;
+                for (int i = 1; i < tabsDockPanel.Children.Count; i++)
+                    (tabsDockPanel.Children[i] as Button).Width = ActualWidth / 14;
             }
 
             rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
