@@ -1844,7 +1844,58 @@ namespace CSProjectGame
 
         private void ExecuteInstruction_Branch(string AssemblyLine)
         {
+            switch (AssemblyLine.ToCharArray()[1])
+            {
+                case '0':
+                    Storyboard ToPlay = new Storyboard();
+                    #region Initialise text_ToALU
+                    text_ToALU.Text = int.Parse(text_PC.Text).ToString();
+                    gridToALU.Children.Add(text_ToALU);
+                    Grid.SetColumn(text_ToALU, 0);
+                    Grid.SetColumnSpan(text_ToALU, 2);
+                    text_ToALU.Margin = new Thickness(gridToALU.ColumnDefinitions[0].ActualWidth - text_ToALU.Width / 2, 0, gridToALU.ColumnDefinitions[1].ActualWidth - text_ToALU.Width / 2, gridToALU.ActualHeight - text_ToALU.Height);
+                    text_ToALU.Visibility = Visibility.Visible;
+                    #endregion
 
+                    #region Create tanimationToALU
+                    ThicknessAnimation tanimationToALU = new ThicknessAnimation();
+                    tanimationToALU.From = new Thickness(gridToALU.ColumnDefinitions[0].ActualWidth - text_ToALU.Width / 2, 0, gridToALU.ColumnDefinitions[1].ActualWidth - text_ToALU.Width / 2, gridToALU.ActualHeight - text_ToALU.Height);
+                    tanimationToALU.To = new Thickness(text_ToALU.Margin.Left, gridToALU.Height - text_ToALU.Height, text_ToALU.Margin.Right, 0);
+                    tanimationToALU.Duration = TimeSpan.FromMilliseconds((double)lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+                    tanimationToALU.EasingFunction = new CubicEase();
+                    Storyboard.SetTargetName(tanimationToALU, "text_ToALU");
+                    Storyboard.SetTargetProperty(tanimationToALU, new PropertyPath(MarginProperty));
+                    #endregion
+                    ToPlay.Children.Add(tanimationToALU);
+                    
+                    DispatcherTimer dtChangePC = new DispatcherTimer() { Interval = tanimationToALU.Duration.TimeSpan };
+                    dtChangePC.Tick += dtChangePC0_Tick;
+
+                    #region Create tanimationFromALU
+                    ThicknessAnimation tanimationFromALU = new ThicknessAnimation();
+                    tanimationFromALU.To = new Thickness(text_ToALU.Margin.Left, 0, text_ToALU.Margin.Right, gridToALU.Height - text_ToALU.Height);
+                    tanimationFromALU.Duration = TimeSpan.FromMilliseconds((double)lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+                    tanimationFromALU.EasingFunction = new CubicEase();
+                    Storyboard.SetTargetName(tanimationFromALU, "text_ToALU");
+                    Storyboard.SetTargetProperty(tanimationFromALU, new PropertyPath(MarginProperty));
+                    tanimationFromALU.BeginTime = TimeSpan.FromMilliseconds((double)lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+                    #endregion
+                    ToPlay.Children.Add(tanimationFromALU);
+
+                    ToPlay.Completed += delegate (object sbPCIncr_sender, EventArgs sbPCIncr_e)
+                    {
+                        text_PC.Text = new string(KSConvert.IntTo2DigCharArray(int.Parse(text_ToALU.Text)));
+                        gridToALU.Children.Remove(text_ToALU);
+                    };
+                    break;
+            }
+        }
+
+        private void dtChangePC0_Tick(object sender, EventArgs e)
+        {
+            char[] car = text_CIR.Text.ToCharArray();
+            text_ToALU.Text = ((car[2] - '0') * 10 + (car[3] - '0')).ToString();
+            (sender as DispatcherTimer).Stop();
         }
 
         private void ExecuteInstruction_ADD(string AssemblyLine)
