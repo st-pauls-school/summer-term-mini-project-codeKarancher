@@ -40,5 +40,15 @@ namespace CSProjectGame
             };
             return ToReturn;
         }
+        
+        public static Action<object, EventArgs> GenerateALUValueChange(TextBlock ToChange, string NewValue)
+        {
+            Action<object, EventArgs> ToReturn = (object sender, EventArgs e) =>
+            {
+                ToChange.Text = NewValue;
+                (sender as DispatcherTimer).Stop();
+            };
+            return ToReturn;
+        }
     }
 }

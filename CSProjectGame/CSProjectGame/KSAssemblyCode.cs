@@ -64,7 +64,7 @@ namespace CSProjectGame
                 List<char> curWord = new List<char>();
                 for (int curChar = 0; curChar < curLineChars.Length; curChar++)
                 {
-                    if (curLineChars[curChar] == 'R' && IsFirstCharInWord)
+                    if ((curLineChars[curChar] == 'R' || curLineChars[curChar] == 'r') && IsFirstCharInWord)
                         continue;
                     if (curLineChars[curChar] == ',' || curLineChars[curChar] == ' ' || curLineChars[curChar] == '\t' || curChar == curLineChars.Length - 1)//is a break between words
                     {
@@ -150,8 +150,14 @@ namespace CSProjectGame
                         {
                             if (curWord[0] == 'B')  //The current line is a branching statement
                             {
+                                ToReturn[curLine][0] = (char)(Array.IndexOf(dictAssembly, "B") + '0');
                                 iWhatIsBeingRead = 11;
                                 curWord = new List<char>();
+                                if (curLineChars[1] == ' ')//Branch always statement
+                                {
+                                    iWhatIsBeingRead = 12;
+                                    ToReturn[curLine][1] = '0';
+                                }
                             }
                         }
                     }
