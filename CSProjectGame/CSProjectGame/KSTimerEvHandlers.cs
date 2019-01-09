@@ -41,7 +41,7 @@ namespace CSProjectGame
             return ToReturn;
         }
         
-        public static Action<object, EventArgs> GenerateALUValueChange(TextBlock ToChange, string NewValue)
+        public static Action<object, EventArgs> GenerateValueChange(TextBlock ToChange, string NewValue)
         {
             Action<object, EventArgs> ToReturn = (object sender, EventArgs e) =>
             {

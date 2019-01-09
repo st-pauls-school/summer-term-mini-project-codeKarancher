@@ -1158,7 +1158,7 @@ namespace CSProjectGame
          *  If the first digit was more than 4, the first and second parameters are both register numbers, then the third parameter is an <operand>
          *      digit 2: target register number
          *      digit 3: parameter register number
-         *      digit 4: type of addressing (look at case 4)
+         *      digit 4: type of addressing (0 = immediate, 1 = direct, 2 = indirect)
          *      digit 5: memory location/number - 1st digit
          *      digit 6: memory location/number - 2nd digit
          * 
@@ -1203,7 +1203,7 @@ namespace CSProjectGame
         }
 
         #region Instruction Executing Functions
-        private ThicknessAnimation[] GetAnimationsNumberToRegister(int iRegisterIndex, string sContent, double doubleDurationInMilliseconds, TextBlock ToUse)
+        private ThicknessAnimation[] GetAnimationsNumberToRegister(int iRegisterIndex, string sContent, double doubleDurationInMilliseconds)
         {
             ThicknessAnimation[] ToReturn = new ThicknessAnimation[3];
             #region Initialise Appropriate text_ToRegister
@@ -1211,7 +1211,8 @@ namespace CSProjectGame
             string text_ToRegister_RegisteredName = "texts_ToRegister" + iRegisterIndex;
             text_ToRegister.Text = sContent;
             Grid Parentgrid = gridsRegWires[iRegisterIndex];
-            Parentgrid.Children.Add(text_ToRegister);
+            if (!(Parentgrid.Children.Contains(text_ToRegister)))
+                Parentgrid.Children.Add(text_ToRegister);
             Grid.SetRow(text_ToRegister, 1);
             Grid.SetColumn(text_ToRegister, 0);
             Grid.SetRowSpan(text_ToRegister, 2);
@@ -1259,8 +1260,6 @@ namespace CSProjectGame
                     ;//messagebox; message: Your computer chip does not have a (iRegisterIndex)th register. Program halting...
                 else
                     texts_Registers[iRegisterIndex].Text = new string(KSConvert.DecimalToBinaryForRegisters(int.Parse(text_ToRegister.Text)));
-                text_ToRegister.Margin = new Thickness(0);
-                (text_ToRegister.Parent as Grid).Children.Remove(text_ToRegister);
             };
             #endregion
             ToReturn[2] = animation3;
@@ -1490,7 +1489,7 @@ namespace CSProjectGame
             }
 
             #region Get tanimsNumberToRegister
-            ThicknessAnimation[] tanimsNumberToRegister = GetAnimationsNumberToRegister(RegisterNumber, ContentToLoad, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4, text_ToRegister);
+            ThicknessAnimation[] tanimsNumberToRegister = GetAnimationsNumberToRegister(RegisterNumber, ContentToLoad, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
             for (int i = 0; i < tanimsNumberToRegister.Length; i++)
             {
                 tanimsNumberToRegister[i].BeginTime = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4 + i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
@@ -1509,6 +1508,11 @@ namespace CSProjectGame
             dtRevealtext_ToRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Reveal", text_ToRegister));
             #endregion
 
+            #region Create dtRemovetext_ToRegister
+            DispatcherTimer dtRemovetext_ToRegister = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 2) };
+            dtRemovetext_ToRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_ToRegister));
+            #endregion
+
             ToPlay.Completed += delegate (object sender, EventArgs e)
             {
                 (runtimeStackPanel.Children[0] as TextBlock).Text += "\n>>Instruction executed...\n\tNext instruction";
@@ -1516,8 +1520,9 @@ namespace CSProjectGame
             };
             ToPlay.Begin(this);
             dtRevealtext_ToRegister.Start();
+            dtRemovetext_ToRegister.Start();
         }
-        
+
         private void ExecuteInstruction_STR(string AssemblyLine)
         {
             char[] cAr = AssemblyLine.ToCharArray();
@@ -1700,7 +1705,7 @@ namespace CSProjectGame
             }
 
             #region Get tanimsNumberToRegister
-            ThicknessAnimation[] tanimsNumberToRegister = GetAnimationsNumberToRegister(MainRegisterNumber, ContentToCopy, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4, text_ToRegister);
+            ThicknessAnimation[] tanimsNumberToRegister = GetAnimationsNumberToRegister(MainRegisterNumber, ContentToCopy, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
             for (int i = 0; i < tanimsNumberToRegister.Length; i++)
             {
                 tanimsNumberToRegister[i].BeginTime = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4 + i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 12);
@@ -1717,6 +1722,11 @@ namespace CSProjectGame
             dtRevealtext_ToRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Reveal", text_ToRegister));
             #endregion
 
+            #region Create dtRemovetext_ToRegister
+            DispatcherTimer dtRemovetext_ToRegister = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 2) };
+            dtRemovetext_ToRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_ToRegister));
+            #endregion
+
             ToPlay.Completed += delegate (object sender, EventArgs e)
             {
                 (runtimeStackPanel.Children[0] as TextBlock).Text += "\n>>Instruction executed...\n\tNext instruction";
@@ -1724,6 +1734,7 @@ namespace CSProjectGame
             };
             ToPlay.Begin(this);
             dtRevealtext_ToRegister.Start();
+            dtRemovetext_ToRegister.Start();
         }
 
         private void ExecuteInstruction_CMP(string AssemblyLine)
@@ -1889,7 +1900,7 @@ namespace CSProjectGame
             if (DoBranch)
             {
                 DispatcherTimer dtChangePC = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4) };
-                dtChangePC.Tick += new EventHandler(KSTimerEvHandlers.GenerateALUValueChange(text_ToALU, ((car[2] - '0') * 10 + (car[3] - '0') - 1).ToString()));
+                dtChangePC.Tick += new EventHandler(KSTimerEvHandlers.GenerateValueChange(text_ToALU, ((car[2] - '0') * 10 + (car[3] - '0') - 1).ToString()));
                 dtChangePC.Start();
             }
             else
@@ -1946,10 +1957,233 @@ namespace CSProjectGame
 
         private void ExecuteInstruction_ADD(string AssemblyLine)
         {
+            string CMPinfo = text_CMP.Text;
             char[] cArLine = AssemblyLine.ToCharArray();
-            int ParRegisterNumber = cArLine[2] - '0';
-            int Operand1, Operand2;
-            
+            int MainRegisterNumber = cArLine[1] - '0';
+            int ParameterRegisterNumber = cArLine[2] - '0';
+            int iOperand1, iOperand2, iSum;
+            iOperand1 = KSConvert.BinaryToDecimalForRegisters(texts_Registers[ParameterRegisterNumber].Text.ToCharArray());
+            Storyboard ToPlay = new Storyboard();
+            //Numbers to processor - 3/16
+            //To ALU - 1/16
+            //Back - 1/16
+            //Back to reg - 3/16
+
+            #region Get tanimstext_ParameterRegister
+            TextBlock text_ParameterRegister = texts_ToRegister[ParameterRegisterNumber];
+            text_ParameterRegister.Text = iOperand1.ToString();
+            ThicknessAnimation[] tanimstext_ParameterRegister;
+            if (cArLine[3] == '0')
+            {
+                tanimstext_ParameterRegister = GetAnimationsNumberFromRegister(ParameterRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+                for (int i = 0; i < 3; i++)
+                {
+                    tanimstext_ParameterRegister[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+                }
+            }
+            else
+            {
+                tanimstext_ParameterRegister = GetAnimationsNumberFromRegister(ParameterRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                for (int i = 0; i < 3; i++)
+                {
+                    tanimstext_ParameterRegister[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                }
+            }
+            #endregion
+            ToPlay.Children.Add(tanimstext_ParameterRegister[0]);
+            ToPlay.Children.Add(tanimstext_ParameterRegister[1]);
+            ToPlay.Children.Add(tanimstext_ParameterRegister[2]);
+
+            #region Create dtRemovetext_ParameterRegister
+            DispatcherTimer dtRemovetext_ParameterRegister = new DispatcherTimer();
+            if (cArLine[3] == '0')
+                dtRemovetext_ParameterRegister.Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+            else
+                dtRemovetext_ParameterRegister.Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+            dtRemovetext_ParameterRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", texts_ToRegister[ParameterRegisterNumber]));
+            #endregion
+
+            #region Initialize text_ToALU
+            text_ToALU.Text = iOperand1.ToString();
+            text_ToALU.Visibility = Visibility.Collapsed;
+            gridToALU.Children.Add(text_ToALU);
+            Grid.SetColumnSpan(text_ToALU, 2);
+            text_ToALU.Margin = new Thickness(gridToALU.ColumnDefinitions[0].ActualWidth - text_ToALU.Width / 2, 0, gridToALU.ColumnDefinitions[1].ActualWidth - text_ToALU.Width / 2, gridToALU.ActualHeight - text_ToALU.Height);
+            #endregion
+
+            #region Create dtRevealtext_ToALU
+            DispatcherTimer dtRevealtext_ToALU = new DispatcherTimer();
+            if (cArLine[3] == '0')
+                dtRevealtext_ToALU.Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+            else
+                dtRevealtext_ToALU.Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+            dtRevealtext_ToALU.Tick += new EventHandler(KSTimerEvHandlers.Generate("Reveal", text_ToALU));
+            #endregion
+
+            string OldText;
+            if (cArLine[3] == '0')//immediate addressing
+            {
+                OldText = text_CMP.Text;
+                text_CMP.Text = (iOperand2 = (cArLine[4] - '0') * 10 + (cArLine[5] - '0')).ToString();
+
+                #region Create tanimFirstNumberToALU 
+                ThicknessAnimation tanimFirstNumberToALU = new ThicknessAnimation();
+                tanimFirstNumberToALU.From = new Thickness(gridToALU.ColumnDefinitions[0].ActualWidth - text_ToALU.Width / 2, 0, gridToALU.ColumnDefinitions[1].ActualWidth - text_ToALU.Width / 2, gridToALU.ActualHeight - text_ToALU.Height);
+                tanimFirstNumberToALU.To = new Thickness(text_ToALU.Margin.Left, gridToALU.Height - text_ToALU.Height, text_ToALU.Margin.Right, 0);
+                tanimFirstNumberToALU.Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+                tanimFirstNumberToALU.EasingFunction = new CubicEase();
+                tanimFirstNumberToALU.BeginTime = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+                Storyboard.SetTargetName(tanimFirstNumberToALU, "text_ToALU");
+                Storyboard.SetTargetProperty(tanimFirstNumberToALU, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimFirstNumberToALU);
+            }
+            else//direct addressing
+            {
+                int SecondRegisterNumber = (cArLine[4] - '0') * 10 + (cArLine[5] - '0');
+                #region Get tanimstext_SecondRegister
+                TextBlock text_SecondRegister = texts_ToRegister[SecondRegisterNumber];
+                text_SecondRegister.Text = (iOperand2 = KSConvert.BinaryToDecimalForRegisters(texts_Registers[SecondRegisterNumber].Text.ToCharArray())).ToString();
+                ThicknessAnimation[] tanimstext_SecondRegister = GetAnimationsNumberFromRegister(SecondRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                for (int i = 0; i < 3; i++)
+                {
+                    tanimstext_SecondRegister[i].BeginTime = TimeSpan.FromMilliseconds(i * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                }
+                #endregion
+                ToPlay.Children.Add(tanimstext_SecondRegister[0]);
+                ToPlay.Children.Add(tanimstext_SecondRegister[1]);
+                ToPlay.Children.Add(tanimstext_SecondRegister[2]);
+
+                #region Create dtRemovetext_SecondRegister
+                DispatcherTimer dtRemovetext_SecondRegister = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20) };
+                dtRemovetext_SecondRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_SecondRegister));
+                #endregion
+
+                #region Create tanimFirstNumberToALU
+                ThicknessAnimation tanimFirstNumberToALU = new ThicknessAnimation();
+                tanimFirstNumberToALU.From = new Thickness(gridToALU.Width / 2 - text_ToALU.Width / 2, 0, gridToALU.Width / 2 - text_ToALU.Width / 2, gridToALU.Height - text_ToALU.Height);
+                tanimFirstNumberToALU.To = new Thickness(text_ToALU.Margin.Left, gridToALU.Height - text_ToALU.Height, text_ToALU.Margin.Right, 0);
+                tanimFirstNumberToALU.Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                tanimFirstNumberToALU.EasingFunction = new SineEase();
+                tanimFirstNumberToALU.BeginTime = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                Storyboard.SetTargetName(tanimFirstNumberToALU, "text_ToALU");
+                Storyboard.SetTargetProperty(tanimFirstNumberToALU, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimFirstNumberToALU);
+
+                #region Create dtChangeContenttext_ToALU
+                DispatcherTimer dtChangeContenttext_ToALU = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(4 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20) };
+                dtChangeContenttext_ToALU.Tick += new EventHandler(KSTimerEvHandlers.GenerateValueChange(text_ToALU, iOperand2.ToString()));
+                #endregion
+
+                #region Create tanimSecondNumberToALU
+                ThicknessAnimation tanimSecondNumberToALU = new ThicknessAnimation();
+                tanimSecondNumberToALU.From = new Thickness(gridToALU.ColumnDefinitions[0].ActualWidth - text_ToALU.Width / 2, 0, gridToALU.ColumnDefinitions[1].ActualWidth - text_ToALU.Width / 2, gridToALU.ActualHeight - text_ToALU.Height);
+                tanimSecondNumberToALU.To = new Thickness(text_ToALU.Margin.Left, gridToALU.Height - text_ToALU.Height, text_ToALU.Margin.Right, 0);
+                tanimSecondNumberToALU.Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                tanimSecondNumberToALU.EasingFunction = new SineEase();
+                tanimSecondNumberToALU.BeginTime = TimeSpan.FromMilliseconds(4 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
+                Storyboard.SetTargetName(tanimSecondNumberToALU, "text_ToALU");
+                Storyboard.SetTargetProperty(tanimSecondNumberToALU, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimSecondNumberToALU);
+
+                OldText = text_CMP.Text;
+
+                dtRemovetext_SecondRegister.Start();
+                dtChangeContenttext_ToALU.Start();
+            }
+
+            iSum = iOperand1 + iOperand2;
+
+            #region Show ADD operation in ALU using dtShowADD
+            DispatcherTimer dtShowADD = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4) };
+            DispatcherTimer dtBackToCMPInfo = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 8) };
+            double OldFontSize = text_CMP.FontSize;
+            Action<object, EventArgs> TickEventHandler1 = (object sender, EventArgs e) =>
+            {
+                text_CMP.Text = iOperand1.ToString() + " + " + iOperand1.ToString() + " = " + iSum.ToString();
+                text_CMP.FontSize *= 0.85;
+                (sender as DispatcherTimer).Stop();
+            };
+            dtShowADD.Tick += new EventHandler(TickEventHandler1);
+            Action<object, EventArgs> TickEventHandler2 = (object sender, EventArgs e) =>
+            {
+                text_CMP.Text = OldText;
+                text_CMP.FontSize = OldFontSize;
+                (sender as DispatcherTimer).Stop();
+            };
+            dtBackToCMPInfo.Tick += new EventHandler(TickEventHandler2);
+            #endregion
+
+            #region Create dtChangeContentToSum_text_ToALU
+            DispatcherTimer dtChangeContentToSum_text_ToALU = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4) };
+            dtChangeContentToSum_text_ToALU.Tick += new EventHandler(KSTimerEvHandlers.GenerateValueChange(text_ToALU, iSum.ToString()));
+            #endregion
+
+            #region Create tanimSumToProc
+            ThicknessAnimation tanimSumToProc = new ThicknessAnimation();
+            tanimSumToProc.From = new Thickness(gridToALU.Width / 2 - text_ToALU.Width / 2, gridToALU.Height - text_ToALU.Height, gridToALU.Width / 2 - text_ToALU.Width / 2, 0);
+            tanimSumToProc.To = new Thickness(gridToALU.Width / 2 - text_ToALU.Width / 2, 0, gridToALU.Width / 2 - text_ToALU.Width / 2, gridToALU.Height - text_ToALU.Height);
+            tanimSumToProc.Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+            tanimSumToProc.EasingFunction = new CubicEase();
+            tanimSumToProc.BeginTime = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
+            Storyboard.SetTargetName(tanimSumToProc, "text_ToALU");
+            Storyboard.SetTargetProperty(tanimSumToProc, new PropertyPath(MarginProperty));
+            #endregion
+            ToPlay.Children.Add(tanimSumToProc);
+
+            #region Create dtRemovetext_ToALU
+            DispatcherTimer dtRemovetext_ToALU = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16) };
+            dtRemovetext_ToALU.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_ToALU));
+            #endregion
+
+            #region Initialize text_SumCarrier at the right time in animation sequence
+            TextBlock text_ToRegister = texts_ToRegister[MainRegisterNumber];
+            text_ToRegister.Visibility = Visibility.Collapsed;
+            Grid Parentgrid = gridsRegWires[MainRegisterNumber];
+            Action<object, EventArgs> TickSetMargin = (object sender, EventArgs e) =>
+            {
+                text_ToRegister.Margin = new Thickness(Parentgrid.ColumnDefinitions[0].MyWidth() + Parentgrid.ColumnDefinitions[1].MyWidth() - text_ToRegister.Width, (MainRegisterNumber < 3) ? Parentgrid.RowDefinitions[1].MyHeight() : 0, 0, (MainRegisterNumber >= 3) ? Parentgrid.RowDefinitions[1].MyHeight() : 0 + Parentgrid.RowDefinitions[2].MyHeight() - text_ToRegister.Height);
+                (sender as DispatcherTimer).Stop();
+            };
+            DispatcherTimer dtSetMargin = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16) };
+            dtSetMargin.Tick += new EventHandler(TickSetMargin);
+            DispatcherTimer dtRevealtext_SumCarrier = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16) };
+            dtRevealtext_SumCarrier.Tick += new EventHandler(KSTimerEvHandlers.Generate("Reveal", texts_ToRegister[MainRegisterNumber]));
+            #endregion
+
+            #region Get tanimsSumToRegister
+            ThicknessAnimation[] tanimsSumToRegister = GetAnimationsNumberToRegister(MainRegisterNumber, iSum.ToString(), 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+            for (int i = 0; i < 3; i++)
+            {
+                tanimsSumToRegister[i].BeginTime = TimeSpan.FromMilliseconds((5 + i) * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16);
+            }
+            #endregion
+            ToPlay.Children.Add(tanimsSumToRegister[0]);
+            ToPlay.Children.Add(tanimsSumToRegister[1]);
+            ToPlay.Children.Add(tanimsSumToRegister[2]);
+
+            #region Create dtRemovetext_SumCarrier
+            DispatcherTimer dtRemovetext_SumCarrier = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 2) };
+            dtRemovetext_SumCarrier.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", texts_ToRegister[MainRegisterNumber]));
+            #endregion
+
+            ToPlay.Completed += delegate (object sender, EventArgs e)
+            {
+                texts_Registers[MainRegisterNumber].Text = new string(KSConvert.DecimalToBinaryForRegisters(iSum));
+                Fetch();
+            };
+
+            ToPlay.Begin(this);
+            dtRemovetext_ParameterRegister.Start();
+            dtRevealtext_ToALU.Start();
+            dtShowADD.Start();
+            dtBackToCMPInfo.Start();
+            dtChangeContentToSum_text_ToALU.Start();
+            dtRemovetext_ToALU.Start();
+            dtSetMargin.Start();
+            dtRevealtext_SumCarrier.Start();
         }
 
         private void ExecuteInstruction_SUB(string AssemblyLine)
