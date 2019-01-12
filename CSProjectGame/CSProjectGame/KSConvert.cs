@@ -55,5 +55,29 @@ namespace CSProjectGame
             else    //double digit
                 return new char[] { (char)(input / 10 + '0'), (char)(input % 10 + '0') };
         }
+
+        public static char[] BitwiseAND(char[] op1, char[] op2)
+        {
+            if (op1.Length != op2.Length)
+                throw new Exception("Binary operands were of two different lengths - bitwise AND failed");
+            char[] ToReturn = new char[op1.Length];
+            for (int i = 0; i < op1.Length; i++)
+            {
+                ToReturn[i] = (op1[i] == op2[i] && op1[i] == '1') ? '1' : '0';
+            }
+            return ToReturn;
+        }
+
+        public static char[] BitwiseORR(char[] op1, char[] op2)
+        {
+            if (op1.Length != op2.Length)
+                throw new Exception("Binary operands were of two different lengths - bitwise ORR failed");
+            char[] ToReturn = new char[op1.Length];
+            for (int i = 0; i < op1.Length; i++)
+            {
+                ToReturn[i] = (op1[i] == op2[i] && op1[i] == '0') ? '0' : '1';
+            }
+            return ToReturn;
+        }
     }
 }
