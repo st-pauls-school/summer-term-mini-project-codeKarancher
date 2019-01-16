@@ -183,7 +183,7 @@
         <Button x:Name="button_Go" HorizontalAlignment="Left" Height="32" Grid.Row="6" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="111" Click="button_Go_Click" Grid.ColumnSpan="4" Grid.Column="4" Visibility="Visible" Margin="17,0,0,19"/>
         <StackPanel x:Name="myStackPanel"  Grid.ColumnSpan="12" HorizontalAlignment="Left" Height="202.733" Grid.Row="2" Grid.RowSpan="4" VerticalAlignment="Top" Width="443.487" Background="White" Opacity="0.6" Margin="36.584,0,0,0" Visibility="Collapsed"/>
         <Button x:Name="tab_Main" Content="" HorizontalAlignment="Left" Height="16.842" Style="{DynamicResource ButtonStyle4}" VerticalAlignment="Top" Width="68.933" Visibility="Collapsed"/>
-        <DockPanel x:Name="tabsDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="27.857" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Margin="0,-5,0,0" Visibility="Visible"/>
+        <DockPanel x:Name="tabsDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="28" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Visibility="Visible" Margin="0,-5,0,0"/>
         <DockPanel x:Name="toolsDockPanel" Grid.Column="9" HorizontalAlignment="Left" Height="38.727" VerticalAlignment="Top" Width="123.119" Grid.ColumnSpan="4" Grid.Row="1" Margin="24.595,0,0,0" Visibility="Collapsed">
             <DockPanel.Background>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -400,5 +400,6 @@
             <TextBox x:Name="text_LoginDetails_Password" Height="25" TextWrapping="Wrap" Text="Password" VerticalAlignment="Top" Foreground="#FF2A977E" ToolTip="Enter your password" FontFamily="HP Simplified Light" UndoLimit="1000" BorderThickness="0" HorizontalAlignment="Left" Width="159" Canvas.Left="14" FontSize="15"/>
             <Ellipse HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="26" Fill="White" Canvas.Left="159"/>
         </Canvas>
+        <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,75,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10"/>
     </Grid>
 </Window>

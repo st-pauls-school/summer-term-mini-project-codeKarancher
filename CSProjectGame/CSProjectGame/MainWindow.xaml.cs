@@ -377,7 +377,7 @@ namespace CSProjectGame
                 myStackPanel.Children.Add(texts_TabNames[i]);
                 texts_Tabs.Add(new TextBox { FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Text = texts[i], TextWrapping = TextWrapping.Wrap, AcceptsReturn = true, Visibility = Visibility.Collapsed });
                 myStackPanel.Children.Add(texts_Tabs[i]);
-                AddNewTab((i + 1).ToString());
+                AddNewTab(TabTextFromProjectName(texts_TabNames[i].Text));
             }
             tabsDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });
             //DEBUGNumRegisters = KSFileManagement.NumRegFromFile;
@@ -823,6 +823,7 @@ namespace CSProjectGame
             IsCodeChangedRuntime = true;
         }
 
+        #region Quests and Save Menu
         private void button_QstSave_Click_Open(object sender, RoutedEventArgs e)
         {
             DoubleAnimation opacityfadeForRuntimeStackpanel = new DoubleAnimation(0.3, TimeSpan.FromMilliseconds(200));
@@ -877,6 +878,9 @@ namespace CSProjectGame
             button_SaveProgress.Visibility = Visibility.Collapsed;
 
             button_Quests.Content = "Back";
+            Brush OldBackground = button_Quests.Background;
+            button_Quests.Background = Brushes.SandyBrown;
+            button_Quests.Height *= 0.5;
 
             //Opening quests page
             if (!myBrushes.ContainsKey("myGrid.DefaultBackground"))
@@ -900,7 +904,7 @@ namespace CSProjectGame
                     DockPanel ToAdd = new DockPanel() { Width = stackpanelQuestspanel.ActualWidth, Height = 25 };
                     ToAdd.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, Width = ToAdd.ActualWidth / 2, Height = ToAdd.Height, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy"), Visibility = Visibility.Visible });
                     Button button_Redeem = new Button() { Content = "Redeem " + lookup_Quests[i].Item2 + " portions", Width = ToAdd.ActualWidth / 2, Height = ToAdd.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 143, 143), Color.FromArgb(255, 0, 52, 143), 90), Visibility = Visibility.Visible };
-                    button_Redeem.Click += Button_Redeem_Click;
+                    button_Redeem.Click += button_Redeem_Click;
                     ToAdd.Children.Add(button_Redeem);
                     stackpanelQuestspanel.Children.Add(ToAdd);
                 }
@@ -915,6 +919,13 @@ namespace CSProjectGame
             }
             button_Quests.Click -= button_Quests_Click_Open;
             button_Quests.Click += button_Quests_Click_Close;
+            RoutedEventHandler ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) => { });
+            ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
+            {
+                button_Quests.Background = OldBackground;
+                button_Quests.Click -= ChangeToOldBackground_Click;
+            });
+            button_Quests.Click += ChangeToOldBackground_Click;
         }
 
         /// <summary>
@@ -922,7 +933,7 @@ namespace CSProjectGame
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Button_Redeem_Click(object sender, RoutedEventArgs e)
+        private void button_Redeem_Click(object sender, RoutedEventArgs e)
         {
             DockPanel Parent = (sender as Button).Parent as DockPanel;
             int index = (myStackPanel.Children[myStackPanel.Children.Count - 1] as StackPanel).Children.IndexOf(Parent);
@@ -940,6 +951,7 @@ namespace CSProjectGame
             myGrid.Background = myBrushes["myGrid.DefaultBackground"];
 
             button_Quests.Content = "Quests";
+            button_Quests.Height *= 2;
 
             for (int i = 0; i < shapes_ProcessorParts.Count; i++)
                 shapes_ProcessorParts[i].Visibility = Visibility.Visible;
@@ -975,6 +987,7 @@ namespace CSProjectGame
             }
             KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec);
         }
+        #endregion
 
         #region PlayRun and Animations
         private void button_PlayRun_Click(object sender, RoutedEventArgs e)
@@ -3079,6 +3092,9 @@ namespace CSProjectGame
                 for (int i = 1; i < tabsDockPanel.Children.Count; i++)
                     (tabsDockPanel.Children[i] as Button).Width = ActualWidth / 14;
             }
+            button_SecondaryMenu_Open.Margin = new Thickness(0, 0, ActualWidth * 5 / 28 - button_SecondaryMenu_Open.Width, 0);
+            button_SecondaryMenu_Open.Width = 17 * myGrid.ColumnDefinitions[0].MyWidth() / 92;
+            button_SecondaryMenu_Open.Height = tabsDockPanel.Height - 5;
 
             rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
             rect_MotherBoardBackGround.Height = 299 * ActualHeight / 322;
