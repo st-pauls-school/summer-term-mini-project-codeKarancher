@@ -76,6 +76,7 @@ namespace CSProjectGame
         {
             InitializeComponent();
             WindowState = WindowState.Maximized;
+            secmenuDockPanel.Margin = new Thickness(-ActualWidth, secmenuDockPanel.Margin.Top, ActualWidth, secmenuDockPanel.Margin.Bottom);
             Title = "Inside Your Computer";
             if (!Directory.Exists(sGameFilesPath))
                 Directory.CreateDirectory(sGameFilesPath);
@@ -822,172 +823,6 @@ namespace CSProjectGame
             texts_Tabs[runTab - 1].Text = (sender as TextBox).Text;
             IsCodeChangedRuntime = true;
         }
-
-        #region Quests and Save Menu
-        private void button_QstSave_Click_Open(object sender, RoutedEventArgs e)
-        {
-            DoubleAnimation opacityfadeForRuntimeStackpanel = new DoubleAnimation(0.3, TimeSpan.FromMilliseconds(200));
-            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityfadeForRuntimeStackpanel);
-
-            button_Quests.Opacity = button_SaveProgress.Opacity = 0;
-            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Visible;
-            DoubleAnimation opacityappearForButtons = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
-            button_Quests.BeginAnimation(OpacityProperty, opacityappearForButtons);
-            button_SaveProgress.BeginAnimation(OpacityProperty, opacityappearForButtons);
-
-            button_ToggleCode.Click += button_QstSave_Click_Close;
-            button_PlayRun.Click += button_QstSave_Click_Close;
-            button_QstSave.Click -= button_QstSave_Click_Open;
-            button_QstSave.Click += button_QstSave_Click_Close;
-        }
-
-        private void button_QstSave_Click_Close(object sender, RoutedEventArgs e)
-        {
-            DoubleAnimation opacityfadeForButtons = new DoubleAnimation(0, TimeSpan.FromMilliseconds(300));
-            button_Quests.BeginAnimation(OpacityProperty, opacityfadeForButtons);
-            button_SaveProgress.BeginAnimation(OpacityProperty, opacityfadeForButtons);
-
-            DoubleAnimation opacityappearForRuntimeStackpanel = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
-            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityappearForRuntimeStackpanel);
-            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Collapsed;
-
-            button_ToggleCode.Click -= button_QstSave_Click_Close;
-            button_PlayRun.Click -= button_QstSave_Click_Close;
-            button_QstSave.Click -= button_QstSave_Click_Close;
-            button_QstSave.Click += button_QstSave_Click_Open;
-        }
-
-        private void button_Quests_Click_Open(object sender, RoutedEventArgs e)
-        {
-            for (int i = 0; i < shapes_ProcessorParts.Count; i++)
-                shapes_ProcessorParts[i].Visibility = Visibility.Collapsed;
-            registersStackPanel.Visibility = Visibility.Collapsed;
-            rect_MotherBoardBackGround.Visibility = Visibility.Collapsed;
-            processorStackPanel.Visibility = Visibility.Collapsed;
-            runtimeStackPanel.Visibility = Visibility.Collapsed;
-            runtimeDockPanel.Visibility = Visibility.Collapsed;
-            runtimestackpanelBorder.Visibility = Visibility.Collapsed;
-            memoryDockPanel.Visibility = Visibility.Collapsed;
-            tabsDockPanel.Visibility = Visibility.Collapsed;
-            for (int i = 0; i < NumRegisters; i++)
-                gridsRegWires[i].Visibility = Visibility.Collapsed;
-            gridToALU.Visibility = Visibility.Collapsed;
-            text_ALU.Visibility = Visibility.Collapsed;
-            gridProcToMem.Visibility = Visibility.Collapsed;
-            button_QstSave.Visibility = Visibility.Collapsed;
-            button_SaveProgress.Visibility = Visibility.Collapsed;
-
-            button_Quests.Content = "Back";
-            Brush OldBackground = button_Quests.Background;
-            button_Quests.Background = Brushes.SandyBrown;
-            button_Quests.Height *= 0.5;
-
-            //Opening quests page
-            if (!myBrushes.ContainsKey("myGrid.DefaultBackground"))
-                myBrushes.Add("myGrid.DefaultBackground", myGrid.Background);
-            if (!myBrushes.ContainsKey("myStackPanel.DefaultBackground"))
-                myBrushes.Add("myStackPanel.DefaultBackground", myStackPanel.Background);
-            myStackPanel.Background = new SolidColorBrush(Color.FromArgb(255, 170, 115, 30));
-            myStackPanel.Visibility = Visibility.Visible;
-            Color backcol1 = Color.FromArgb(255, 148, 95, 15);
-            Color backcol2 = Color.FromArgb(255, 126, 65, 2);
-            myGrid.Background = new LinearGradientBrush(backcol1, backcol2, 90);
-            //Display quests
-            StackPanel stackpanelQuestspanel = new StackPanel() { Visibility = Visibility.Visible };
-            myStackPanel.Children.Add(stackpanelQuestspanel);
-            for (int i = 0; i < listQuestsStatus.Length; i++)
-            {
-                if (listQuestsStatus[i] == 0)//Quests not yet completed, textblock is sufficient
-                    stackpanelQuestspanel.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy") });
-                else if (listQuestsStatus[i] == 1)//Dockpanel required, with button to redeem reward
-                {
-                    DockPanel ToAdd = new DockPanel() { Width = stackpanelQuestspanel.ActualWidth, Height = 25 };
-                    ToAdd.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, Width = ToAdd.ActualWidth / 2, Height = ToAdd.Height, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy"), Visibility = Visibility.Visible });
-                    Button button_Redeem = new Button() { Content = "Redeem " + lookup_Quests[i].Item2 + " portions", Width = ToAdd.ActualWidth / 2, Height = ToAdd.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 143, 143), Color.FromArgb(255, 0, 52, 143), 90), Visibility = Visibility.Visible };
-                    button_Redeem.Click += button_Redeem_Click;
-                    ToAdd.Children.Add(button_Redeem);
-                    stackpanelQuestspanel.Children.Add(ToAdd);
-                }
-                else
-                {
-                    DockPanel ToAdd = new DockPanel() { Width = stackpanelQuestspanel.ActualWidth, Height = 25 };
-                    ToAdd.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, Width = ToAdd.ActualWidth / 2, Height = ToAdd.Height, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy"), Visibility = Visibility.Visible });
-                    TextBlock text_Redeemed = new TextBlock() { Text = "Redeemed " + lookup_Quests[i].Item2 + " portions!", Width = ToAdd.ActualWidth / 2, Height = ToAdd.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 200, 143), Color.FromArgb(255, 0, 162, 143), 90), Visibility = Visibility.Visible };
-                    ToAdd.Children.Add(text_Redeemed);
-                    stackpanelQuestspanel.Children.Add(ToAdd);
-                }
-            }
-            button_Quests.Click -= button_Quests_Click_Open;
-            button_Quests.Click += button_Quests_Click_Close;
-            RoutedEventHandler ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) => { });
-            ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
-            {
-                button_Quests.Background = OldBackground;
-                button_Quests.Click -= ChangeToOldBackground_Click;
-            });
-            button_Quests.Click += ChangeToOldBackground_Click;
-        }
-
-        /// <summary>
-        /// MUST BE TESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void button_Redeem_Click(object sender, RoutedEventArgs e)
-        {
-            DockPanel Parent = (sender as Button).Parent as DockPanel;
-            int index = (myStackPanel.Children[myStackPanel.Children.Count - 1] as StackPanel).Children.IndexOf(Parent);
-            listQuestsStatus[index] = 2;
-            Parent.Children.Remove(sender as Button);
-            Parent.Children.Add(new TextBlock() { Text = "Redeemed " + lookup_Quests[index].Item2 + " portions!", Width = Parent.ActualWidth / 2, Height = Parent.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 200, 143), Color.FromArgb(255, 0, 162, 143), 90), Visibility = Visibility.Visible });
-        }
-
-        private void button_Quests_Click_Close(object sender, RoutedEventArgs e)
-        {
-            //CLOSE QUESTS
-            myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
-            myStackPanel.Background = myBrushes["myStackPanel.DefaultBackground"];
-            myStackPanel.Visibility = Visibility.Collapsed;
-            myGrid.Background = myBrushes["myGrid.DefaultBackground"];
-
-            button_Quests.Content = "Quests";
-            button_Quests.Height *= 2;
-
-            for (int i = 0; i < shapes_ProcessorParts.Count; i++)
-                shapes_ProcessorParts[i].Visibility = Visibility.Visible;
-            registersStackPanel.Visibility = Visibility.Visible;
-            rect_MotherBoardBackGround.Visibility = Visibility.Visible;
-            processorStackPanel.Visibility = Visibility.Visible;
-            runtimeStackPanel.Visibility = Visibility.Visible;
-            runtimeDockPanel.Visibility = Visibility.Visible;
-            runtimestackpanelBorder.Visibility = Visibility.Visible;
-            memoryDockPanel.Visibility = Visibility.Visible;
-            for (int i = 0; i < NumRegisters; i++)
-                gridsRegWires[i].Visibility = Visibility.Visible;
-            gridToALU.Visibility = Visibility.Visible;
-            text_ALU.Visibility = Visibility.Visible;
-            gridProcToMem.Visibility = Visibility.Visible;
-            button_QstSave.Visibility = Visibility.Visible;
-            button_SaveProgress.Visibility = Visibility.Visible;
-            tabsDockPanel.Visibility = Visibility.Visible;
-
-            button_Quests.Click -= button_Quests_Click_Close;
-            button_Quests.Click += button_Quests_Click_Open;
-        }
-
-        private void button_SaveProgress_Click(object sender, RoutedEventArgs e)
-        {
-            BinaryWriter binaryWrite = new BinaryWriter(new FileStream(System.IO.Path.Combine(sGameFilesPath, sAccountFileName), FileMode.Truncate), Encoding.UTF8);
-            string[][] TabInfo = new string[2][];//[0] - tab names, [1] - tab texts
-            TabInfo[0] = new string[texts_TabNames.Count]; TabInfo[1] = new string[texts_Tabs.Count];
-            for (int i = 0; i < texts_Tabs.Count; i++)
-            {
-                TabInfo[0][i] = texts_TabNames[i].Text;
-                TabInfo[1][i] = texts_Tabs[i].Text;
-            }
-            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec);
-        }
-        #endregion
 
         #region PlayRun and Animations
         private void button_PlayRun_Click(object sender, RoutedEventArgs e)
@@ -2993,6 +2828,216 @@ namespace CSProjectGame
         #endregion
         #endregion
 
+        #region Secondary Menu
+        private void button_SecondaryMenu_Open_Tick(object sender, RoutedEventArgs e)
+        {
+            const int iMillisecondsDuration = 700;
+            const int iDelay = 150;
+            Storyboard ToPlay = new Storyboard();
+            for (int i = 0; i < tabsDockPanel.Children.Count; i++)
+            {
+                #region Create tanimMoveToRight
+                ThicknessAnimation tanimMoveToRight = new ThicknessAnimation();
+                tanimMoveToRight.By = new Thickness(ActualWidth, 0, -1 * ActualWidth, 0);
+                tanimMoveToRight.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+                tanimMoveToRight.EasingFunction = new QuarticEase();
+                tanimMoveToRight.BeginTime = TimeSpan.FromMilliseconds(0);
+                Storyboard.SetTarget(tanimMoveToRight, tabsDockPanel.Children[i]);
+                Storyboard.SetTargetProperty(tanimMoveToRight, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimMoveToRight);
+            }
+
+            #region Create dtCollapsebutton_SecondaryMenu_Open
+            DispatcherTimer dtCollapsebutton_SecondaryMenu_Open = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(iMillisecondsDuration) };
+            Action<object, EventArgs> CollapseButton_Tick = (object sender2, EventArgs e2) =>
+            {
+                button_SecondaryMenu_Open.Visibility = Visibility.Collapsed;
+                (sender2 as DispatcherTimer).Stop();
+            };
+            dtCollapsebutton_SecondaryMenu_Open.Tick += new EventHandler(CollapseButton_Tick);
+            #endregion
+
+            #region Create tanimBringInSecMenu
+            ThicknessAnimation tanimBringInSecMenu = new ThicknessAnimation();
+            tanimBringInSecMenu.By = new Thickness(ActualWidth, 0, -1 * ActualWidth, 0);
+            tanimBringInSecMenu.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+            tanimBringInSecMenu.EasingFunction = new QuarticEase();
+            tanimBringInSecMenu.BeginTime = TimeSpan.FromMilliseconds(iDelay);
+            Storyboard.SetTarget(tanimBringInSecMenu, secmenuDockPanel);
+            Storyboard.SetTargetProperty(tanimBringInSecMenu, new PropertyPath(MarginProperty));
+            #endregion
+            ToPlay.Children.Add(tanimBringInSecMenu);
+
+            ToPlay.Begin(this);
+            dtCollapsebutton_SecondaryMenu_Open.Start();
+        }
+
+        private void button_QstSave_Click_Open(object sender, RoutedEventArgs e)
+        {
+            DoubleAnimation opacityfadeForRuntimeStackpanel = new DoubleAnimation(0.3, TimeSpan.FromMilliseconds(200));
+            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityfadeForRuntimeStackpanel);
+
+            button_Quests.Opacity = button_SaveProgress.Opacity = 0;
+            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Visible;
+            DoubleAnimation opacityappearForButtons = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
+            button_Quests.BeginAnimation(OpacityProperty, opacityappearForButtons);
+            button_SaveProgress.BeginAnimation(OpacityProperty, opacityappearForButtons);
+
+            button_ToggleCode.Click += button_QstSave_Click_Close;
+            button_PlayRun.Click += button_QstSave_Click_Close;
+            button_QstSave.Click -= button_QstSave_Click_Open;
+            button_QstSave.Click += button_QstSave_Click_Close;
+        }
+
+        private void button_QstSave_Click_Close(object sender, RoutedEventArgs e)
+        {
+            DoubleAnimation opacityfadeForButtons = new DoubleAnimation(0, TimeSpan.FromMilliseconds(300));
+            button_Quests.BeginAnimation(OpacityProperty, opacityfadeForButtons);
+            button_SaveProgress.BeginAnimation(OpacityProperty, opacityfadeForButtons);
+
+            DoubleAnimation opacityappearForRuntimeStackpanel = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
+            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityappearForRuntimeStackpanel);
+            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Collapsed;
+
+            button_ToggleCode.Click -= button_QstSave_Click_Close;
+            button_PlayRun.Click -= button_QstSave_Click_Close;
+            button_QstSave.Click -= button_QstSave_Click_Close;
+            button_QstSave.Click += button_QstSave_Click_Open;
+        }
+
+        private void button_Quests_Click_Open(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < shapes_ProcessorParts.Count; i++)
+                shapes_ProcessorParts[i].Visibility = Visibility.Collapsed;
+            registersStackPanel.Visibility = Visibility.Collapsed;
+            rect_MotherBoardBackGround.Visibility = Visibility.Collapsed;
+            processorStackPanel.Visibility = Visibility.Collapsed;
+            runtimeStackPanel.Visibility = Visibility.Collapsed;
+            runtimeDockPanel.Visibility = Visibility.Collapsed;
+            runtimestackpanelBorder.Visibility = Visibility.Collapsed;
+            memoryDockPanel.Visibility = Visibility.Collapsed;
+            tabsDockPanel.Visibility = Visibility.Collapsed;
+            for (int i = 0; i < NumRegisters; i++)
+                gridsRegWires[i].Visibility = Visibility.Collapsed;
+            gridToALU.Visibility = Visibility.Collapsed;
+            text_ALU.Visibility = Visibility.Collapsed;
+            gridProcToMem.Visibility = Visibility.Collapsed;
+            button_QstSave.Visibility = Visibility.Collapsed;
+            button_SaveProgress.Visibility = Visibility.Collapsed;
+
+            button_Quests.Content = "Back";
+            Brush OldBackground = button_Quests.Background;
+            button_Quests.Background = Brushes.SandyBrown;
+            button_Quests.Height *= 0.5;
+
+            //Opening quests page
+            if (!myBrushes.ContainsKey("myGrid.DefaultBackground"))
+                myBrushes.Add("myGrid.DefaultBackground", myGrid.Background);
+            if (!myBrushes.ContainsKey("myStackPanel.DefaultBackground"))
+                myBrushes.Add("myStackPanel.DefaultBackground", myStackPanel.Background);
+            myStackPanel.Background = new SolidColorBrush(Color.FromArgb(255, 170, 115, 30));
+            myStackPanel.Visibility = Visibility.Visible;
+            Color backcol1 = Color.FromArgb(255, 148, 95, 15);
+            Color backcol2 = Color.FromArgb(255, 126, 65, 2);
+            myGrid.Background = new LinearGradientBrush(backcol1, backcol2, 90);
+            //Display quests
+            StackPanel stackpanelQuestspanel = new StackPanel() { Visibility = Visibility.Visible };
+            myStackPanel.Children.Add(stackpanelQuestspanel);
+            for (int i = 0; i < listQuestsStatus.Length; i++)
+            {
+                if (listQuestsStatus[i] == 0)//Quests not yet completed, textblock is sufficient
+                    stackpanelQuestspanel.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy") });
+                else if (listQuestsStatus[i] == 1)//Dockpanel required, with button to redeem reward
+                {
+                    DockPanel ToAdd = new DockPanel() { Width = stackpanelQuestspanel.ActualWidth, Height = 25 };
+                    ToAdd.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, Width = ToAdd.ActualWidth / 2, Height = ToAdd.Height, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy"), Visibility = Visibility.Visible });
+                    Button button_Redeem = new Button() { Content = "Redeem " + lookup_Quests[i].Item2 + " portions", Width = ToAdd.ActualWidth / 2, Height = ToAdd.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 143, 143), Color.FromArgb(255, 0, 52, 143), 90), Visibility = Visibility.Visible };
+                    button_Redeem.Click += button_Redeem_Click;
+                    ToAdd.Children.Add(button_Redeem);
+                    stackpanelQuestspanel.Children.Add(ToAdd);
+                }
+                else
+                {
+                    DockPanel ToAdd = new DockPanel() { Width = stackpanelQuestspanel.ActualWidth, Height = 25 };
+                    ToAdd.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, Width = ToAdd.ActualWidth / 2, Height = ToAdd.Height, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy"), Visibility = Visibility.Visible });
+                    TextBlock text_Redeemed = new TextBlock() { Text = "Redeemed " + lookup_Quests[i].Item2 + " portions!", Width = ToAdd.ActualWidth / 2, Height = ToAdd.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 200, 143), Color.FromArgb(255, 0, 162, 143), 90), Visibility = Visibility.Visible };
+                    ToAdd.Children.Add(text_Redeemed);
+                    stackpanelQuestspanel.Children.Add(ToAdd);
+                }
+            }
+            button_Quests.Click -= button_Quests_Click_Open;
+            button_Quests.Click += button_Quests_Click_Close;
+            RoutedEventHandler ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) => { });
+            ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
+            {
+                button_Quests.Background = OldBackground;
+                button_Quests.Click -= ChangeToOldBackground_Click;
+            });
+            button_Quests.Click += ChangeToOldBackground_Click;
+        }
+
+        /// <summary>
+        /// MUST BE TESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button_Redeem_Click(object sender, RoutedEventArgs e)
+        {
+            DockPanel Parent = (sender as Button).Parent as DockPanel;
+            int index = (myStackPanel.Children[myStackPanel.Children.Count - 1] as StackPanel).Children.IndexOf(Parent);
+            listQuestsStatus[index] = 2;
+            Parent.Children.Remove(sender as Button);
+            Parent.Children.Add(new TextBlock() { Text = "Redeemed " + lookup_Quests[index].Item2 + " portions!", Width = Parent.ActualWidth / 2, Height = Parent.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 200, 143), Color.FromArgb(255, 0, 162, 143), 90), Visibility = Visibility.Visible });
+        }
+
+        private void button_Quests_Click_Close(object sender, RoutedEventArgs e)
+        {
+            //CLOSE QUESTS
+            myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
+            myStackPanel.Background = myBrushes["myStackPanel.DefaultBackground"];
+            myStackPanel.Visibility = Visibility.Collapsed;
+            myGrid.Background = myBrushes["myGrid.DefaultBackground"];
+
+            button_Quests.Content = "Quests";
+            button_Quests.Height *= 2;
+
+            for (int i = 0; i < shapes_ProcessorParts.Count; i++)
+                shapes_ProcessorParts[i].Visibility = Visibility.Visible;
+            registersStackPanel.Visibility = Visibility.Visible;
+            rect_MotherBoardBackGround.Visibility = Visibility.Visible;
+            processorStackPanel.Visibility = Visibility.Visible;
+            runtimeStackPanel.Visibility = Visibility.Visible;
+            runtimeDockPanel.Visibility = Visibility.Visible;
+            runtimestackpanelBorder.Visibility = Visibility.Visible;
+            memoryDockPanel.Visibility = Visibility.Visible;
+            for (int i = 0; i < NumRegisters; i++)
+                gridsRegWires[i].Visibility = Visibility.Visible;
+            gridToALU.Visibility = Visibility.Visible;
+            text_ALU.Visibility = Visibility.Visible;
+            gridProcToMem.Visibility = Visibility.Visible;
+            button_QstSave.Visibility = Visibility.Visible;
+            button_SaveProgress.Visibility = Visibility.Visible;
+            tabsDockPanel.Visibility = Visibility.Visible;
+
+            button_Quests.Click -= button_Quests_Click_Close;
+            button_Quests.Click += button_Quests_Click_Open;
+        }
+
+        private void button_SaveProgress_Click(object sender, RoutedEventArgs e)
+        {
+            BinaryWriter binaryWrite = new BinaryWriter(new FileStream(System.IO.Path.Combine(sGameFilesPath, sAccountFileName), FileMode.Truncate), Encoding.UTF8);
+            string[][] TabInfo = new string[2][];//[0] - tab names, [1] - tab texts
+            TabInfo[0] = new string[texts_TabNames.Count]; TabInfo[1] = new string[texts_Tabs.Count];
+            for (int i = 0; i < texts_Tabs.Count; i++)
+            {
+                TabInfo[0][i] = texts_TabNames[i].Text;
+                TabInfo[1][i] = texts_Tabs[i].Text;
+            }
+            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec);
+        }
+        #endregion
+
         #region All Other Event Handlers
 
         #region Tools Dockpanel - DockButtons
@@ -3086,15 +3131,18 @@ namespace CSProjectGame
             button_LoadIntoMem.Width = button_DeleteTab.Width = toolsDockPanel.Width * 5 / 16;
             button_DeleteTab.FontSize = button_DeleteTab.Width / 4;
             tabsDockPanel.Width = ActualWidth;
+            secmenuDockPanel.Width = tabsDockPanel.Width;
+            secmenuDockPanel.Margin = new Thickness(-ActualWidth, secmenuDockPanel.Margin.Top, ActualWidth, secmenuDockPanel.Margin.Bottom);
             if (tabsDockPanel.Children.Count > 0)
             {
                 (tabsDockPanel.Children[0] as Button).Width = ActualWidth / 7;
                 for (int i = 1; i < tabsDockPanel.Children.Count; i++)
                     (tabsDockPanel.Children[i] as Button).Width = ActualWidth / 14;
             }
-            button_SecondaryMenu_Open.Margin = new Thickness(0, 0, ActualWidth * 5 / 28 - button_SecondaryMenu_Open.Width, 0);
-            button_SecondaryMenu_Open.Width = 17 * myGrid.ColumnDefinitions[0].MyWidth() / 92;
-            button_SecondaryMenu_Open.Height = tabsDockPanel.Height - 5;
+            button_SecondaryMenu_Open.Width = ActualWidth / 30;
+            button_SecondaryMenu_Open.Margin = new Thickness(0, 0, ActualWidth * 2 / 7 - button_SecondaryMenu_Open.Width, 0);
+            if (button_SecondaryMenu_Open.Height >= myGrid.RowDefinitions[0].MyHeight())
+                button_SecondaryMenu_Open.Height = myGrid.RowDefinitions[0].MyHeight();
 
             rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
             rect_MotherBoardBackGround.Height = 299 * ActualHeight / 322;

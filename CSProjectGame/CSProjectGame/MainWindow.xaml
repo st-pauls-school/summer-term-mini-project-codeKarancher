@@ -400,6 +400,7 @@
             <TextBox x:Name="text_LoginDetails_Password" Height="25" TextWrapping="Wrap" Text="Password" VerticalAlignment="Top" Foreground="#FF2A977E" ToolTip="Enter your password" FontFamily="HP Simplified Light" UndoLimit="1000" BorderThickness="0" HorizontalAlignment="Left" Width="159" Canvas.Left="14" FontSize="15"/>
             <Ellipse HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="26" Fill="White" Canvas.Left="159"/>
         </Canvas>
-        <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,75,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10"/>
+        <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,130,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Grid.ColumnSpan="3" Click="button_SecondaryMenu_Open_Tick"/>
+        <DockPanel x:Name="secmenuDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="28" LastChildFill="False" VerticalAlignment="Top" Width="517" Opacity="0.7" Visibility="Visible" Margin="0,-5,0,0" Background="#FF00002E"/>
     </Grid>
 </Window>
