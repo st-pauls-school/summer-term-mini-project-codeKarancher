@@ -400,7 +400,60 @@
             <TextBox x:Name="text_LoginDetails_Password" Height="25" TextWrapping="Wrap" Text="Password" VerticalAlignment="Top" Foreground="#FF2A977E" ToolTip="Enter your password" FontFamily="HP Simplified Light" UndoLimit="1000" BorderThickness="0" HorizontalAlignment="Left" Width="159" Canvas.Left="14" FontSize="15"/>
             <Ellipse HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Width="26" Fill="White" Canvas.Left="159"/>
         </Canvas>
-        <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,130,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Grid.ColumnSpan="3" Click="button_SecondaryMenu_Open_Tick"/>
-        <DockPanel x:Name="secmenuDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="28" LastChildFill="False" VerticalAlignment="Top" Width="517" Opacity="0.7" Visibility="Visible" Margin="0,-5,0,0" Background="#FF00002E"/>
+        <Grid x:Name="secmenuGrid" Background="#FF00002E" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="28" Margin="0,-5,0,0" Opacity="0.7" Visibility="Visible" VerticalAlignment="Top" Width="517" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="button_Quests2" Margin="4, 8, 4, 3">
+                <Button.Template>
+                    <ControlTemplate>
+                        <Grid>
+                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
+                            <ContentPresenter RecognizesAccessKey="True"/>
+                            <ContentControl Content="Quests" FontFamily="Century Gothic" FontSize="10" Foreground="#FF7A3000" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+            <Button x:Name="button_Tasks2" Margin="4, 8, 4, 3" Grid.Column="1">
+                <Button.Template>
+                    <ControlTemplate>
+                        <Grid>
+                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
+                            <ContentPresenter RecognizesAccessKey="True"/>
+                            <ContentControl Content="Tasks" FontFamily="Century Gothic" FontSize="10" Foreground="#FF502B57" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+            <Button x:Name="button_Store2" Margin="4, 8, 4, 3" Grid.Column="2">
+                <Button.Template>
+                    <ControlTemplate>
+                        <Grid>
+                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
+                            <ContentPresenter RecognizesAccessKey="True"/>
+                            <ContentControl Content="Store" FontFamily="Century Gothic" FontSize="10" Foreground="#FF109A00" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+            <Button x:Name="button_Save2" Margin="4, 8, 4, 3" Grid.Column="3">
+                <Button.Template>
+                    <ControlTemplate>
+                        <Grid>
+                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
+                            <ContentPresenter RecognizesAccessKey="True"/>
+                            <ContentControl Content="Save" FontFamily="Century Gothic" FontSize="10" Foreground="#FF0048C8" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+        <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,500,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Click="button_SecondaryMenu_Open_Click" MouseEnter="button_SecondaryMenu_MouseEnter" MouseLeave="button_SecondaryMenu_MouseLeave" Grid.ColumnSpan="13" Opacity="0.4" FontWeight="Bold" FontFamily="Stencil"/>
+        <Button x:Name="button_SecondaryMenu_Close" Content="&gt;" Height="23" Margin="500,0,0,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Click="button_SecondaryMenu_Close_Click" MouseEnter="button_SecondaryMenu_MouseEnter" MouseLeave="button_SecondaryMenu_MouseLeave" Opacity="0.4" FontWeight="Bold" FontFamily="Stencil" Grid.ColumnSpan="13" Visibility="Collapsed"/>
     </Grid>
 </Window>

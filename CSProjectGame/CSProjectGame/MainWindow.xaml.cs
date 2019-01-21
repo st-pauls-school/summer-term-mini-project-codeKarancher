@@ -76,7 +76,7 @@ namespace CSProjectGame
         {
             InitializeComponent();
             WindowState = WindowState.Maximized;
-            secmenuDockPanel.Margin = new Thickness(-ActualWidth, secmenuDockPanel.Margin.Top, ActualWidth, secmenuDockPanel.Margin.Bottom);
+            secmenuGrid.Margin = new Thickness(-ActualWidth, secmenuGrid.Margin.Top, ActualWidth, secmenuGrid.Margin.Bottom);
             Title = "Inside Your Computer";
             if (!Directory.Exists(sGameFilesPath))
                 Directory.CreateDirectory(sGameFilesPath);
@@ -114,6 +114,7 @@ namespace CSProjectGame
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
         }
 
+        #region Start Screen
         private void button_Go_Click(object sender, RoutedEventArgs e)
         {
             //if account details are correct
@@ -177,6 +178,7 @@ namespace CSProjectGame
             Storyboard s = new Storyboard() { Children = new TimelineCollection() { danim } };
             s.Begin(this);
         }
+        #endregion
 
         #region Initialise Graphics
 
@@ -2829,10 +2831,11 @@ namespace CSProjectGame
         #endregion
 
         #region Secondary Menu
-        private void button_SecondaryMenu_Open_Tick(object sender, RoutedEventArgs e)
+        private void button_SecondaryMenu_Open_Click(object sender, RoutedEventArgs e)
         {
             const int iMillisecondsDuration = 700;
-            const int iDelay = 150;
+            const int iDelay = 200;
+            const int iFadeInDuration = 400;
             Storyboard ToPlay = new Storyboard();
             for (int i = 0; i < tabsDockPanel.Children.Count; i++)
             {
@@ -2864,13 +2867,141 @@ namespace CSProjectGame
             tanimBringInSecMenu.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
             tanimBringInSecMenu.EasingFunction = new QuarticEase();
             tanimBringInSecMenu.BeginTime = TimeSpan.FromMilliseconds(iDelay);
-            Storyboard.SetTarget(tanimBringInSecMenu, secmenuDockPanel);
+            Storyboard.SetTarget(tanimBringInSecMenu, secmenuGrid);
             Storyboard.SetTargetProperty(tanimBringInSecMenu, new PropertyPath(MarginProperty));
             #endregion
             ToPlay.Children.Add(tanimBringInSecMenu);
 
+            #region Create danimFadeInSecMenu
+            DoubleAnimation danimFadeInSecMenu = new DoubleAnimation();
+            danimFadeInSecMenu.From = 0;
+            danimFadeInSecMenu.To = 1;
+            danimFadeInSecMenu.Duration = TimeSpan.FromMilliseconds(iFadeInDuration);
+            danimFadeInSecMenu.BeginTime = TimeSpan.FromMilliseconds(iDelay - 10);
+            Storyboard.SetTarget(danimFadeInSecMenu, secmenuGrid);
+            Storyboard.SetTargetProperty(danimFadeInSecMenu, new PropertyPath(OpacityProperty));
+            #endregion
+            ToPlay.Children.Add(danimFadeInSecMenu);
+
+            #region Create danimIncrOpacity
+            button_SecondaryMenu_Close.Visibility = Visibility.Visible;
+            DoubleAnimation danimIncrOpacity = new DoubleAnimation();
+            danimIncrOpacity.From = 0;
+            danimIncrOpacity.To = 0.4;
+            danimIncrOpacity.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+            danimIncrOpacity.BeginTime = TimeSpan.FromMilliseconds(iDelay);
+            Storyboard.SetTarget(danimIncrOpacity, button_SecondaryMenu_Close);
+            Storyboard.SetTargetProperty(danimIncrOpacity, new PropertyPath(OpacityProperty));
+            #endregion
+            ToPlay.Children.Add(danimIncrOpacity);
+
             ToPlay.Begin(this);
             dtCollapsebutton_SecondaryMenu_Open.Start();
+            
+        }
+
+        private void button_SecondaryMenu_Close_Click(object sender, RoutedEventArgs e)
+        {
+            const int iMillisecondsDuration = 700;
+            const int iDelay = 200;
+            const int iFadeInDuration = 400;
+            Storyboard ToPlay = new Storyboard();
+            for (int i = 0; i < tabsDockPanel.Children.Count; i++)
+            {
+                #region Create tanimMoveToLeft
+                ThicknessAnimation tanimMoveToLeft = new ThicknessAnimation();
+                tanimMoveToLeft.By = new Thickness(-1 * ActualWidth, 0, ActualWidth, 0);
+                tanimMoveToLeft.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+                tanimMoveToLeft.EasingFunction = new QuarticEase();
+                tanimMoveToLeft.BeginTime = TimeSpan.FromMilliseconds(iDelay);
+                Storyboard.SetTarget(tanimMoveToLeft, tabsDockPanel.Children[i]);
+                Storyboard.SetTargetProperty(tanimMoveToLeft, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimMoveToLeft);
+            }
+
+            #region Create dtCollapsebutton_SecondaryMenu_Close
+            DispatcherTimer dtCollapsebutton_SecondaryMenu_Close = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(iMillisecondsDuration) };
+            Action<object, EventArgs> CollapseButton_Tick = (object sender2, EventArgs e2) =>
+            {
+                button_SecondaryMenu_Close.Visibility = Visibility.Collapsed;
+                (sender2 as DispatcherTimer).Stop();
+            };
+            dtCollapsebutton_SecondaryMenu_Close.Tick += new EventHandler(CollapseButton_Tick);
+            #endregion
+
+            #region Create tanimThrowOutSecMenu
+            ThicknessAnimation tanimThrowOutSecMenu = new ThicknessAnimation();
+            tanimThrowOutSecMenu.By = new Thickness(-1 * ActualWidth, 0, ActualWidth, 0);
+            tanimThrowOutSecMenu.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+            tanimThrowOutSecMenu.EasingFunction = new QuarticEase();
+            tanimThrowOutSecMenu.BeginTime = TimeSpan.FromMilliseconds(0);
+            Storyboard.SetTarget(tanimThrowOutSecMenu, secmenuGrid);
+            Storyboard.SetTargetProperty(tanimThrowOutSecMenu, new PropertyPath(MarginProperty));
+            #endregion
+            ToPlay.Children.Add(tanimThrowOutSecMenu);
+
+            #region Create danimFadeOutSecMenu
+            DoubleAnimation danimFadeOutSecMenu = new DoubleAnimation();
+            danimFadeOutSecMenu.From = 1;
+            danimFadeOutSecMenu.To = 0;
+            danimFadeOutSecMenu.Duration = TimeSpan.FromMilliseconds(iFadeInDuration);
+            danimFadeOutSecMenu.BeginTime = TimeSpan.FromMilliseconds(10);
+            Storyboard.SetTarget(danimFadeOutSecMenu, secmenuGrid);
+            Storyboard.SetTargetProperty(danimFadeOutSecMenu, new PropertyPath(OpacityProperty));
+            #endregion
+            ToPlay.Children.Add(danimFadeOutSecMenu);
+
+            #region Create danimIncrOpacity
+            button_SecondaryMenu_Open.Visibility = Visibility.Visible;
+            DoubleAnimation danimIncrOpacity = new DoubleAnimation();
+            danimIncrOpacity.From = 0;
+            danimIncrOpacity.To = 0.4;
+            danimIncrOpacity.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+            danimIncrOpacity.BeginTime = TimeSpan.FromMilliseconds(iDelay);
+            Storyboard.SetTarget(danimIncrOpacity, button_SecondaryMenu_Open);
+            Storyboard.SetTargetProperty(danimIncrOpacity, new PropertyPath(OpacityProperty));
+            #endregion
+            ToPlay.Children.Add(danimIncrOpacity);
+
+            ToPlay.Begin(this);
+            dtCollapsebutton_SecondaryMenu_Close.Start();
+        }
+
+        private void button_SecondaryMenu_MouseEnter(object sender, MouseEventArgs e)
+        {
+            const int iMillisecondsDuration = 200;
+            Storyboard ToPlay = new Storyboard();
+
+            #region Create danimIncrOpacity
+            DoubleAnimation danimIncrOpacity = new DoubleAnimation();
+            danimIncrOpacity.To = 1;
+            danimIncrOpacity.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+            danimIncrOpacity.BeginTime = TimeSpan.FromMilliseconds(0);
+            Storyboard.SetTarget(danimIncrOpacity, sender as Button);
+            Storyboard.SetTargetProperty(danimIncrOpacity, new PropertyPath(OpacityProperty));
+            #endregion
+            ToPlay.Children.Add(danimIncrOpacity);
+
+            ToPlay.Begin(this);
+        }
+
+        private void button_SecondaryMenu_MouseLeave(object sender, MouseEventArgs e)
+        {
+            const int iMillisecondsDuration = 200;
+            Storyboard ToPlay = new Storyboard();
+
+            #region Create danimDecrOpacity
+            DoubleAnimation danimDecrOpacity = new DoubleAnimation();
+            danimDecrOpacity.To = 0.4;
+            danimDecrOpacity.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+            danimDecrOpacity.BeginTime = TimeSpan.FromMilliseconds(0);
+            Storyboard.SetTarget(danimDecrOpacity, sender as Button);
+            Storyboard.SetTargetProperty(danimDecrOpacity, new PropertyPath(OpacityProperty));
+            #endregion
+            ToPlay.Children.Add(danimDecrOpacity);
+
+            ToPlay.Begin(this);
         }
 
         private void button_QstSave_Click_Open(object sender, RoutedEventArgs e)
@@ -3131,18 +3262,19 @@ namespace CSProjectGame
             button_LoadIntoMem.Width = button_DeleteTab.Width = toolsDockPanel.Width * 5 / 16;
             button_DeleteTab.FontSize = button_DeleteTab.Width / 4;
             tabsDockPanel.Width = ActualWidth;
-            secmenuDockPanel.Width = tabsDockPanel.Width;
-            secmenuDockPanel.Margin = new Thickness(-ActualWidth, secmenuDockPanel.Margin.Top, ActualWidth, secmenuDockPanel.Margin.Bottom);
+            secmenuGrid.Width = tabsDockPanel.Width;
+            secmenuGrid.Margin = new Thickness(-ActualWidth, secmenuGrid.Margin.Top, ActualWidth, secmenuGrid.Margin.Bottom);
             if (tabsDockPanel.Children.Count > 0)
             {
                 (tabsDockPanel.Children[0] as Button).Width = ActualWidth / 7;
                 for (int i = 1; i < tabsDockPanel.Children.Count; i++)
                     (tabsDockPanel.Children[i] as Button).Width = ActualWidth / 14;
             }
-            button_SecondaryMenu_Open.Width = ActualWidth / 30;
-            button_SecondaryMenu_Open.Margin = new Thickness(0, 0, ActualWidth * 2 / 7 - button_SecondaryMenu_Open.Width, 0);
+            button_SecondaryMenu_Open.Width = button_SecondaryMenu_Close.Width = 20;
+            button_SecondaryMenu_Open.Margin = new Thickness(0, 0, ActualWidth - 35, 0);
+            button_SecondaryMenu_Close.Margin = new Thickness(ActualWidth - 35, 0, 0, 0);
             if (button_SecondaryMenu_Open.Height >= myGrid.RowDefinitions[0].MyHeight())
-                button_SecondaryMenu_Open.Height = myGrid.RowDefinitions[0].MyHeight();
+                button_SecondaryMenu_Open.Height = button_SecondaryMenu_Close.Height = myGrid.RowDefinitions[0].MyHeight();
 
             rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
             rect_MotherBoardBackGround.Height = 299 * ActualHeight / 322;
