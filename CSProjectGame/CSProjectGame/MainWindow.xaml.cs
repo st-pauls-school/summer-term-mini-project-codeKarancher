@@ -70,6 +70,8 @@ namespace CSProjectGame
         //Quests declared in MainWindow()
         Tuple<string, int>[] lookup_Quests;
         Dictionary<Button, int> IndexOfQuestFromRedeemButton = new Dictionary<Button, int>();
+
+        Rectangle[] secmenuRects;
         #endregion
 
         public MainWindow()
@@ -93,6 +95,8 @@ namespace CSProjectGame
             SizeChanged += new SizeChangedEventHandler(MainWindow_SizeChanged_ResizeElements);
 
             gridsRegWires = new Grid[] { gridReg1Wire, gridReg2Wire, gridReg3Wire, gridReg4Wire, gridReg5Wire, gridReg6Wire };
+
+            //secmenuRects = new Rectangle[] { this.GetTemplateChild("rect_Quests") as Rectangle, this.GetTemplateChild("rect_Tasks") as Rectangle, this.GetTemplateChild("rect_Store") as Rectangle, this.GetTemplateChild("rect_Save") as Rectangle };
 
             myUniversalRand = new Random(DateTime.Today.Millisecond);
             myBrushes = new Dictionary<string, Brush>();
@@ -3275,6 +3279,11 @@ namespace CSProjectGame
             button_SecondaryMenu_Close.Margin = new Thickness(ActualWidth - 35, 0, 0, 0);
             if (button_SecondaryMenu_Open.Height >= myGrid.RowDefinitions[0].MyHeight())
                 button_SecondaryMenu_Open.Height = button_SecondaryMenu_Close.Height = myGrid.RowDefinitions[0].MyHeight();
+            //for (int curChild = 0; curChild < 4; curChild++)
+            //{
+            //    (secmenuGrid.Children[curChild] as Button).Margin = new Thickness(4 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103, 0, 4 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103, 0);
+            //    secmenuRects[curChild].Width = (secmenuGrid.Children[curChild] as Button).Width = 95 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103;
+            //}
 
             rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
             rect_MotherBoardBackGround.Height = 299 * ActualHeight / 322;

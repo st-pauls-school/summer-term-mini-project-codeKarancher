@@ -408,49 +408,49 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="button_Quests2" Margin="4, 8, 4, 3">
-                <Button.Template>
-                    <ControlTemplate>
-                        <Grid>
-                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
-                            <ContentPresenter RecognizesAccessKey="True"/>
-                            <ContentControl Content="Quests" FontFamily="Century Gothic" FontSize="10" Foreground="#FF7A3000" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Button.Template>
+            <Button x:Name="button_Quests2" Margin="4, 8, 4, 3" BorderBrush="#FF7A3000" BorderThickness="1">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                        <GradientStop Color="#FFF7C57D" Offset="0"/>
+                        <GradientStop Color="#FFEEC07E" Offset="0.5"/>
+                        <GradientStop Color="#FFE0A857" Offset="0.502"/>
+                        <GradientStop Color="#FFC78A30" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+                <ContentControl Content="Quests" FontFamily="Century Gothic" FontSize="10" Foreground="#FF7A3000" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="button_Tasks2" Margin="4, 8, 4, 3" Grid.Column="1">
-                <Button.Template>
-                    <ControlTemplate>
-                        <Grid>
-                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
-                            <ContentPresenter RecognizesAccessKey="True"/>
-                            <ContentControl Content="Tasks" FontFamily="Century Gothic" FontSize="10" Foreground="#FF502B57" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Button.Template>
+            <Button x:Name="button_Tasks2" Margin="4, 8, 4, 3" Grid.Column="1" BorderBrush="#FF502B57">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                        <GradientStop Color="#FFE9A9F3" Offset="0"/>
+                        <GradientStop Color="#FFE387F1" Offset="0.5"/>
+                        <GradientStop Color="#FFC55ED4" Offset="0.506"/>
+                        <GradientStop Color="#FFB852C7" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+                <ContentControl Content="Tasks" FontFamily="Century Gothic" FontSize="10" Foreground="#FF502B57" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="button_Store2" Margin="4, 8, 4, 3" Grid.Column="2">
-                <Button.Template>
-                    <ControlTemplate>
-                        <Grid>
-                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
-                            <ContentPresenter RecognizesAccessKey="True"/>
-                            <ContentControl Content="Store" FontFamily="Century Gothic" FontSize="10" Foreground="#FF109A00" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Button.Template>
+            <Button x:Name="button_Store2" Margin="4, 8, 4, 3" Grid.Column="2" BorderBrush="#FF109A00">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                        <GradientStop Color="#FFA1F08F" Offset="0"/>
+                        <GradientStop Color="#FF93EC7F" Offset="0.5"/>
+                        <GradientStop Color="#FF83D670" Offset="0.506"/>
+                        <GradientStop Color="#FF61C34C" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+                <ContentControl Content="Store" FontFamily="Century Gothic" FontSize="10" Foreground="#FF109A00" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="button_Save2" Margin="4, 8, 4, 3" Grid.Column="3">
-                <Button.Template>
-                    <ControlTemplate>
-                        <Grid>
-                            <Rectangle Fill="#FFFFFFFF" HorizontalAlignment="Left" Height="17" Stroke="Black" VerticalAlignment="Top" Width="95" Margin="0" />
-                            <ContentPresenter RecognizesAccessKey="True"/>
-                            <ContentControl Content="Save" FontFamily="Century Gothic" FontSize="10" Foreground="#FF0048C8" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </Grid>
-                    </ControlTemplate>
-                </Button.Template>
+            <Button x:Name="button_Save2" Margin="4, 8, 4, 3" Grid.Column="3" BorderBrush="#FF0048C8">
+                <Button.Background>
+                    <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                        <GradientStop Color="#FFA2CAF1" Offset="0"/>
+                        <GradientStop Color="#FF96C0EA" Offset="0.5"/>
+                        <GradientStop Color="#FF76AADC" Offset="0.51"/>
+                        <GradientStop Color="#FF6097CD" Offset="1"/>
+                    </LinearGradientBrush>
+                </Button.Background>
+                <ContentControl Content="Save" FontFamily="Century Gothic" FontSize="10" Foreground="#FF0048C8" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
         </Grid>
         <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,500,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Click="button_SecondaryMenu_Open_Click" MouseEnter="button_SecondaryMenu_MouseEnter" MouseLeave="button_SecondaryMenu_MouseLeave" Grid.ColumnSpan="13" Opacity="0.4" FontWeight="Bold" FontFamily="Stencil"/>
