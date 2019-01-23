@@ -30,17 +30,15 @@ namespace CSProjectGame
                 return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "InsideYourComputer", "GameFiles");
             }
         }
-        string sAccountFileName { get
-            {
-                return "acc.bin";
-            }
-        }
+        string sAccountFileName = "acc.bin";
+
+        string sUsername;
 
         Random myUniversalRand;
 
         const int MAXTABS = 12;
 
-        TextBlock text_Welcome;
+        TextBlock text_Welcome, text_NoAccountFound;
 
         int NumRegisters, MemorySpec, ALUSpec, ClockSpeedSpec;
         int[] lookup_MemorySpec;
@@ -64,14 +62,13 @@ namespace CSProjectGame
         List<TextBox> texts_Tabs;
         int curTab = 1;
         int runTab = 0;
+        bool InSecondaryMenu = false;
         
         Dictionary<string, Brush> myBrushes;
         byte[] listQuestsStatus;//0 => to be completed, 1 => completed, 2 => completed and redeemed
         //Quests declared in MainWindow()
         Tuple<string, int>[] lookup_Quests;
         Dictionary<Button, int> IndexOfQuestFromRedeemButton = new Dictionary<Button, int>();
-
-        Rectangle[] secmenuRects;
         #endregion
 
         public MainWindow()
@@ -80,10 +77,23 @@ namespace CSProjectGame
             WindowState = WindowState.Maximized;
             secmenuGrid.Margin = new Thickness(-ActualWidth, secmenuGrid.Margin.Top, ActualWidth, secmenuGrid.Margin.Bottom);
             Title = "Inside Your Computer";
+            #region Initialize text_NoAccountFound
+            text_NoAccountFound = new TextBlock();
+            myGrid.Children.Add(text_NoAccountFound);
+            Grid.SetRow(text_NoAccountFound, 3);
+            Grid.SetColumn(text_NoAccountFound, 4);
+            Grid.SetColumnSpan(text_NoAccountFound, 4);
+            text_NoAccountFound.Width = 4 * myGrid.ColumnDefinitions[4].MyWidth();
+            text_NoAccountFound.Height = myGrid.RowDefinitions[4].MyHeight();
+            text_NoAccountFound.Background = Brushes.DarkRed;
+            text_NoAccountFound.Visibility = Visibility.Visible;
+            text_NoAccountFound.Foreground = Brushes.White;
+            text_NoAccountFound.Margin = new Thickness(-ActualWidth, 0, ActualWidth, 0);
+            #endregion
             if (!Directory.Exists(sGameFilesPath))
                 Directory.CreateDirectory(sGameFilesPath);
             lookup_MemorySpec = new int[] { 20, 25, 30, 35, 40, 45, 50 };   //lookup_MemorySpec[memoryspec] will give the number of bytes of memory that the player has
-            lookup_ClockSpeedSpec = new int[] { 6000/*3000*/, 2540, 2080, 1620, 1160, 700, 240 }; //lookup_ClockSpeedSpec[clockspeedspec] will give the number of milliseconds to take per operation
+            lookup_ClockSpeedSpec = new int[] { 3000, 2540, 2080, 1620, 1160, 700, 240 }; //lookup_ClockSpeedSpec[clockspeedspec] will give the number of milliseconds to take per operation
             
             shapes_ProcessorParts = new List<Shape>();
             stackpanels_Registers = new List<StackPanel>();
@@ -96,12 +106,8 @@ namespace CSProjectGame
 
             gridsRegWires = new Grid[] { gridReg1Wire, gridReg2Wire, gridReg3Wire, gridReg4Wire, gridReg5Wire, gridReg6Wire };
 
-            //secmenuRects = new Rectangle[] { this.GetTemplateChild("rect_Quests") as Rectangle, this.GetTemplateChild("rect_Tasks") as Rectangle, this.GetTemplateChild("rect_Store") as Rectangle, this.GetTemplateChild("rect_Save") as Rectangle };
-
             myUniversalRand = new Random(DateTime.Today.Millisecond);
             myBrushes = new Dictionary<string, Brush>();
-
-            NumRegisters = 3;//REGISTERSDEBUG
 
             //Contains all quests in order of difficulty and reward, can be referenced using listQuests[QuestNumber][0]. Item1 contains the 'message' or 'challenge' in English. Item2 contains the number of 'portions' that are attained upon completion
             lookup_Quests = new Tuple<string, int>[] { new Tuple<string, int>("Store the numbers 1 to 5 in memory locations 10 to 14", 100), new Tuple<string, int>("Challenge 2", 100), new Tuple<string, int>("Challenge 3", 150), new Tuple<string, int>("Challenge 4", 200), new Tuple<string, int>("Challenge 5", 200), new Tuple<string, int>("Challenge 6", 250), new Tuple<string, int>("Challenge 7", 300), new Tuple<string, int>("Challenge 8", 350), new Tuple<string, int>("Challenge 9", 400), new Tuple<string, int>("Challenge 10", 450) };
@@ -116,17 +122,28 @@ namespace CSProjectGame
             GoButtonAnimation();
             text_LoginDetails_Username.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
+
+            RegisterName("secmenuGrid", secmenuGrid);
         }
 
         #region Start Screen
         private void button_Go_Click(object sender, RoutedEventArgs e)
         {
             //if account details are correct
-            text_Title.Visibility = Visibility.Collapsed;
-            canvas_LoginDetails_Username.Visibility = Visibility.Collapsed;
-            canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
-            button_Go.Visibility = Visibility.Collapsed;
-            ingraph_Initialise();
+
+
+
+            //
+            sUsername = text_LoginDetails_Username.Text;
+            if (File.Exists(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName)))
+            {
+                text_Title.Visibility = Visibility.Collapsed;
+                canvas_LoginDetails_Username.Visibility = Visibility.Collapsed;
+                canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
+                button_Go.Visibility = Visibility.Collapsed;
+                ingraph_Initialise();
+            }
+            // inform user that there is no such account on this computer's game files folder, make a new one?
         }
 
         private void text_LoginDetails_ClearText(object sender, MouseEventArgs e)
@@ -302,34 +319,22 @@ namespace CSProjectGame
 
         private void ingraph_Initialise()
         {
-            if (!File.Exists(System.IO.Path.Combine(sGameFilesPath, sAccountFileName)))
+            BinaryReader binaryReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
+            binaryReader.BaseStream.Position = 0;
+            byte b;
+            if (binaryReader.BaseStream.Length == 0 || (b = binaryReader.ReadByte()) == (byte)'x')
             {
-                BinaryWriter binaryWriter = new BinaryWriter(new FileStream(System.IO.Path.Combine(sGameFilesPath, sAccountFileName), FileMode.Create));
-                binaryWriter.BaseStream.Position = 0;
-                binaryWriter.Write((byte)'x');
                 ingraph_InitialiseTabs_Tutorial();
                 ingraph_FirstTime_00();
             }
             else
             {
-                BinaryReader binaryReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sAccountFileName), FileMode.Open));
-                binaryReader.BaseStream.Position = 0;
-                byte b;
-                if (binaryReader.BaseStream.Length == 0 || (b = binaryReader.ReadByte()) == (byte)'x')
-                {
-                    ingraph_InitialiseTabs_Tutorial();
-                    ingraph_FirstTime_00();
-                }
-                else
-                {
-                    //Has been played before, tutorial has been watched
-                    ingraph_InitialiseFromFile(binaryReader);
-                    ingraph_SetEventHandlers();
-                    GraphicsForMotherBoard();
-                    curTab = 0;
-                    CodeTab_Click(tabsDockPanel.Children[1] as Button, new RoutedEventArgs());
-                }
-
+                //Has been played before, tutorial has been watched
+                ingraph_InitialiseFromFile(binaryReader);
+                ingraph_SetEventHandlers();
+                GraphicsForMotherBoard();
+                curTab = 0;
+                CodeTab_Click(tabsDockPanel.Children[1] as Button, new RoutedEventArgs());
             }
 
         }
@@ -558,7 +563,6 @@ namespace CSProjectGame
         #endregion
 
         #region Tabs Functions
-
         private void AddNewTab(string TabContent)
         {
             Button NewTab = new Button() { Width = ActualWidth / 14 };
@@ -588,7 +592,6 @@ namespace CSProjectGame
                 text_ALU.Visibility = Visibility.Collapsed;
                 gridProcToMem.Visibility = Visibility.Collapsed;
                 button_QstSave.Visibility = Visibility.Collapsed;
-                button_Quests.Visibility = Visibility.Collapsed;
                 button_SaveProgress.Visibility = Visibility.Collapsed;
             }
             curTab = tabsDockPanel.Children.IndexOf(sender as Button);
@@ -654,6 +657,10 @@ namespace CSProjectGame
             return new string(ToReturn.ToArray()) + num.ToString();
         }
 
+        private void text_TabName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            (tabsDockPanel.Children[curTab] as Button).Content = TabTextFromProjectName((sender as TextBox).Text);
+        }
         #endregion
 
         #region Main Tab
@@ -2887,17 +2894,17 @@ namespace CSProjectGame
             #endregion
             ToPlay.Children.Add(danimFadeInSecMenu);
 
-            #region Create danimIncrOpacity
+            #region Create danimIncrOpacityOfCloseButton
             button_SecondaryMenu_Close.Visibility = Visibility.Visible;
-            DoubleAnimation danimIncrOpacity = new DoubleAnimation();
-            danimIncrOpacity.From = 0;
-            danimIncrOpacity.To = 0.4;
-            danimIncrOpacity.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
-            danimIncrOpacity.BeginTime = TimeSpan.FromMilliseconds(iDelay);
-            Storyboard.SetTarget(danimIncrOpacity, button_SecondaryMenu_Close);
-            Storyboard.SetTargetProperty(danimIncrOpacity, new PropertyPath(OpacityProperty));
+            DoubleAnimation danimIncrOpacityOfCloseButton = new DoubleAnimation();
+            danimIncrOpacityOfCloseButton.From = 0;
+            danimIncrOpacityOfCloseButton.To = 0.4;
+            danimIncrOpacityOfCloseButton.Duration = TimeSpan.FromMilliseconds(iMillisecondsDuration);
+            danimIncrOpacityOfCloseButton.BeginTime = TimeSpan.FromMilliseconds(iDelay);
+            Storyboard.SetTarget(danimIncrOpacityOfCloseButton, button_SecondaryMenu_Close);
+            Storyboard.SetTargetProperty(danimIncrOpacityOfCloseButton, new PropertyPath(OpacityProperty));
             #endregion
-            ToPlay.Children.Add(danimIncrOpacity);
+            ToPlay.Children.Add(danimIncrOpacityOfCloseButton);
 
             ToPlay.Begin(this);
             dtCollapsebutton_SecondaryMenu_Open.Start();
@@ -3043,6 +3050,9 @@ namespace CSProjectGame
 
         private void button_Quests_Click_Open(object sender, RoutedEventArgs e)
         {
+            InSecondaryMenu = true;
+
+            Storyboard ToPlay = new Storyboard();
             for (int i = 0; i < shapes_ProcessorParts.Count; i++)
                 shapes_ProcessorParts[i].Visibility = Visibility.Collapsed;
             registersStackPanel.Visibility = Visibility.Collapsed;
@@ -3060,11 +3070,92 @@ namespace CSProjectGame
             gridProcToMem.Visibility = Visibility.Collapsed;
             button_QstSave.Visibility = Visibility.Collapsed;
             button_SaveProgress.Visibility = Visibility.Collapsed;
+            button_SecondaryMenu_Close.Visibility = Visibility.Collapsed;
 
-            button_Quests.Content = "Back";
-            Brush OldBackground = button_Quests.Background;
-            button_Quests.Background = Brushes.SandyBrown;
-            button_Quests.Height *= 0.5;
+            if (curTab != 0)
+            {
+                myStackPanel.Children.CollapseElements();
+                toolsDockPanel.Visibility = Visibility.Collapsed;
+            }
+
+            Brush OldBackgroundsecmenu = secmenuGrid.Background;
+            secmenuGrid.Background = new SolidColorBrush(Color.FromArgb(215, 130, 75, 0));
+
+            const int MilliDuration = 400;
+            const int MilliBeginT = 150;
+            Thickness[] InitialMargins = new Thickness[] { button_Quests.Margin, button_Tasks2.Margin, button_Store2.Margin, button_Save2.Margin };
+            #region Create tanimButtonToCentre
+            ThicknessAnimation tanimButtonToCentre = new ThicknessAnimation();
+            tanimButtonToCentre.By = new Thickness(2 * ActualWidth / 5, 0, -2 * ActualWidth / 5, 0);
+            tanimButtonToCentre.Duration = TimeSpan.FromMilliseconds(MilliDuration);
+            tanimButtonToCentre.EasingFunction = new QuarticEase();
+            tanimButtonToCentre.BeginTime = TimeSpan.FromMilliseconds(MilliBeginT);
+            Storyboard.SetTarget(tanimButtonToCentre, button_Quests);
+            Storyboard.SetTargetProperty(tanimButtonToCentre, new PropertyPath(MarginProperty));
+            #endregion
+            ToPlay.Children.Add(tanimButtonToCentre);
+
+            #region Create tanims to move all other menu buttons out
+            for (int i = 1; i < 4; i++)
+            {
+                #region Create tanimEverythingElseOut
+                ThicknessAnimation tanimEverythingElseOut = new ThicknessAnimation();
+                tanimEverythingElseOut.By = new Thickness(ActualWidth, 0, -1 * ActualWidth, 0);
+                tanimEverythingElseOut.Duration = TimeSpan.FromMilliseconds(MilliDuration);
+                tanimEverythingElseOut.EasingFunction = new CubicEase();
+                tanimEverythingElseOut.BeginTime = TimeSpan.FromMilliseconds(MilliBeginT);
+                Storyboard.SetTarget(tanimEverythingElseOut, secmenuGrid.Children[i]);
+                Storyboard.SetTargetProperty(tanimEverythingElseOut, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimEverythingElseOut);
+            }
+            #endregion
+
+            #region Add an eventhandler to return state when quests are closed
+            int garbage;
+            Action RemoveAnimateBackFromClickEventHandlers = new Action(() => garbage = 0);
+            RoutedEventHandler AnimateBackButtonsAndBackground = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
+            {
+                Storyboard ToPlayBack = new Storyboard();
+
+                #region Create tanimButtonBack
+                ThicknessAnimation tanimButtonBack = new ThicknessAnimation();
+                tanimButtonBack.To = InitialMargins[0];
+                tanimButtonBack.Duration = TimeSpan.FromMilliseconds(MilliDuration);
+                tanimButtonBack.EasingFunction = new QuarticEase();
+                tanimButtonBack.BeginTime = TimeSpan.FromMilliseconds(MilliBeginT);
+                Storyboard.SetTarget(tanimButtonBack, button_Quests);
+                Storyboard.SetTargetProperty(tanimButtonBack, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlayBack.Children.Add(tanimButtonBack);
+
+                #region Create tanims to move all other menu buttons back
+                for (int i = 1; i < 4; i++)
+                {
+                    #region Create tanimMoveButtonBack
+                    ThicknessAnimation tanimMoveButtonBack = new ThicknessAnimation();
+                    tanimMoveButtonBack.To = InitialMargins[i];
+                    tanimMoveButtonBack.Duration = TimeSpan.FromMilliseconds(MilliDuration);
+                    tanimMoveButtonBack.EasingFunction = new CubicEase();
+                    tanimMoveButtonBack.BeginTime = TimeSpan.FromMilliseconds(MilliBeginT);
+                    Storyboard.SetTarget(tanimMoveButtonBack, secmenuGrid.Children[i]);
+                    Storyboard.SetTargetProperty(tanimMoveButtonBack, new PropertyPath(MarginProperty));
+                    #endregion
+                    ToPlayBack.Children.Add(tanimMoveButtonBack);
+                }
+                #endregion
+
+                ToPlayBack.Completed += delegate (object o, EventArgs ea)
+                {
+                    secmenuGrid.Background = OldBackgroundsecmenu;
+                };
+
+                ToPlayBack.Begin(this);
+                RemoveAnimateBackFromClickEventHandlers();
+            });
+            RemoveAnimateBackFromClickEventHandlers = new Action(() => button_Quests.Click -= AnimateBackButtonsAndBackground);
+            button_Quests.Click += AnimateBackButtonsAndBackground;
+            #endregion
 
             //Opening quests page
             if (!myBrushes.ContainsKey("myGrid.DefaultBackground"))
@@ -3102,14 +3193,14 @@ namespace CSProjectGame
                 }
             }
             button_Quests.Click -= button_Quests_Click_Open;
-            button_Quests.Click += button_Quests_Click_Close;
+            button_Quests.Click += button_Back_Quests_Click_Close;
             RoutedEventHandler ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) => { });
             ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
             {
-                button_Quests.Background = OldBackground;
                 button_Quests.Click -= ChangeToOldBackground_Click;
             });
             button_Quests.Click += ChangeToOldBackground_Click;
+            ToPlay.Begin(this);
         }
 
         /// <summary>
@@ -3126,37 +3217,43 @@ namespace CSProjectGame
             Parent.Children.Add(new TextBlock() { Text = "Redeemed " + lookup_Quests[index].Item2 + " portions!", Width = Parent.ActualWidth / 2, Height = Parent.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 200, 143), Color.FromArgb(255, 0, 162, 143), 90), Visibility = Visibility.Visible });
         }
 
-        private void button_Quests_Click_Close(object sender, RoutedEventArgs e)
+        private void button_Back_Quests_Click_Close(object sender, RoutedEventArgs e)
         {
+            InSecondaryMenu = false;
+
+            Storyboard ToPlay = new Storyboard();
             //CLOSE QUESTS
             myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
             myStackPanel.Background = myBrushes["myStackPanel.DefaultBackground"];
             myStackPanel.Visibility = Visibility.Collapsed;
             myGrid.Background = myBrushes["myGrid.DefaultBackground"];
 
-            button_Quests.Content = "Quests";
-            button_Quests.Height *= 2;
-
-            for (int i = 0; i < shapes_ProcessorParts.Count; i++)
-                shapes_ProcessorParts[i].Visibility = Visibility.Visible;
-            registersStackPanel.Visibility = Visibility.Visible;
-            rect_MotherBoardBackGround.Visibility = Visibility.Visible;
-            processorStackPanel.Visibility = Visibility.Visible;
-            runtimeStackPanel.Visibility = Visibility.Visible;
-            runtimeDockPanel.Visibility = Visibility.Visible;
-            runtimestackpanelBorder.Visibility = Visibility.Visible;
-            memoryDockPanel.Visibility = Visibility.Visible;
-            for (int i = 0; i < NumRegisters; i++)
-                gridsRegWires[i].Visibility = Visibility.Visible;
-            gridToALU.Visibility = Visibility.Visible;
-            text_ALU.Visibility = Visibility.Visible;
-            gridProcToMem.Visibility = Visibility.Visible;
-            button_QstSave.Visibility = Visibility.Visible;
-            button_SaveProgress.Visibility = Visibility.Visible;
+            button_SecondaryMenu_Close.Visibility = Visibility.Visible;
+            GraphicsForMotherBoard();
+            curTab = 0;
             tabsDockPanel.Visibility = Visibility.Visible;
 
-            button_Quests.Click -= button_Quests_Click_Close;
+            button_Quests.Click -= button_Back_Quests_Click_Close;
             button_Quests.Click += button_Quests_Click_Open;
+
+            const int UserChoiceDelayMilli = 2500;
+            #region Create dtBackToTabs
+            DispatcherTimer dtBackToTabs = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(UserChoiceDelayMilli) };
+            EventHandler triggermenuchange = new EventHandler((object sender2, EventArgs e2) =>
+            {
+                if (!InSecondaryMenu)
+                    button_SecondaryMenu_Close_Click(button_SecondaryMenu_Close, e);
+                (sender2 as DispatcherTimer).Stop();
+            });
+            dtBackToTabs.Tick += triggermenuchange;
+            #endregion
+            
+            ToPlay.Completed += delegate(object sender2, EventArgs e2)
+            {
+                dtBackToTabs.Start();
+            };
+            ToPlay.Begin(this);
+            dtBackToTabs.Start();
         }
 
         private void button_SaveProgress_Click(object sender, RoutedEventArgs e)
@@ -3172,10 +3269,8 @@ namespace CSProjectGame
             KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec);
         }
         #endregion
-
-        #region All Other Event Handlers
-
-        #region Tools Dockpanel - DockButtons
+        
+        #region Tools Dockpanel
         private void DockButton_Click_LoadIntoMemory(object sender, RoutedEventArgs e)
         {
             runTab = curTab;
@@ -3243,11 +3338,6 @@ namespace CSProjectGame
         #endregion
 
         #region Miscellaneous
-        private void text_TabName_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            (tabsDockPanel.Children[curTab] as Button).Content = TabTextFromProjectName((sender as TextBox).Text);
-        }
-
         private void MainWindow_SizeChanged_ResizeElements(object sender, SizeChangedEventArgs e)
         {
             double AmountStickingOut = canvas_LoginDetails_Username.Width - 4 * myGrid.ColumnDefinitions[4].ActualWidth;
@@ -3411,20 +3501,11 @@ namespace CSProjectGame
             gridProcToMem.Width = rect_AddressBusWire.Width = rect_DataBusWire.Width = ActualWidth / 14;
             gridProcToMem.Height = ActualHeight * 102 / 322;
             
-            button_Quests.Width = ActualWidth / 14;
-            button_Quests.Height = ActualHeight * 44 / 322;
-            button_Quests.FontSize = (111 * ActualHeight / 483 < ActualWidth / 70) ? 111 * ActualHeight / 483 : ActualWidth / 70;
-
-            button_SaveProgress.Width = button_Quests.Width;
-            button_SaveProgress.Height = button_Quests.Height;
-            button_SaveProgress.FontSize = (22 * ActualHeight / 805 < ActualWidth / 56) ? 22 * ActualHeight / 805 : ActualWidth / 56;
-
             int button_QstSave_Width = 5;
             button_QstSave.Height = ActualHeight * 44 / 322;
             button_QstSave.Width = button_QstSave_Width;
             button_QstSave.Margin = new Thickness(ActualWidth / 14 - button_QstSave_Width, 0, 0, 0);
         }
-        #endregion
         #endregion
     }
 }
