@@ -34,7 +34,34 @@
             </Setter>
         </Style>
         <Style x:Key="ButtonStyle2" TargetType="{x:Type Button}"/>
-        <Style x:Key="ButtonStyle3" TargetType="{x:Type Button}">
+        <Style x:Key="ButtonStyleGo" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Rectangle>
+                                <Rectangle.Fill>
+                                    <SolidColorBrush Color="#FF395CA0"/>
+                                </Rectangle.Fill>
+                                <Rectangle.Stroke>
+                                    <SolidColorBrush Color="#FF90C0FF"/>
+                                </Rectangle.Stroke>
+                            </Rectangle>
+                            <ContentPresenter RecognizesAccessKey="True"/>
+                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="Go!" Foreground="GhostWhite" FontSize="10" FontFamily="Century Gothic"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True"/>
+                            <Trigger Property="IsDefaulted" Value="True"/>
+                            <Trigger Property="IsMouseOver" Value="True"/>
+                            <Trigger Property="IsPressed" Value="True"/>
+                            <Trigger Property="IsEnabled" Value="False"/>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ButtonStyleNewAccount" TargetType="{x:Type Button}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -48,7 +75,7 @@
                                 </Rectangle.Stroke>
                             </Rectangle>
                             <ContentPresenter  RecognizesAccessKey="True"/>
-                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="Go!" Foreground="GhostWhite" FontSize="10"/>
+                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="New Account" Foreground="GhostWhite" FontSize="10" FontFamily="Century Gothic"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsFocused" Value="True"/>
@@ -61,7 +88,34 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ButtonStyle4" TargetType="{x:Type Button}">
+        <Style x:Key="ButtonStyleBackToLogin" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Rectangle>
+                                <Rectangle.Fill>
+                                    <SolidColorBrush Color="#FF8A2030"/>
+                                </Rectangle.Fill>
+                                <Rectangle.Stroke>
+                                    <SolidColorBrush Color="#FF90C0FF"/>
+                                </Rectangle.Stroke>
+                            </Rectangle>
+                            <ContentPresenter  RecognizesAccessKey="True"/>
+                            <ContentControl HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Content="Back" Foreground="GhostWhite" FontSize="10" FontFamily="Century Gothic"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True"/>
+                            <Trigger Property="IsDefaulted" Value="True"/>
+                            <Trigger Property="IsMouseOver" Value="True"/>
+                            <Trigger Property="IsPressed" Value="True"/>
+                            <Trigger Property="IsEnabled" Value="False"/>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ButtonStyleMainTab" TargetType="{x:Type Button}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -180,9 +234,9 @@
                 </RadialGradientBrush>
             </TextBlock.Foreground>
         </TextBlock>
-        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="32" Grid.Row="6" Style="{DynamicResource ButtonStyle3}" VerticalAlignment="Bottom" Width="111" Click="button_Go_Click" Grid.ColumnSpan="4" Grid.Column="4" Visibility="Visible" Margin="17,0,0,19"/>
+        <Button x:Name="button_Go" HorizontalAlignment="Left" Height="32" Grid.Row="5" Style="{DynamicResource ButtonStyleGo}" VerticalAlignment="Bottom" Width="111" Click="button_Go_Click" Grid.ColumnSpan="4" Grid.Column="4" Visibility="Visible" Margin="18,0,0,50" Grid.RowSpan="1"/>
         <StackPanel x:Name="myStackPanel"  Grid.ColumnSpan="12" HorizontalAlignment="Left" Height="202.733" Grid.Row="2" Grid.RowSpan="4" VerticalAlignment="Top" Width="443.487" Background="White" Opacity="0.6" Margin="36.584,0,0,0" Visibility="Collapsed"/>
-        <Button x:Name="tab_Main" Content="" HorizontalAlignment="Left" Height="16.842" Style="{DynamicResource ButtonStyle4}" VerticalAlignment="Top" Width="68.933" Visibility="Collapsed"/>
+        <Button x:Name="tab_Main" Content="" HorizontalAlignment="Left" Height="16.842" Style="{DynamicResource ButtonStyleMainTab}" VerticalAlignment="Top" Width="68.933" Visibility="Collapsed"/>
         <DockPanel x:Name="tabsDockPanel" Grid.ColumnSpan="13" HorizontalAlignment="Left" Height="28" LastChildFill="False" VerticalAlignment="Top" Width="517" Background="#FFA4D1FF" Opacity="0.7" Visibility="Visible" Margin="0,-5,0,0"/>
         <DockPanel x:Name="toolsDockPanel" Grid.Column="9" HorizontalAlignment="Left" Height="38.727" VerticalAlignment="Top" Width="123.119" Grid.ColumnSpan="4" Grid.Row="1" Margin="24.595,0,0,0" Visibility="Collapsed">
             <DockPanel.Background>
@@ -449,5 +503,8 @@
         </Grid>
         <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,500,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Click="button_SecondaryMenu_Open_Click" MouseEnter="button_SecondaryMenu_MouseEnter" MouseLeave="button_SecondaryMenu_MouseLeave" Grid.ColumnSpan="13" Opacity="0.4" FontWeight="Bold" FontFamily="Stencil"/>
         <Button x:Name="button_SecondaryMenu_Close" Content="&gt;" Height="23" Margin="500,0,0,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Click="button_SecondaryMenu_Close_Click" MouseEnter="button_SecondaryMenu_MouseEnter" MouseLeave="button_SecondaryMenu_MouseLeave" Opacity="0.4" FontWeight="Bold" FontFamily="Stencil" Grid.ColumnSpan="13" Visibility="Collapsed"/>
+        <TextBlock x:Name="text_NoAccountFound" Grid.ColumnSpan="4" Grid.Column="4" HorizontalAlignment="Left" Height="26" Grid.Row="3" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Top" Width="111" Background="#FFA00606" Text="noaccountfound" Foreground="White" Visibility="Collapsed" Margin="18,24,0,0" FontSize="9"/>
+        <Button x:Name="button_NewAccount" HorizontalAlignment="Left" Height="32" Grid.Row="6" Style="{DynamicResource ButtonStyleNewAccount}" VerticalAlignment="Bottom" Width="111" Click="button_NewAccount_Click" Grid.ColumnSpan="4" Grid.Column="4" Visibility="Visible" Margin="18,0,0,18"/>
+        <TextBlock x:Name="text_LoginDetails_FormTitle" Grid.ColumnSpan="2" Grid.Column="5" HorizontalAlignment="Left" Height="20" Grid.Row="2" TextWrapping="Wrap" Text="Login " TextAlignment="Center" VerticalAlignment="Top" Width="74" FontFamily="OCR A Extended" FontSize="20" Foreground="#FF003E0E" TextDecorations="{x:Null}" Margin="0,26,0,0"/>
     </Grid>
 </Window>

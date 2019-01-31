@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -30,15 +31,22 @@ namespace CSProjectGame
                 return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "InsideYourComputer", "GameFiles");
             }
         }
-        string sAccountFileName = "acc.bin";
+        string sAccountFileName
+        {
+            get
+            {
+                return "acc.bin";
+            }
+        }
 
         string sUsername;
+        string sPassword = "";
 
         Random myUniversalRand;
 
         const int MAXTABS = 12;
 
-        TextBlock text_Welcome, text_NoAccountFound;
+        TextBlock text_Welcome;
 
         int NumRegisters, MemorySpec, ALUSpec, ClockSpeedSpec;
         int[] lookup_MemorySpec;
@@ -77,19 +85,6 @@ namespace CSProjectGame
             WindowState = WindowState.Maximized;
             secmenuGrid.Margin = new Thickness(-ActualWidth, secmenuGrid.Margin.Top, ActualWidth, secmenuGrid.Margin.Bottom);
             Title = "Inside Your Computer";
-            #region Initialize text_NoAccountFound
-            text_NoAccountFound = new TextBlock();
-            myGrid.Children.Add(text_NoAccountFound);
-            Grid.SetRow(text_NoAccountFound, 3);
-            Grid.SetColumn(text_NoAccountFound, 4);
-            Grid.SetColumnSpan(text_NoAccountFound, 4);
-            text_NoAccountFound.Width = 4 * myGrid.ColumnDefinitions[4].MyWidth();
-            text_NoAccountFound.Height = myGrid.RowDefinitions[4].MyHeight();
-            text_NoAccountFound.Background = Brushes.DarkRed;
-            text_NoAccountFound.Visibility = Visibility.Visible;
-            text_NoAccountFound.Foreground = Brushes.White;
-            text_NoAccountFound.Margin = new Thickness(-ActualWidth, 0, ActualWidth, 0);
-            #endregion
             if (!Directory.Exists(sGameFilesPath))
                 Directory.CreateDirectory(sGameFilesPath);
             lookup_MemorySpec = new int[] { 20, 25, 30, 35, 40, 45, 50 };   //lookup_MemorySpec[memoryspec] will give the number of bytes of memory that the player has
@@ -120,8 +115,10 @@ namespace CSProjectGame
             LoginBoxAnimations(canvas_LoginDetails_Username, "canvas_LoginDetails_Username", canvas_LoginDetails_Username.Margin).Begin(this);
             LoginBoxAnimations(canvas_LoginDetails_Password, "canvas_LoginDetails_Password", canvas_LoginDetails_Password.Margin).Begin(this);
             GoButtonAnimation();
+            NewAccountButtonAnimation();
             text_LoginDetails_Username.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
+            text_LoginDetails_Password.TextChanged += text_LoginDetails_Password_TextChanged;
 
             RegisterName("secmenuGrid", secmenuGrid);
         }
@@ -129,21 +126,130 @@ namespace CSProjectGame
         #region Start Screen
         private void button_Go_Click(object sender, RoutedEventArgs e)
         {
-            //if account details are correct
-
-
-
-            //
+            text_NoAccountFound.Margin = new Thickness(-ActualWidth, 0, ActualWidth, 0);
+            text_NoAccountFound.Visibility = Visibility.Visible;
             sUsername = text_LoginDetails_Username.Text;
+            char[] carPasswordEntered = text_LoginDetails_Password.Text.ToCharArray();
+            byte[] bPasswordEntered = new byte[carPasswordEntered.Length];
+            for (int i = 0; i < bPasswordEntered.Length; i++)
+                bPasswordEntered[i] = (byte)carPasswordEntered[i];
             if (File.Exists(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName)))
             {
-                text_Title.Visibility = Visibility.Collapsed;
-                canvas_LoginDetails_Username.Visibility = Visibility.Collapsed;
-                canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
-                button_Go.Visibility = Visibility.Collapsed;
-                ingraph_Initialise();
+                //Get hash of correct password
+                BinaryReader bReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
+                byte[] HashComputed = new SHA1CryptoServiceProvider().ComputeHash(bPasswordEntered);
+                byte[] HashOfCorrectPassword = KSFileManagement.HashOfCorrectPasscode(bReader);
+                bool PasswordIsCorrect = true;
+                for (int i = 0; i < 20; i++)
+                {
+                    if (HashComputed[i] != HashOfCorrectPassword[i])
+                    {
+                        PasswordIsCorrect = false;
+                        break;
+                    }
+                }
+                bReader.Close();
+
+                if (PasswordIsCorrect)//Begin normal running
+                {
+                    text_Title.Visibility = Visibility.Collapsed;
+                    text_LoginDetails_FormTitle.Visibility = Visibility.Collapsed;
+                    canvas_LoginDetails_Username.Visibility = Visibility.Collapsed;
+                    canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
+                    button_Go.Visibility = Visibility.Collapsed;
+                    button_NewAccount.Visibility = Visibility.Collapsed;
+                    ingraph_Initialise();
+                }
+                else//Show error message
+                {
+                    text_NoAccountFound.Text = "Incorrect Password";
+                    text_NoAccountFound.TextAlignment = TextAlignment.Center;
+                    sbtext_NoAccountFound(7).Begin(this);
+                }
             }
-            // inform user that there is no such account on this computer's game files folder, make a new one?
+            else//Show error message
+            {
+                text_NoAccountFound.Text = "Sorry, we couldn’t find an account with that username on this computer’s game file folder.";
+                text_NoAccountFound.TextAlignment = TextAlignment.Center;
+                sbtext_NoAccountFound(0).Begin(this);
+            }
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="speed">A linear duration decreaser ranging from 1 to 10</param>
+        /// <returns></returns>
+        private Storyboard sbtext_NoAccountFound(int speed)
+        {
+            Storyboard ToPlay = new Storyboard();
+
+            int MilliDur = 400 - speed * 35;
+            int MilliReadDelay = 2000 - speed * 130;
+            #region Create tanimtext_NoAccountFound
+            ThicknessAnimation tanimtext_NoAccountFound = new ThicknessAnimation();
+            tanimtext_NoAccountFound.From = new Thickness(-1 * ActualWidth, 0, ActualWidth, 0);
+            tanimtext_NoAccountFound.To = new Thickness(0.65 * ActualWidth / 14, 17 * ActualHeight / 322, 0.65 * ActualWidth / 14, 8 * ActualHeight / 322);
+            tanimtext_NoAccountFound.Duration = TimeSpan.FromMilliseconds(MilliDur);
+            tanimtext_NoAccountFound.EasingFunction = new CubicEase();
+            tanimtext_NoAccountFound.BeginTime = TimeSpan.FromMilliseconds(0);
+            Storyboard.SetTarget(tanimtext_NoAccountFound, text_NoAccountFound);
+            Storyboard.SetTargetProperty(tanimtext_NoAccountFound, new PropertyPath(MarginProperty));
+            #endregion
+            ToPlay.Children.Add(tanimtext_NoAccountFound);
+
+            #region Create tanimtext_NoAccountFound2
+            ThicknessAnimation tanimtext_NoAccountFound2 = new ThicknessAnimation();
+            tanimtext_NoAccountFound2.To = new Thickness(ActualWidth, 0, -1 * ActualWidth, 0);
+            tanimtext_NoAccountFound2.Duration = TimeSpan.FromMilliseconds(MilliDur);
+            tanimtext_NoAccountFound2.EasingFunction = new CubicEase();
+            tanimtext_NoAccountFound2.BeginTime = TimeSpan.FromMilliseconds(MilliDur + MilliReadDelay);
+            Storyboard.SetTarget(tanimtext_NoAccountFound2, text_NoAccountFound);
+            Storyboard.SetTargetProperty(tanimtext_NoAccountFound2, new PropertyPath(MarginProperty));
+            #endregion
+            ToPlay.Children.Add(tanimtext_NoAccountFound2);
+
+            ToPlay.Completed += delegate (object o, EventArgs ea)
+            {
+                text_NoAccountFound.Margin = new Thickness(-1 * ActualWidth, 0, ActualWidth, 0);
+            };
+
+            return ToPlay;
+        }
+
+        private void button_Go_NewAccount_Click(object sender, RoutedEventArgs e)
+        {
+            //Storing password in bytes using unicodes to compute hash
+            byte[] bytesPassword = new byte[text_LoginDetails_Password.Text.Length];
+            char[] carPassword = text_LoginDetails_Password.Text.ToCharArray();
+            for (int i = 0; i < bytesPassword.Length; i++)
+                bytesPassword[i] = (byte)carPassword[i];
+            //Computing password's hash
+            HashAlgorithm Hasher = new SHA1CryptoServiceProvider();
+            byte[] Hash = Hasher.ComputeHash(bytesPassword);
+
+            string sNewAccountFilePath = System.IO.Path.Combine(sGameFilesPath, (sUsername = text_LoginDetails_Username.Text) + sAccountFileName);
+            if (File.Exists(sNewAccountFilePath))//There is already an account with this username on this computer
+            {
+                text_NoAccountFound.Text = "This username already exists";
+                text_NoAccountFound.TextAlignment = TextAlignment.Center;
+                text_NoAccountFound.Visibility = Visibility.Visible;
+                sbtext_NoAccountFound(5).Begin(this);
+                return;
+            }
+            BinaryWriter bwrite = new BinaryWriter(new FileStream(sNewAccountFilePath, FileMode.CreateNew));
+            for (int curbyte = 0; curbyte < 20; curbyte++)//Write the hash of the password to file
+            {
+                bwrite.Write(Hash[curbyte]);
+            }
+            bwrite.Close();
+            text_LoginDetails_FormTitle.Visibility = Visibility.Collapsed;
+            canvas_LoginDetails_Username.Visibility = Visibility.Collapsed;
+            canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
+            button_Go.Visibility = Visibility.Collapsed;
+            button_NewAccount.Visibility = Visibility.Collapsed;
+            text_Title.Visibility = Visibility.Collapsed;
+            ingraph_InitialiseTabs_Tutorial();
+            ingraph_FirstTime_00();
         }
 
         private void text_LoginDetails_ClearText(object sender, MouseEventArgs e)
@@ -198,6 +304,87 @@ namespace CSProjectGame
             danim.BeginTime = TimeSpan.FromMilliseconds(2300);
             Storyboard s = new Storyboard() { Children = new TimelineCollection() { danim } };
             s.Begin(this);
+        }
+
+        void NewAccountButtonAnimation()
+        {
+            button_NewAccount.Opacity = 0;
+            DoubleAnimation danim = new DoubleAnimation();
+            danim.From = 0;
+            danim.To = 1;
+            danim.Duration = TimeSpan.FromMilliseconds(2000);
+            danim.EasingFunction = new CubicEase();
+            Storyboard.SetTarget(danim, button_NewAccount);
+            Storyboard.SetTargetProperty(danim, new PropertyPath(OpacityProperty));
+            danim.BeginTime = TimeSpan.FromMilliseconds(2300);
+            Storyboard s = new Storyboard() { Children = new TimelineCollection() { danim } };
+            s.Begin(this);
+        }
+
+        private void button_NewAccount_Click(object sender, RoutedEventArgs e)
+        {
+            button_NewAccount.Style = (Style)Resources["ButtonStyleBackToLogin"];
+            text_LoginDetails_Username.Foreground = text_LoginDetails_Password.Foreground = Brushes.Red;
+
+            button_Go.Click -= button_Go_Click;
+            button_Go.Click += button_Go_NewAccount_Click;
+
+            button_NewAccount.Click -= button_NewAccount_Click;
+            button_NewAccount.Click += button_NewAccount_BackToLogin_Click;
+        }
+
+        private void button_NewAccount_BackToLogin_Click(object sender, RoutedEventArgs e)
+        {
+            button_NewAccount.Style = (Style)Resources["ButtonStyleNewAccount"];
+            text_LoginDetails_Username.Foreground = text_LoginDetails_Password.Foreground = new SolidColorBrush(Color.FromArgb(255, 42, 151, 126));
+
+            button_Go.Click -= button_Go_NewAccount_Click;
+            button_Go.Click += button_Go_Click;
+
+            button_NewAccount.Click -= button_NewAccount_BackToLogin_Click;
+            button_NewAccount.Click += button_NewAccount_Click;
+        }
+        
+        private void text_LoginDetails_Password_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            const char HiderChar = '*';
+            TextBox tb = sender as TextBox;
+            if (tb.Text.Length == sPassword.Length + 1)
+            {
+                char[] car = tb.Text.ToCharArray();
+                char newc = car[car.Length - 1];
+
+                //Validate character entered
+                if (!((newc >= 'A' && newc <= 'Z') || (newc >= 'a' && newc <= 'z') || (newc >= '0' && newc <= '9')))//if (Invalid Character)
+                {
+                    text_NoAccountFound.Text = "Passwords can only consist of letters or numbers";
+                    text_NoAccountFound.Visibility = Visibility.Visible;
+                    sbtext_NoAccountFound(5).Begin(this);
+                }
+
+                sPassword += newc;
+                car[car.Length - 1] = HiderChar;
+                tb.Text = new string(car);//causes new textchanged eventhandler to be triggered (handled below)
+                tb.CaretIndex = tb.Text.Length;
+            }
+            else if (tb.Text.Length == sPassword.Length - 1)
+            {
+                char[] passw = sPassword.ToCharArray();
+                sPassword = "";
+                for (int i = 0; i < passw.Length - 1; i++)
+                    sPassword += passw[i];
+            }
+            else if (tb.Text.Length != sPassword.Length)
+            {
+                sPassword = tb.Text;
+                List<char> asterisks = new List<char>();
+                for (int i = 0; i < tb.Text.Length; i++)
+                    asterisks.Add('*');
+                tb.Text = new string(asterisks.ToArray());
+                tb.CaretIndex = tb.Text.Length;
+            }
+            else
+                return;//this occurs when executing 'tb.Text = new string(car);' (line 8 of the function)
         }
         #endregion
 
@@ -308,11 +495,14 @@ namespace CSProjectGame
             (tabsDockPanel.Children[0] as Button).Click += MainTab_Click;
 
             //Prepare some sample code for the user
+            curTab = 1;
             texts_TabNames[0].Text = "Sample Code";
+            curTab = 0;
             texts_Tabs[0].Text = "Some sample code to store the first few natural numbers in memory:\n\nLDR 0, #1\r\nSTR 0, 10\r\nLDR 0, #2\r\nSTR 0, 11\r\nLDR 0, #3\r\nSTR 0, 12\r\nHALT";
             texts_Tabs[0].TextChanged += new TextChangedEventHandler(CodeTab_TextChanged_TutorialTemporary);
             (tabsDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
 
+            //Save the new account’s base specs into the file
             button_SaveProgress_Click(button_SaveProgress, new RoutedEventArgs());
         }
         #endregion
@@ -322,7 +512,7 @@ namespace CSProjectGame
             BinaryReader binaryReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
             binaryReader.BaseStream.Position = 0;
             byte b;
-            if (binaryReader.BaseStream.Length == 0 || (b = binaryReader.ReadByte()) == (byte)'x')
+            if (binaryReader.BaseStream.Length == 20 || (b = binaryReader.ReadByte()) == (byte)'x')
             {
                 ingraph_InitialiseTabs_Tutorial();
                 ingraph_FirstTime_00();
@@ -330,7 +520,8 @@ namespace CSProjectGame
             else
             {
                 //Has been played before, tutorial has been watched
-                ingraph_InitialiseFromFile(binaryReader);
+                KSFileManagement.RetrieveProgress(binaryReader);
+                ingraph_InitialiseFromFile();
                 ingraph_SetEventHandlers();
                 GraphicsForMotherBoard();
                 curTab = 0;
@@ -363,7 +554,7 @@ namespace CSProjectGame
         private void ingraph_InitialiseTabs_Tutorial()
         {
             tabsDockPanel.Visibility = Visibility.Visible;
-            tabsDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyle4"], Width = ActualWidth / 14 });    //Main button
+            tabsDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyleMainTab"], Width = ActualWidth / 14 });    //Main button
             AddNewTab("P1");   //Tab 1
             tabsDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });   //+ tab
             (tabsDockPanel.Children[tabsDockPanel.Children.Count - 1] as Button).Click += new RoutedEventHandler(DockPanelButton_Click_AddNewTab);   //+ tab event handler
@@ -373,15 +564,14 @@ namespace CSProjectGame
             button_LoadIntoMem.Click += new RoutedEventHandler(DockButton_Click_LoadIntoMemory);
         }
 
-        private void ingraph_InitialiseFromFile(BinaryReader binaryReader)
+        private void ingraph_InitialiseFromFile()
         {
             //ALWAYS OPEN INTO TAB 1, BECAUSE CURTAB = 1
             myStackPanel.Children.CollapseElements();
-            KSFileManagement.RetrieveProgress(binaryReader);
             int numtabs = KSFileManagement.NumTabsFromFile;
             string[] tnames = KSFileManagement.TabNamesFromFile;
             string[] texts = KSFileManagement.TabTextsFromFile;
-            tabsDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyle4"], Width = ActualWidth / 14 });    //Main button
+            tabsDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyleMainTab"], Width = ActualWidth / 14 });    //Main button
             for (int i = 0; i < numtabs; i++)
             {
                 texts_TabNames.Add(new TextBox { FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, Text = tnames[i], TextWrapping = TextWrapping.Wrap, AcceptsReturn = false, Visibility = Visibility.Collapsed });
@@ -3258,7 +3448,7 @@ namespace CSProjectGame
 
         private void button_SaveProgress_Click(object sender, RoutedEventArgs e)
         {
-            BinaryWriter binaryWrite = new BinaryWriter(new FileStream(System.IO.Path.Combine(sGameFilesPath, sAccountFileName), FileMode.Truncate), Encoding.UTF8);
+            BinaryWriter binaryWrite = new BinaryWriter(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Truncate), Encoding.UTF8);
             string[][] TabInfo = new string[2][];//[0] - tab names, [1] - tab texts
             TabInfo[0] = new string[texts_TabNames.Count]; TabInfo[1] = new string[texts_Tabs.Count];
             for (int i = 0; i < texts_Tabs.Count; i++)
@@ -3344,9 +3534,24 @@ namespace CSProjectGame
             canvas_LoginDetails_Username.Margin = new Thickness(myGrid.ColumnDefinitions[3].ActualWidth - AmountStickingOut / 2, 0, myGrid.ColumnDefinitions[3].ActualWidth - AmountStickingOut / 2, myGrid.RowDefinitions[3].ActualHeight - canvas_LoginDetails_Username.Height);
             canvas_LoginDetails_Password.Margin = new Thickness(canvas_LoginDetails_Username.Margin.Left, canvas_LoginDetails_Username.Margin.Bottom, canvas_LoginDetails_Username.Margin.Right, 0);
 
+            Grid.SetColumn(text_LoginDetails_FormTitle, 5);
+            text_LoginDetails_FormTitle.Margin = new Thickness(0, 24 * ActualHeight / 322, 0, 0);
+            text_LoginDetails_FormTitle.Width = 2 * myGrid.ColumnDefinitions[4].ActualWidth;
+            text_LoginDetails_FormTitle.Height = 26 * ActualHeight / 322;
+            text_LoginDetails_FormTitle.TextAlignment = TextAlignment.Center;
+
+            text_NoAccountFound.Width = 2.7 * myGrid.ColumnDefinitions[4].ActualWidth;
+            text_NoAccountFound.Height = 26 * ActualHeight / 322;
+            text_NoAccountFound.FontSize = ActualWidth / 100;
+            text_NoAccountFound.Margin = new Thickness(0.65 * ActualWidth / 14, 17 * ActualHeight / 322, 0.65 * ActualWidth / 14, 8 * ActualHeight / 322);
+            
             button_Go.Width = myGrid.ColumnDefinitions[5].ActualWidth * 3;
-            button_Go.Height = myGrid.RowDefinitions[3].ActualHeight * 0.65;
-            button_Go.Margin = new Thickness(myGrid.ColumnDefinitions[5].ActualWidth / 2, 0, myGrid.ColumnDefinitions[5].ActualWidth / 2, myGrid.RowDefinitions[3].ActualHeight * 0.35);
+            button_Go.Height = myGrid.RowDefinitions[3].ActualHeight * 0.5;
+            button_Go.Margin = new Thickness(myGrid.ColumnDefinitions[5].ActualWidth / 2, myGrid.RowDefinitions[5].ActualHeight * 0.5, myGrid.ColumnDefinitions[5].ActualWidth / 2, 0);
+
+            button_NewAccount.Width = myGrid.ColumnDefinitions[5].ActualWidth * 2.5;
+            button_NewAccount.Height = myGrid.RowDefinitions[3].ActualHeight * 0.4;
+            button_NewAccount.Margin = new Thickness(myGrid.ColumnDefinitions[5].ActualWidth * 0.75, myGrid.RowDefinitions[3].ActualHeight * 0.2, myGrid.ColumnDefinitions[5].ActualWidth * 0.75, myGrid.RowDefinitions[3].ActualHeight * 0.4);
 
             myStackPanel.Width = ActualWidth * 6 / 7;
             myStackPanel.Height = ActualHeight * 5 / 6;

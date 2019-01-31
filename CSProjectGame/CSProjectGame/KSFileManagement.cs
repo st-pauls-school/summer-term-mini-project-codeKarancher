@@ -38,40 +38,56 @@ namespace CSProjectGame
         public static int ClockSpeedSpecFromFile;
         public static int MemSpecFromFile;
 
+        public static byte[] HashOfCorrectPasscode(BinaryReader binRead)
+        {
+            byte[] Hash = new byte[20];
+            for (int i = 0; i < 20; i++)
+                Hash[i] = binRead.ReadByte();
+
+            return Hash;
+        }
+
         public static void RetrieveProgress(BinaryReader binRead)
         {
-            binRead.BaseStream.Position = 0;
-            NumTabsFromFile = binRead.ReadByte();
-            TabNamesFromFile = new string[NumTabsFromFile];
-            TabTextsFromFile = new string[NumTabsFromFile];
-            for (int curTab = 0; curTab < NumTabsFromFile; curTab++)
+            try
             {
-                byte curByte;
-                List<char> curCharString = new List<char>();
-                while ((curByte = binRead.ReadByte()) != TABSEP)
+                binRead.BaseStream.Position = 20;
+                NumTabsFromFile = binRead.ReadByte();
+                TabNamesFromFile = new string[NumTabsFromFile];
+                TabTextsFromFile = new string[NumTabsFromFile];
+                for (int curTab = 0; curTab < NumTabsFromFile; curTab++)
                 {
-                    binRead.BaseStream.Position--;
-                    curCharString.Add(binRead.ReadChar());
+                    byte curByte;
+                    List<char> curCharString = new List<char>();
+                    while ((curByte = binRead.ReadByte()) != TABSEP)
+                    {
+                        binRead.BaseStream.Position--;
+                        curCharString.Add(binRead.ReadChar());
+                    }
+                    TabNamesFromFile[curTab] = new string(curCharString.ToArray());
+                    curCharString = new List<char>();
+                    while ((curByte = binRead.ReadByte()) != TABEND)
+                    {
+                        binRead.BaseStream.Position--;
+                        curCharString.Add(binRead.ReadChar());
+                    }
+                    TabTextsFromFile[curTab] = new string(curCharString.ToArray());
                 }
-                TabNamesFromFile[curTab] = new string(curCharString.ToArray());
-                curCharString = new List<char>();
-                while ((curByte = binRead.ReadByte()) != TABEND)
-                {
-                    binRead.BaseStream.Position--;
-                    curCharString.Add(binRead.ReadChar());
-                }
-                TabTextsFromFile[curTab] = new string(curCharString.ToArray());
+                NumRegFromFile = binRead.ReadByte();
+                ALUSpecFromFile = binRead.ReadByte();
+                ClockSpeedSpecFromFile = binRead.ReadByte();
+                MemSpecFromFile = binRead.ReadByte();
+                binRead.Close();
             }
-            NumRegFromFile = binRead.ReadByte();
-            ALUSpecFromFile = binRead.ReadByte();
-            ClockSpeedSpecFromFile = binRead.ReadByte();
-            MemSpecFromFile = binRead.ReadByte();
-            binRead.Close();
+            catch
+            {
+                throw new Exception("Progress was attempted to be retrieved from a file that progress had not been saved to.");
+            }
         }
 
         public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec)
         {
-            binWrite.BaseStream.Position = 0;
+            binWrite.BaseStream.Position = 20;
             binWrite.Write((byte)NumTabs);
             for (int i = 0; i < NumTabs; i++)
             {
