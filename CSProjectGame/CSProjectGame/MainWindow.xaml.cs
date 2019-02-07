@@ -48,7 +48,8 @@ namespace CSProjectGame
 
         TextBlock text_Welcome;
 
-        int NumRegisters, MemorySpec, ALUSpec, ClockSpeedSpec;
+        int NumRegisters;
+        int MemorySpec, ALUSpec, ClockSpeedSpec;
         int[] lookup_MemorySpec;
         int[] lookup_ClockSpeedSpec;
         
@@ -121,6 +122,8 @@ namespace CSProjectGame
             text_LoginDetails_Password.TextChanged += text_LoginDetails_Password_TextChanged;
 
             RegisterName("secmenuGrid", secmenuGrid);
+
+            AssignGlobalsToNewValues();
         }
 
         #region Start Screen
@@ -504,6 +507,8 @@ namespace CSProjectGame
 
             //Save the new account’s base specs into the file
             button_SaveProgress_Click(button_SaveProgress, new RoutedEventArgs());
+
+            AssignGlobalsToNewValues();
         }
         #endregion
 
@@ -600,6 +605,8 @@ namespace CSProjectGame
             myStackPanel.Visibility = Visibility.Visible;
             toolsDockPanel.Visibility = Visibility.Visible;
             toolsDockPanel.Children.ShowAllElements();
+
+            AssignGlobalsToNewValues();
         }
         #endregion
         
@@ -3023,6 +3030,8 @@ namespace CSProjectGame
                 texts_Registers[i].Text = "0000 0000";
             }
             text_CMP.Text = "";
+
+            AssignGlobalsToNewValues();
             return;
         }
         #endregion
@@ -3710,6 +3719,23 @@ namespace CSProjectGame
             button_QstSave.Height = ActualHeight * 44 / 322;
             button_QstSave.Width = button_QstSave_Width;
             button_QstSave.Margin = new Thickness(ActualWidth / 14 - button_QstSave_Width, 0, 0, 0);
+        }
+
+        /// <summary>
+        /// When important values in the MainWindow instance are changed, this function assigns the new values to CSProjectGame.Global’s variables
+        /// </summary>
+        private void AssignGlobalsToNewValues()
+        {
+            string[] tempRegisters = new string[NumRegisters];
+            string[] tempMemory = new string[lookup_MemorySpec[MemorySpec]];
+            try
+            {
+                for (int i = 0; i < NumRegisters; i++)
+                    tempRegisters[i] = texts_Registers[i].Text;
+                for (int i = 0; i < tempMemory.Length; i++)
+                    tempMemory[i] = texts_MemoryCells[i].Text;
+            } catch { }
+            KSGlobal.SetAll(NumRegisters, tempRegisters, tempMemory);
         }
         #endregion
     }

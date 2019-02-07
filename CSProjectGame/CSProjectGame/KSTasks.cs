@@ -20,70 +20,101 @@ using CSProjectGame;
 
 namespace CSProjectGame
 {
-    public class Output : object
+    public static class KSTasks
     {
-        public readonly int ioutputType;//0->string, 1->int
-        public readonly string sOut;
-        public readonly int iOut;
-
-        public Output(string sOutput)
+        interface ITaskObjective
         {
-            sOut = sOutput;
-            ioutputType = 0;
+            bool? CheckIfCompleted(bool ThrowExcp);
         }
 
-        public Output(int iOutput)
+        /// <summary>
+        /// Parent class for OutputObjective and MemoryObjective
+        /// </summary>
+        private class TaskObjective : ITaskObjective
         {
-            iOut = iOutput;
-            ioutputType = 1;
+            public virtual bool? CheckIfCompleted(bool ThrowExcp)
+            {
+                return null;
+            }
         }
 
-        public Output MakeCopy()
+        private class OutputObjective : TaskObjective
         {
-            if (ioutputType == 0)
-                return new Output(sOut);
-            return new Output(iOut);
-        }
-    }
-
-    public class TaskObjective
-    {
-
-
-        virtual public bool? CheckIfTaskCompleted()
-        {
-            throw new Exception("TaskObjective has not been assigned to OutputObjective or MemoryObjective");
-        }
-    }
-
-    public class OutputObjective : TaskObjective
-    {
-        Output _DesiredOut;
-
-        public OutputObjective(Output DesiredOut)
-        {
-            _DesiredOut = DesiredOut.MakeCopy();
+            string sDesiredOutput;
+            public override bool? CheckIfCompleted(bool ThrowExcp)
+            {
+                //Check output box
+                throw new NotImplementedException();
+            }
         }
 
-        public override bool? CheckIfTaskCompleted()
+        private class MemoryObjective : TaskObjective
         {
-            Output opToCompare = new Output(0);//DEBUG
-            if (_DesiredOut == opToCompare)
-                return true;
-            return false;
+            string[] sDesiredMemoryContents;
+            int iStartPointer;
+
+            public MemoryObjective(int startindex, string[] desiredvalues)
+            {
+                iStartPointer = startindex;
+                desiredvalues.CopyTo(sDesiredMemoryContents, 0);
+            }
+
+            public override bool? CheckIfCompleted(bool ThrowExcp)
+            {
+                try
+                {
+                    if (sDesiredMemoryContents.Length + iStartPointer > KSGlobal.S_MemoryCells.Length)
+                        return false;
+
+                    string[] memToCheck = new string[sDesiredMemoryContents.Length];
+                    for (int curloc = iStartPointer; curloc < iStartPointer + memToCheck.Length; curloc++)
+                        memToCheck[curloc - iStartPointer] = KSGlobal.S_MemoryCells[curloc];
+
+                    //check if memory contents match desired contents
+                    int index;
+                    for (index = 0; index < sDesiredMemoryContents.Length; index++)
+                        if (sDesiredMemoryContents[index] != memToCheck[index])
+                            break;
+                    if (index == sDesiredMemoryContents.Length)//no inequalities were encountered
+                        return true;
+                    return false;
+                } catch (Exception exception)
+                {
+                    if (ThrowExcp)
+                        throw exception;
+                    return null;
+                }
+            }
         }
-    }
 
-    public class MemoryObjective : TaskObjective
-    {
+        public class Task
+        {
+            TaskObjective _TObjective;
+            string _sMessage;
 
-    }
+            /// <summary>
+            /// Initialize a task which is completed when a range of memory locations hold an array of desired values
+            /// </summary>
+            /// <param name="TaskMessage">A brief explanation of the task for the user</param>
+            /// <param name="StartIndex">The index of the first memory location to be checked</param>
+            /// <param name="DesiredValues">The array of desired values to compare the memory to</param>
+            public Task(string TaskMessage, int StartIndex, string[] DesiredValues)
+            {
+                _sMessage = TaskMessage;
+                _TObjective = new MemoryObjective(StartIndex, DesiredValues);
+            }
 
-    public class Task
-    {
-        TaskObjective _TObjective;
-        string _sMessage;
-
-
+            /// <summary>
+            /// Returns whether the task condition has been satisfied (true) or not (false). 
+            /// Returns null upon error, or throws exception depending on argument.
+            /// </summary>
+            /// <param name="ThrowExcp">Allows the process to throw an exception if necessary.
+            /// When false, the process instead returns null</param>
+            /// <returns></returns>
+            public bool? CheckIfConditionSatisfied(bool ThrowExcp)
+            {
+                return _TObjective.CheckIfCompleted(ThrowExcp);
+            }
+        }
     }
 }
