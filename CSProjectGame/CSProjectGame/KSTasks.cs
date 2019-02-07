@@ -41,6 +41,12 @@ namespace CSProjectGame
         private class OutputObjective : TaskObjective
         {
             string sDesiredOutput;
+
+            public OutputObjective(string DesiredOutput)
+            {
+                sDesiredOutput = DesiredOutput;
+            }
+
             public override bool? CheckIfCompleted(bool ThrowExcp)
             {
                 //Check output box
@@ -91,6 +97,8 @@ namespace CSProjectGame
         {
             TaskObjective _TObjective;
             string _sMessage;
+            bool _IsCompleted;
+            public bool IsCompleted { get => _IsCompleted; }
 
             /// <summary>
             /// Initialize a task which is completed when a range of memory locations hold an array of desired values
@@ -102,6 +110,14 @@ namespace CSProjectGame
             {
                 _sMessage = TaskMessage;
                 _TObjective = new MemoryObjective(StartIndex, DesiredValues);
+                _IsCompleted = false;
+            }
+
+            public Task(string TaskMessage, string DesiredOutput)
+            {
+                _sMessage = TaskMessage;
+                _TObjective = new OutputObjective(DesiredOutput);
+                _IsCompleted = false;
             }
 
             /// <summary>
@@ -113,7 +129,10 @@ namespace CSProjectGame
             /// <returns></returns>
             public bool? CheckIfConditionSatisfied(bool ThrowExcp)
             {
-                return _TObjective.CheckIfCompleted(ThrowExcp);
+                bool? Result = _TObjective.CheckIfCompleted(ThrowExcp);
+                if (Result == true)
+                    _IsCompleted = true;
+                return Result;
             }
         }
     }
