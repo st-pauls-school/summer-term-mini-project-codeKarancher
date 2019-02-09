@@ -497,17 +497,9 @@ namespace CSProjectGame
             button_DeleteTab.Click += DockButton_Click_DeleteTab;
             button_CodeManual.Click -= Button_CodeManual_Click_Tutorial_Open;
             button_CodeManual.Click += DockButton_Click_CodeManual_Open;
-            button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory_Tab1;
+            button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory;
             (tabsDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
             (tabsDockPanel.Children[0] as Button).Click += MainTab_Click;
-
-            //Prepare some sample code for the user
-            curTab = 1;
-            texts_TabNames[0].Text = "Sample Code";
-            curTab = 0;
-            texts_Tabs[0].Text = "Some sample code to store the first few natural numbers in memory:\n\nLDR 0, #1\r\nSTR 0, 10\r\nLDR 0, #2\r\nSTR 0, 11\r\nLDR 0, #3\r\nSTR 0, 12\r\nHALT";
-            texts_Tabs[0].TextChanged += new TextChangedEventHandler(CodeTab_TextChanged_TutorialTemporary);
-            (tabsDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
 
             //Save the new account’s base specs into the file
             button_SaveProgress_Click(button_Save, new RoutedEventArgs());
@@ -532,6 +524,7 @@ namespace CSProjectGame
                 KSFileManagement.RetrieveProgress(binaryReader);
                 ingraph_InitialiseFromFile();
                 ingraph_SetEventHandlers();
+                GraphicsForMotherBoard();
                 curTab = 0;
                 CodeTab_Click(tabsDockPanel.Children[1] as Button, new RoutedEventArgs());
             }
@@ -554,7 +547,7 @@ namespace CSProjectGame
             button_DeleteTab.Click += DockButton_Click_DeleteTab;
             button_CodeManual.Click -= Button_CodeManual_Click_Tutorial_Open;
             button_CodeManual.Click += DockButton_Click_CodeManual_Open;
-            button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory_Tab1;
+            button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory;
             (tabsDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
             (tabsDockPanel.Children[0] as Button).Click += MainTab_Click;
         }
@@ -726,18 +719,6 @@ namespace CSProjectGame
                 curTab = 1;
         }
 
-        private void DockButton_Click_LoadIntoMemory_Tab1(object sender, RoutedEventArgs e)
-        {
-            if (texts_Tabs[0].Text == "Some sample code to store the sum of two values in memory to location 2:\n\nLDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2")
-            {
-                texts_Tabs[0].Text = "LDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2";
-                texts_Tabs[0].TextChanged -= CodeTab_TextChanged_TutorialTemporary;
-                button_LoadIntoMem.Click -= DockButton_Click_LoadIntoMemory_Tab1;
-                button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory;
-            }
-            DockButton_Click_LoadIntoMemory(sender, e);
-        }
-
         private void KeyDown_PressAnyToContinue_FirstTime_05(object sender, KeyEventArgs e)
         {
             KeyDown -= KeyDown_PressAnyToContinue_FirstTime_05;
@@ -760,14 +741,6 @@ namespace CSProjectGame
         {
             KeyDown -= KeyDown_PressAnyToContinue_FirstTime_07;
             ingraph_FirstTime_07_Reset();
-        }
-
-        private void CodeTab_TextChanged_TutorialTemporary(object sender, TextChangedEventArgs e)
-        {
-            texts_Tabs[0].Text = "LDR 0, 0\r\nLDR 1, 1\r\nADD 0, 0, 1\r\nSTR 0, 2";
-            texts_Tabs[0].TextChanged -= CodeTab_TextChanged_TutorialTemporary;
-            button_LoadIntoMem.Click -= DockButton_Click_LoadIntoMemory_Tab1;
-            button_LoadIntoMem.Click += DockButton_Click_LoadIntoMemory;
         }
         #endregion
 

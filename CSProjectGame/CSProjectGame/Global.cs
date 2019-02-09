@@ -18,7 +18,8 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using CSProjectGame;
 
-namespace CSProjectGame{
+namespace CSProjectGame
+{
     public static class KSGlobal
     {
         private static int numRegisters;
@@ -34,7 +35,7 @@ namespace CSProjectGame{
         public static void SetAll(int NumReg, string[] RegisterContents, string[] MemoryCellContents)
         {
             NumRegisters = NumReg;
-            s_Registers = new string[NumRegisters];
+            s_Registers = new string[NumReg];
             RegisterContents.CopyTo(s_Registers, 0);
             s_MemoryCells = new string[MemoryCellContents.Length];
             MemoryCellContents.CopyTo(s_MemoryCells, 0);
