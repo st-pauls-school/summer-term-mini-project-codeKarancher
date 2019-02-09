@@ -50,7 +50,7 @@ namespace CSProjectGame
             }
             string[] Lines = CorrectLines.ToArray();
             char[][] ToReturn = new char[Lines.Length][];
-            string[] dictAssembly = new string[] { "LDR", "STR", "MOV", "CMP", "B", "ADD", "SUB", "AND", "ORR" };
+            string[] dictAssembly = new string[] { "LDR", "STR", "MOV", "CMP", "B", "ADD", "SUB", "AND", "ORR" };//DATABASE
             string[] dictBranchConditions = new string[] { "", "EQ", "NE", "GT", "LT" };
             char?[] dictAddressingTypes = new char?[] { null, '#', null, '>' };
             int iWhatIsBeingRead;   //0 when reading before command, 1 when reading command, greater than or equal to 2 when reading parameters

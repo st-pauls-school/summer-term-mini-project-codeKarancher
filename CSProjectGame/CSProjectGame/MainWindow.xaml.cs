@@ -75,7 +75,9 @@ namespace CSProjectGame
         bool InSecondaryMenu = false;
         
         Dictionary<string, Brush> myBrushes;
-        List<KSTasks.Task> list_Quests;//These refer to the in-game challenges coined ‘Quests’
+
+        int NumParts;
+        KSTasks.Task[] arQuests;//These refer to the in-game challenges coined ‘Quests’
         List<KSTasks.Task> list_Tasks;//These refer to the imported challenges (maybe from a teacher) coined ‘Tasks’
         #endregion
 
@@ -116,12 +118,7 @@ namespace CSProjectGame
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.TextChanged += text_LoginDetails_Password_TextChanged;
 
-            list_Quests = new List<KSTasks.Task>() { new KSTasks.Task("Bobo", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB", "BOBO", 100, 2),
-                new KSTasks.Task("K", "OB1KENOBYASDKFJLSAKDJF", "HT", 100, 1),
-                new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0),
-                new KSTasks.Task("K", "Hello there", "HT", 100, 1),
-                new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0),
-                new KSTasks.Task("K", "Hello there", "HT", 100, 1) };
+            InitializeQuests();
 
             RegisterName("secmenuGrid", secmenuGrid);
 
@@ -150,11 +147,11 @@ namespace CSProjectGame
                 #region Get hash of correct password
                 BinaryReader bReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
                 byte[] HashComputed = new SHA1CryptoServiceProvider().ComputeHash(bPasswordEntered);
-                byte[] HashOfCorrectPassword = KSFileManagement.HashOfCorrectPasscode(bReader);
+                bPassHash = KSFileManagement.HashOfCorrectPasscode(bReader);
                 bool PasswordIsCorrect = true;
                 for (int i = 0; i < 20; i++)
                 {
-                    if (HashComputed[i] != HashOfCorrectPassword[i])
+                    if (HashComputed[i] != bPassHash[i])
                     {
                         PasswordIsCorrect = false;
                         break;
@@ -3332,7 +3329,7 @@ namespace CSProjectGame
             StackPanel stackpanelQuestspanel = new StackPanel() { Visibility = Visibility.Visible };
             myStackPanel.Children.Add(stackpanelQuestspanel);
             Dictionary<DockPanel, int> dcIndexOfTask = new Dictionary<DockPanel, int>();
-            for (int i = 0; i < list_Quests.Count; i++)
+            for (int i = 0; i < arQuests.Length; i++)
             {
                 RoutedEventHandler ButtonRedeem_Click = new RoutedEventHandler((object button_redeem, RoutedEventArgs r) =>
                 {
@@ -3340,18 +3337,18 @@ namespace CSProjectGame
                     //Add parts to player wallet
 
                     //Change task status
-                    list_Quests[index].Redeem();
+                    arQuests[index].Redeem();
 
                     //Change to redeemed task on screen
                     //index * 2 is used because there is a small rectangle between each task panel
-                    DockPanel ReplaceWithThis = KSTasks.dockpanelTaskViewer(list_Quests[index], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), null/*Doesn't matter*/, button_Redeem_MouseEnter);
+                    DockPanel ReplaceWithThis = KSTasks.dockpanelTaskViewer(arQuests[index], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), null/*Doesn't matter*/, button_Redeem_MouseEnter);
                     dcIndexOfTask.Remove(stackpanelQuestspanel.Children[index * 2] as DockPanel);
                     stackpanelQuestspanel.Children[index * 2].Visibility = Visibility.Collapsed;
                     stackpanelQuestspanel.Children.RemoveAt(index * 2);
                     stackpanelQuestspanel.Children.Insert(index * 2, ReplaceWithThis);
                     dcIndexOfTask.Add(ReplaceWithThis, index);
                 });
-                DockPanel curTaskPanel = KSTasks.dockpanelTaskViewer(list_Quests[i], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), ButtonRedeem_Click, button_Redeem_MouseEnter);
+                DockPanel curTaskPanel = KSTasks.dockpanelTaskViewer(arQuests[i], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), ButtonRedeem_Click, button_Redeem_MouseEnter);
                 stackpanelQuestspanel.Children.Add(curTaskPanel);
                 dcIndexOfTask.Add(curTaskPanel, i);
                 stackpanelQuestspanel.Children.Add(new Rectangle() { Width = myStackPanel.Width, Height = 2, Fill = Brushes.Transparent });
@@ -3420,7 +3417,7 @@ namespace CSProjectGame
             }
             for (int i = 0; i < 20; i++)
                 binaryWrite.Write(bPassHash[i]);
-            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec);
+            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec, Convert.ToUInt16(NumParts), arQuests);
         }
         #endregion
         
@@ -3686,6 +3683,15 @@ namespace CSProjectGame
                     tempMemory[i] = texts_MemoryCells[i].Text;
             } catch { }
             KSGlobal.SetAll(NumRegisters, tempRegisters, tempMemory);
+        }
+
+        private void InitializeQuests()
+        {
+            arQuests = new KSTasks.Task[KSGlobal.NUMBEROFQUESTS];
+
+            int firstreward = 10;
+            arQuests[0] = new KSTasks.Task("My First Program", "Welcome to the game! Store the numbers 1 to 5 in memory locations 11 to 15 to get " + firstreward + KSGlobal.GAMECURRENCYNAME.ToLower() + "!", 11, new string[] { "000001", "000002", "000003", "000004", "000005" }, 10);
+            arQuests[0].SetCompletionTo(1);
         }
         #endregion
     }

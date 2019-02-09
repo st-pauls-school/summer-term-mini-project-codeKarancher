@@ -26,6 +26,7 @@ namespace CSProjectGame
         private static string[] s_Registers;
         private static string[] s_MemoryCells;
         public static readonly string GAMECURRENCYNAME = "Parts";
+        public static readonly int NUMBEROFQUESTS = 25;
         public static Style ButtonStyleRedeem;
 
         public static int NumRegisters { get => numRegisters; set => numRegisters = value; }

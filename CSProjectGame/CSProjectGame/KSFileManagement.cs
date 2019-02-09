@@ -15,6 +15,8 @@ namespace CSProjectGame
          * 1 byte: ALU spec
          * 1 byte: Clock Speed spec
          * 1 byte: Memory spec
+         * 2 bytes: Number of parts
+         * KSGlobal.NumberOfQuests bytes: 1 byte per quest's status
          */
 
         /*How to use class:
@@ -30,13 +32,25 @@ namespace CSProjectGame
         const byte TABSEP = 1;
         const byte TABEND = 2;
 
-        public static int NumTabsFromFile;
-        public static string[] TabNamesFromFile;
-        public static string[] TabTextsFromFile;
-        public static int NumRegFromFile;
-        public static int ALUSpecFromFile;
-        public static int ClockSpeedSpecFromFile;
-        public static int MemSpecFromFile;
+        private static int _NumTabsFromFile;
+        private static string[] _TabNamesFromFile;
+        private static string[] _TabTextsFromFile;
+        private static int _NumRegFromFile;
+        private static int _ALUSpecFromFile;
+        private static int _ClockSpeedSpecFromFile;
+        private static int _MemSpecFromFile;
+        private static UInt16 _NumParts;
+        private static int[] _CompletionStats;
+
+        public static int NumTabsFromFile { get => _NumTabsFromFile; }
+        public static string[] TabNamesFromFile { get => _TabNamesFromFile; }
+        public static string[] TabTextsFromFile { get => _TabTextsFromFile; }
+        public static int NumRegFromFile { get => _NumRegFromFile; }
+        public static int ALUSpecFromFile { get => _ALUSpecFromFile; }
+        public static int ClockSpeedSpecFromFile { get => _ClockSpeedSpecFromFile; }
+        public static int MemSpecFromFile { get => _MemSpecFromFile; }
+        public static UInt16 NumParts { get => _NumParts; }
+        public static int[] CompletionStats { get => _CompletionStats; }
 
         public static byte[] HashOfCorrectPasscode(BinaryReader binRead)
         {
@@ -52,10 +66,10 @@ namespace CSProjectGame
             try
             {
                 binRead.BaseStream.Position = 20;
-                NumTabsFromFile = binRead.ReadByte();
-                TabNamesFromFile = new string[NumTabsFromFile];
-                TabTextsFromFile = new string[NumTabsFromFile];
-                for (int curTab = 0; curTab < NumTabsFromFile; curTab++)
+                _NumTabsFromFile = binRead.ReadByte();
+                _TabNamesFromFile = new string[_NumTabsFromFile];
+                _TabTextsFromFile = new string[_NumTabsFromFile];
+                for (int curTab = 0; curTab < _NumTabsFromFile; curTab++)
                 {
                     byte curByte;
                     List<char> curCharString = new List<char>();
@@ -64,7 +78,7 @@ namespace CSProjectGame
                         binRead.BaseStream.Position--;
                         curCharString.Add(binRead.ReadChar());
                     }
-                    TabNamesFromFile[curTab] = new string(curCharString.ToArray());
+                    _TabNamesFromFile[curTab] = new string(curCharString.ToArray());
                     curCharString = new List<char>();
                     while ((curByte = binRead.ReadByte()) != TABEND)
                     {
@@ -73,19 +87,22 @@ namespace CSProjectGame
                     }
                     TabTextsFromFile[curTab] = new string(curCharString.ToArray());
                 }
-                NumRegFromFile = binRead.ReadByte();
-                ALUSpecFromFile = binRead.ReadByte();
-                ClockSpeedSpecFromFile = binRead.ReadByte();
-                MemSpecFromFile = binRead.ReadByte();
+                _NumRegFromFile = binRead.ReadByte();
+                _ALUSpecFromFile = binRead.ReadByte();
+                _ClockSpeedSpecFromFile = binRead.ReadByte();
+                _MemSpecFromFile = binRead.ReadByte();
+                _NumParts = (UInt16)(binRead.ReadByte() * 256 + binRead.ReadByte());
+                //for (int i = 0; i < 1/*KSGlobal.NUMBEROFQUESTS*/; i++)
+                //    _CompletionStats[i] = binRead.ReadByte();
                 binRead.Close();
             }
-            catch
+            catch (Exception e)
             {
-                throw new Exception("Progress was attempted to be retrieved from a file that progress had not been saved to.");
+                throw e;//new Exception("Progress was attempted to be retrieved from a file that progress had not been saved to.");
             }
         }
 
-        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec)
+        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec, UInt16 Parts, KSTasks.Task[] Quests)
         {
             binWrite.BaseStream.Position = 20;
             binWrite.Write((byte)NumTabs);
@@ -104,6 +121,13 @@ namespace CSProjectGame
             binWrite.Write((byte)ALUSpec);
             binWrite.Write((byte)ClockSpeedSpec);
             binWrite.Write((byte)MemSpec);
+            byte bparts2 = (byte)(Parts % 256);
+            Parts /= 256;
+            byte bparts1 = (byte)Parts;
+            binWrite.Write(bparts1);
+            binWrite.Write(bparts2);
+            for (int curQ = 0; curQ < 1/*KSGlobal.NUMBEROFQUESTS DEBUG*/; curQ++)
+                binWrite.Write((byte)Quests[curQ].CompletionStatus);
             binWrite.Close();
         }
     }

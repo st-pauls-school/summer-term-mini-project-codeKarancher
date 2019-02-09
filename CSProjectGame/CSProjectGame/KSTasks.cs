@@ -38,6 +38,31 @@ namespace CSProjectGame
             }
         }
 
+        //private class CodeObjective : TaskObjective
+        //{
+        //    string sToBeFoundInCode;
+
+        //    public CodeObjective(string CodeSnippet)
+        //    {
+        //        sToBeFoundInCode = CodeSnippet;
+        //    }
+
+        //    public override bool? CheckIfCompleted(bool ThrowExcp)
+        //    {
+        //        try
+        //        {
+        //            return (KSGlobal.sCode.Contains(sToBeFoundInCode));
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            if (ThrowExcp)
+        //                throw e;
+        //            else
+        //                return null;
+        //        }
+        //    }
+        //}
+
         private class OutputObjective : TaskObjective
         {
             string sDesiredOutput;
@@ -62,6 +87,7 @@ namespace CSProjectGame
             public MemoryObjective(int startindex, string[] desiredvalues)
             {
                 iStartPointer = startindex;
+                sDesiredMemoryContents = new string[desiredvalues.Length];
                 desiredvalues.CopyTo(sDesiredMemoryContents, 0);
             }
 
@@ -133,18 +159,9 @@ namespace CSProjectGame
                 Reward = reward;
             }
 
-            public Task(string TaskTitle, string TaskMessage, string DesiredOutput, int reward, int complete)
-            {
-                sTitle = TaskTitle;
-                sMessage = TaskMessage;
-                _TObjective = new OutputObjective(DesiredOutput);
-                _CompletionStatus = 0;
-                Reward = reward;
-                _CompletionStatus = complete;
-            }
-
             /// <summary>
-            /// Returns whether the task condition has been satisfied (true) or not (false). 
+            /// Returns whether the task condition has been satisfied (true) or not (false).
+            /// If the task condition has been satisfied, the completion status is changed accordingly.
             /// Returns null upon error, or throws exception depending on argument.
             /// </summary>
             /// <param name="ThrowExcp">Allows the process to throw an exception if necessary.
@@ -158,9 +175,21 @@ namespace CSProjectGame
                 return Result;
             }
 
+            /// <summary>
+            /// Increases the completion status to 'redeemed' (i.e. 2)
+            /// </summary>
             public void Redeem()
             {
                 _CompletionStatus = 2;
+            }
+
+            /// <summary>
+            /// This overrides all automatic incrementing of the completion status and allows you to set it manually
+            /// </summary>
+            /// <param name="completionstatus"></param>
+            public void SetCompletionTo(int completionstatus)
+            {
+                _CompletionStatus = completionstatus;
             }
         }
 
