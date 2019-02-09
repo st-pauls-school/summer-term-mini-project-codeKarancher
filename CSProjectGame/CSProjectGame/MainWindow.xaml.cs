@@ -41,6 +41,7 @@ namespace CSProjectGame
 
         string sUsername;
         string sPassword = "";
+        byte[] bPassHash;
 
         Random myUniversalRand;
 
@@ -115,7 +116,12 @@ namespace CSProjectGame
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.TextChanged += text_LoginDetails_Password_TextChanged;
 
-            list_Quests = new List<KSTasks.Task>() { new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 2), new KSTasks.Task("K", "OB1KENOBYASDKFJLSAKDJF", "HT", 100, 1), new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0), new KSTasks.Task("K", "Hello there", "HT", 100, 1), new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0), new KSTasks.Task("K", "Hello there", "HT", 100, 1) };
+            list_Quests = new List<KSTasks.Task>() { new KSTasks.Task("Bobo", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB", "BOBO", 100, 2),
+                new KSTasks.Task("K", "OB1KENOBYASDKFJLSAKDJF", "HT", 100, 1),
+                new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0),
+                new KSTasks.Task("K", "Hello there", "HT", 100, 1),
+                new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0),
+                new KSTasks.Task("K", "Hello there", "HT", 100, 1) };
 
             RegisterName("secmenuGrid", secmenuGrid);
 
@@ -126,16 +132,22 @@ namespace CSProjectGame
         #region Start Screen
         private void button_Go_Click(object sender, RoutedEventArgs e)
         {
+            #region Prepare text_NoAccountFound
             text_NoAccountFound.Margin = new Thickness(-ActualWidth, 0, ActualWidth, 0);
             text_NoAccountFound.Visibility = Visibility.Visible;
+            #endregion
+
+            #region Get Password In Bytes
             sUsername = text_LoginDetails_Username.Text;
             char[] carPasswordEntered = text_LoginDetails_Password.Text.ToCharArray();
             byte[] bPasswordEntered = new byte[carPasswordEntered.Length];
             for (int i = 0; i < bPasswordEntered.Length; i++)
                 bPasswordEntered[i] = (byte)carPasswordEntered[i];
-            if (File.Exists(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName)))
+            #endregion
+
+            if (File.Exists(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName)))//if (An account with the given username exists)
             {
-                //Get hash of correct password
+                #region Get hash of correct password
                 BinaryReader bReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
                 byte[] HashComputed = new SHA1CryptoServiceProvider().ComputeHash(bPasswordEntered);
                 byte[] HashOfCorrectPassword = KSFileManagement.HashOfCorrectPasscode(bReader);
@@ -149,6 +161,7 @@ namespace CSProjectGame
                     }
                 }
                 bReader.Close();
+                #endregion
 
                 if (PasswordIsCorrect)//Begin normal running
                 {
@@ -225,7 +238,7 @@ namespace CSProjectGame
                 bytesPassword[i] = (byte)carPassword[i];
             //Computing password's hash
             HashAlgorithm Hasher = new SHA1CryptoServiceProvider();
-            byte[] Hash = Hasher.ComputeHash(bytesPassword);
+            bPassHash = Hasher.ComputeHash(bytesPassword);//The hash will now be stored at the beginning of the account file when the tutorial is completed by the user
 
             string sNewAccountFilePath = System.IO.Path.Combine(sGameFilesPath, (sUsername = text_LoginDetails_Username.Text) + sAccountFileName);
             if (File.Exists(sNewAccountFilePath))//There is already an account with this username on this computer
@@ -236,12 +249,8 @@ namespace CSProjectGame
                 sbtext_NoAccountFound(5).Begin(this);
                 return;
             }
-            BinaryWriter bwrite = new BinaryWriter(new FileStream(sNewAccountFilePath, FileMode.CreateNew));
-            for (int curbyte = 0; curbyte < 20; curbyte++)//Write the hash of the password to file
-            {
-                bwrite.Write(Hash[curbyte]);
-            }
-            bwrite.Close();
+            FileStream fs = File.Create(sNewAccountFilePath);
+            fs.Close();
             text_LoginDetails_FormTitle.Visibility = Visibility.Collapsed;
             canvas_LoginDetails_Username.Visibility = Visibility.Collapsed;
             canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
@@ -388,7 +397,7 @@ namespace CSProjectGame
         }
         #endregion
 
-        #region Initialise Graphics
+        #region Initialise Graphics (ingraph)
 
         #region First Time
         private void ingraph_FirstTime_00()
@@ -501,7 +510,7 @@ namespace CSProjectGame
             (tabsDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
 
             //Save the new account’s base specs into the file
-            button_SaveProgress_Click(button_Save2, new RoutedEventArgs());
+            button_SaveProgress_Click(button_Save, new RoutedEventArgs());
 
             AssignGlobalsToNewValues();
         }
@@ -512,7 +521,7 @@ namespace CSProjectGame
             BinaryReader binaryReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
             binaryReader.BaseStream.Position = 0;
             byte b;
-            if (binaryReader.BaseStream.Length == 20 || (b = binaryReader.ReadByte()) == (byte)'x')
+            if (binaryReader.BaseStream.Length <= 20)//Tutorial has not yet been completed
             {
                 ingraph_InitialiseTabs_Tutorial();
                 ingraph_FirstTime_00();
@@ -523,7 +532,6 @@ namespace CSProjectGame
                 KSFileManagement.RetrieveProgress(binaryReader);
                 ingraph_InitialiseFromFile();
                 ingraph_SetEventHandlers();
-                GraphicsForMotherBoard();
                 curTab = 0;
                 CodeTab_Click(tabsDockPanel.Children[1] as Button, new RoutedEventArgs());
             }
@@ -582,15 +590,24 @@ namespace CSProjectGame
                 AddNewTab(TabTextFromProjectName(texts_TabNames[i].Text));
             }
             tabsDockPanel.Children.Add(new Button() { Content = "+", Width = 36, FontSize = 16F });
-            //DEBUGNumRegisters = KSFileManagement.NumRegFromFile;
+            NumRegisters = KSFileManagement.NumRegFromFile;
             MemorySpec = KSFileManagement.MemSpecFromFile;
             texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
             texts_MemoryCellNames = new TextBlock[lookup_MemorySpec[MemorySpec]];
             charars_Commands = new char[lookup_MemorySpec[MemorySpec]][];
             for (int i = 0; i < lookup_MemorySpec[MemorySpec]; i++)
             {
-                texts_MemoryCells[i] = new TextBlock() { Text = "000000", Background = Brushes.Transparent, FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20 };
-                texts_MemoryCellNames[i] = new TextBlock() { Text = i.ToString() + ":", FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20 };
+                texts_MemoryCells[i] = new TextBlock()
+                {
+                    Text = "000000",
+                    Background = Brushes.Transparent,
+                    FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20
+                };
+                texts_MemoryCellNames[i] = new TextBlock()
+                {
+                    Text = i.ToString() + ":",
+                    FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20
+                };
                 charars_Commands[i] = new char[8];
             }
             ALUSpec = KSFileManagement.ALUSpecFromFile;
@@ -870,7 +887,7 @@ namespace CSProjectGame
             processorStackPanel.Visibility = Visibility.Visible;
             memoryDockPanel.Visibility = Visibility.Visible;
             runtimeDockPanel.Visibility = Visibility.Visible;
-            bool FirstTimeShowing = texts_Registers.Count == 0 ? true : false;
+            bool FirstTimeShowing = texts_Registers.Count == 0;
             for (int curReg = 0; curReg < NumRegisters; curReg++)
             {
                 if (FirstTimeShowing)
@@ -3252,7 +3269,7 @@ namespace CSProjectGame
 
             const int MilliDuration = 400;
             const int MilliBeginT = 150;
-            Thickness[] InitialMargins = new Thickness[] { button_Quests.Margin, button_Tasks2.Margin, button_Store2.Margin, button_Save2.Margin };
+            Thickness[] InitialMargins = new Thickness[] { button_Quests.Margin, button_Tasks2.Margin, button_Store2.Margin, button_Save.Margin };
             #region Create tanimButtonToCentre
             ThicknessAnimation tanimButtonToCentre = new ThicknessAnimation();
             tanimButtonToCentre.By = new Thickness(2 * ActualWidth / 5, 0, -2 * ActualWidth / 5, 0);
@@ -3428,6 +3445,8 @@ namespace CSProjectGame
                 TabInfo[0][i] = texts_TabNames[i].Text;
                 TabInfo[1][i] = texts_Tabs[i].Text;
             }
+            for (int i = 0; i < 20; i++)
+                binaryWrite.Write(bPassHash[i]);
             KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec);
         }
         #endregion

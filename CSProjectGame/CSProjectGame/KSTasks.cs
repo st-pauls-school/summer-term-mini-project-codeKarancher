@@ -182,7 +182,8 @@ namespace CSProjectGame
                 ToReturn.Background = new LinearGradientBrush(cdark, clightest, GRADANGLE);
                 ToReturn.Children.Add(new TextBlock()
                 {
-                    Text = task.sMessage,
+                    Text = ViewableMessageFromLongMessage(task.sMessage, width, FONTSIZE),
+                    ToolTip = task.sMessage,
                     Height = height,
                     Width = width,
                     Padding = new Thickness(width / 50, 0, width / 50, 0),
@@ -199,7 +200,8 @@ namespace CSProjectGame
                 ToReturn.Background = new LinearGradientBrush(clight, clightest, GRADANGLE);
                 ToReturn.Children.Add(new TextBlock()
                 {
-                    Text = task.sMessage,
+                    Text = ViewableMessageFromLongMessage(task.sMessage, 0.8 * width, FONTSIZE),
+                    ToolTip = task.sMessage,
                     Height = height,
                     Width = 0.8 * width,
                     Padding = new Thickness(width / 50, 0, width / 50, 0),
@@ -243,7 +245,8 @@ namespace CSProjectGame
                 ToReturn.Background = new LinearGradientBrush(cdarkest, cdark, GRADANGLE);
                 ToReturn.Children.Add(new TextBlock()
                 {
-                    Text = task.sMessage,
+                    Text = ViewableMessageFromLongMessage(task.sMessage, 0.8 * width, FONTSIZE),
+                    ToolTip = task.sMessage,
                     Height = height,
                     Width = 0.8 * width,
                     Padding = new Thickness(width / 50, 0, width / 50, 0),
@@ -271,6 +274,22 @@ namespace CSProjectGame
             {
                 throw new Exception("This KSTasks.Task has a completion status that is none of the expected values");
             }
+            return ToReturn;
+        }
+
+        private static string ViewableMessageFromLongMessage(string sMessage, double WidthOfTextBlock, float FontSize)
+        {
+            string ToReturn = "";
+
+            float widthofcharacter = FontSize * 0.8F;
+            int MaxLength = (int)(WidthOfTextBlock / widthofcharacter - 4);
+            if (MaxLength > sMessage.Length)
+                return sMessage;
+            char[] car = sMessage.ToCharArray();
+            for (int i = 0; i < MaxLength; i++)
+                ToReturn += car[i];
+            ToReturn += " ...";
+
             return ToReturn;
         }
     }
