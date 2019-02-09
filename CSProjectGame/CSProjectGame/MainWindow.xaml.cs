@@ -74,10 +74,8 @@ namespace CSProjectGame
         bool InSecondaryMenu = false;
         
         Dictionary<string, Brush> myBrushes;
-        byte[] listQuestsStatus;//0 => to be completed, 1 => completed, 2 => completed and redeemed
-        //Quests declared in MainWindow()
-        Tuple<string, int>[] lookup_Quests;
-        Dictionary<Button, int> IndexOfQuestFromRedeemButton = new Dictionary<Button, int>();
+        List<KSTasks.Task> list_Quests;//These refer to the in-game challenges coined ‘Quests’
+        List<KSTasks.Task> list_Tasks;//These refer to the imported challenges (maybe from a teacher) coined ‘Tasks’
         #endregion
 
         public MainWindow()
@@ -90,7 +88,7 @@ namespace CSProjectGame
                 Directory.CreateDirectory(sGameFilesPath);
             lookup_MemorySpec = new int[] { 20, 25, 30, 35, 40, 45, 50 };   //lookup_MemorySpec[memoryspec] will give the number of bytes of memory that the player has
             lookup_ClockSpeedSpec = new int[] { 3000, 2540, 2080, 1620, 1160, 700, 240 }; //lookup_ClockSpeedSpec[clockspeedspec] will give the number of milliseconds to take per operation
-            
+
             shapes_ProcessorParts = new List<Shape>();
             stackpanels_Registers = new List<StackPanel>();
             texts_Registers = new List<TextBlock>();
@@ -105,10 +103,6 @@ namespace CSProjectGame
             myUniversalRand = new Random(DateTime.Today.Millisecond);
             myBrushes = new Dictionary<string, Brush>();
 
-            //Contains all quests in order of difficulty and reward, can be referenced using listQuests[QuestNumber][0]. Item1 contains the 'message' or 'challenge' in English. Item2 contains the number of 'portions' that are attained upon completion
-            lookup_Quests = new Tuple<string, int>[] { new Tuple<string, int>("Store the numbers 1 to 5 in memory locations 10 to 14", 100), new Tuple<string, int>("Challenge 2", 100), new Tuple<string, int>("Challenge 3", 150), new Tuple<string, int>("Challenge 4", 200), new Tuple<string, int>("Challenge 5", 200), new Tuple<string, int>("Challenge 6", 250), new Tuple<string, int>("Challenge 7", 300), new Tuple<string, int>("Challenge 8", 350), new Tuple<string, int>("Challenge 9", 400), new Tuple<string, int>("Challenge 10", 450) };
-            listQuestsStatus = new byte[lookup_Quests.Length];
-
             canvas_LoginDetails_Username.Opacity = 0;
             RegisterName("canvas_LoginDetails_Username", canvas_LoginDetails_Username);
             canvas_LoginDetails_Password.Opacity = 0;
@@ -121,9 +115,12 @@ namespace CSProjectGame
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.TextChanged += text_LoginDetails_Password_TextChanged;
 
+            list_Quests = new List<KSTasks.Task>() { new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 2), new KSTasks.Task("K", "OB1KENOBYASDKFJLSAKDJF", "HT", 100, 1), new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0), new KSTasks.Task("K", "Hello there", "HT", 100, 1), new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0), new KSTasks.Task("K", "Hello there", "HT", 100, 1) };
+
             RegisterName("secmenuGrid", secmenuGrid);
 
             AssignGlobalsToNewValues();
+            KSGlobal.ButtonStyleRedeem = (Style)Resources["ButtonStyleRedeem"];
         }
 
         #region Start Screen
@@ -465,8 +462,6 @@ namespace CSProjectGame
             tb.Text = "Your computer is here! You can use this side panel to go through the runtime information and notifications that will be displayed here, or click on the button below to toggle to and from your code...\nThe play button will run the code loaded in memory\nThe white bar the you see on the right hand side can be used to open quests and to save your progress,\nremember to always save!\n\npress any to continue...";
             button_ToggleCode.Visibility = Visibility.Visible;
             button_PlayRun.Visibility = Visibility.Visible;
-            for (int i = 0; i < lookup_Quests.Length; i++)
-                listQuestsStatus[i] = 0;
             KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_06);
         }
 
@@ -506,7 +501,7 @@ namespace CSProjectGame
             (tabsDockPanel.Children[1] as Button).Content = TabTextFromProjectName(texts_TabNames[0].Text);
 
             //Save the new account’s base specs into the file
-            button_SaveProgress_Click(button_SaveProgress, new RoutedEventArgs());
+            button_SaveProgress_Click(button_Save2, new RoutedEventArgs());
 
             AssignGlobalsToNewValues();
         }
@@ -788,8 +783,6 @@ namespace CSProjectGame
                 gridToALU.Visibility = Visibility.Collapsed;
                 text_ALU.Visibility = Visibility.Collapsed;
                 gridProcToMem.Visibility = Visibility.Collapsed;
-                button_QstSave.Visibility = Visibility.Collapsed;
-                button_SaveProgress.Visibility = Visibility.Collapsed;
             }
             curTab = tabsDockPanel.Children.IndexOf(sender as Button);
             myStackPanel.Children.CollapseElements();
@@ -974,7 +967,6 @@ namespace CSProjectGame
             gridToALU.Visibility = Visibility.Visible;
             text_ALU.Visibility = Visibility.Visible;
             gridProcToMem.Visibility = Visibility.Visible;
-            button_QstSave.Visibility = Visibility.Visible;
         }
 
         private void stackpanels_Registers_IsMouseDirectlyOverChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -3214,44 +3206,22 @@ namespace CSProjectGame
             ToPlay.Begin(this);
         }
 
-        private void button_QstSave_Click_Open(object sender, RoutedEventArgs e)
+        private void button_Redeem_MouseEnter(object sender, MouseEventArgs e)
         {
-            DoubleAnimation opacityfadeForRuntimeStackpanel = new DoubleAnimation(0.3, TimeSpan.FromMilliseconds(200));
-            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityfadeForRuntimeStackpanel);
-
-            button_Quests.Opacity = button_SaveProgress.Opacity = 0;
-            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Visible;
-            DoubleAnimation opacityappearForButtons = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
-            button_Quests.BeginAnimation(OpacityProperty, opacityappearForButtons);
-            button_SaveProgress.BeginAnimation(OpacityProperty, opacityappearForButtons);
-
-            button_ToggleCode.Click += button_QstSave_Click_Close;
-            button_PlayRun.Click += button_QstSave_Click_Close;
-            button_QstSave.Click -= button_QstSave_Click_Open;
-            button_QstSave.Click += button_QstSave_Click_Close;
-        }
-
-        private void button_QstSave_Click_Close(object sender, RoutedEventArgs e)
-        {
-            DoubleAnimation opacityfadeForButtons = new DoubleAnimation(0, TimeSpan.FromMilliseconds(300));
-            button_Quests.BeginAnimation(OpacityProperty, opacityfadeForButtons);
-            button_SaveProgress.BeginAnimation(OpacityProperty, opacityfadeForButtons);
-
-            DoubleAnimation opacityappearForRuntimeStackpanel = new DoubleAnimation(1, TimeSpan.FromMilliseconds(400));
-            runtimeStackPanel.BeginAnimation(OpacityProperty, opacityappearForRuntimeStackpanel);
-            button_Quests.Visibility = button_SaveProgress.Visibility = Visibility.Collapsed;
-
-            button_ToggleCode.Click -= button_QstSave_Click_Close;
-            button_PlayRun.Click -= button_QstSave_Click_Close;
-            button_QstSave.Click -= button_QstSave_Click_Close;
-            button_QstSave.Click += button_QstSave_Click_Open;
+            Button button_Redeem = sender as Button;
+            button_Redeem.Style = null;
+            button_Redeem.Background = Brushes.White;
+            button_Redeem.Foreground = Brushes.Teal;
         }
 
         private void button_Quests_Click_Open(object sender, RoutedEventArgs e)
         {
             InSecondaryMenu = true;
 
+            #region Change Screen
             Storyboard ToPlay = new Storyboard();
+
+            //Clear previous contents of screen
             for (int i = 0; i < shapes_ProcessorParts.Count; i++)
                 shapes_ProcessorParts[i].Visibility = Visibility.Collapsed;
             registersStackPanel.Visibility = Visibility.Collapsed;
@@ -3267,16 +3237,16 @@ namespace CSProjectGame
             gridToALU.Visibility = Visibility.Collapsed;
             text_ALU.Visibility = Visibility.Collapsed;
             gridProcToMem.Visibility = Visibility.Collapsed;
-            button_QstSave.Visibility = Visibility.Collapsed;
-            button_SaveProgress.Visibility = Visibility.Collapsed;
             button_SecondaryMenu_Close.Visibility = Visibility.Collapsed;
 
+            //Clear contents if view was in coding tab
             if (curTab != 0)
             {
                 myStackPanel.Children.CollapseElements();
                 toolsDockPanel.Visibility = Visibility.Collapsed;
             }
 
+            //Change background
             Brush OldBackgroundsecmenu = secmenuGrid.Background;
             secmenuGrid.Background = new SolidColorBrush(Color.FromArgb(215, 130, 75, 0));
 
@@ -3366,31 +3336,38 @@ namespace CSProjectGame
             Color backcol1 = Color.FromArgb(255, 148, 95, 15);
             Color backcol2 = Color.FromArgb(255, 126, 65, 2);
             myGrid.Background = new LinearGradientBrush(backcol1, backcol2, 90);
-            //Display quests
+            #endregion
+
+            #region Display quests
             StackPanel stackpanelQuestspanel = new StackPanel() { Visibility = Visibility.Visible };
             myStackPanel.Children.Add(stackpanelQuestspanel);
-            for (int i = 0; i < listQuestsStatus.Length; i++)
+            Dictionary<DockPanel, int> dcIndexOfTask = new Dictionary<DockPanel, int>();
+            for (int i = 0; i < list_Quests.Count; i++)
             {
-                if (listQuestsStatus[i] == 0)//Quests not yet completed, textblock is sufficient
-                    stackpanelQuestspanel.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy") });
-                else if (listQuestsStatus[i] == 1)//Dockpanel required, with button to redeem reward
+                RoutedEventHandler ButtonRedeem_Click = new RoutedEventHandler((object button_redeem, RoutedEventArgs r) =>
                 {
-                    DockPanel ToAdd = new DockPanel() { Width = stackpanelQuestspanel.ActualWidth, Height = 25 };
-                    ToAdd.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, Width = ToAdd.ActualWidth / 2, Height = ToAdd.Height, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy"), Visibility = Visibility.Visible });
-                    Button button_Redeem = new Button() { Content = "Redeem " + lookup_Quests[i].Item2 + " portions", Width = ToAdd.ActualWidth / 2, Height = ToAdd.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 143, 143), Color.FromArgb(255, 0, 52, 143), 90), Visibility = Visibility.Visible };
-                    button_Redeem.Click += button_Redeem_Click;
-                    ToAdd.Children.Add(button_Redeem);
-                    stackpanelQuestspanel.Children.Add(ToAdd);
-                }
-                else
-                {
-                    DockPanel ToAdd = new DockPanel() { Width = stackpanelQuestspanel.ActualWidth, Height = 25 };
-                    ToAdd.Children.Add(new TextBlock() { Text = lookup_Quests[i].Item1, Width = ToAdd.ActualWidth / 2, Height = ToAdd.Height, TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Lucida Calligraphy"), Visibility = Visibility.Visible });
-                    TextBlock text_Redeemed = new TextBlock() { Text = "Redeemed " + lookup_Quests[i].Item2 + " portions!", Width = ToAdd.ActualWidth / 2, Height = ToAdd.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 200, 143), Color.FromArgb(255, 0, 162, 143), 90), Visibility = Visibility.Visible };
-                    ToAdd.Children.Add(text_Redeemed);
-                    stackpanelQuestspanel.Children.Add(ToAdd);
-                }
+                    int index = dcIndexOfTask[((button_redeem as Button).Parent as DockPanel)];
+                    //Add parts to player wallet
+
+                    //Change task status
+                    list_Quests[index].Redeem();
+
+                    //Change to redeemed task on screen
+                    //index * 2 is used because there is a small rectangle between each task panel
+                    DockPanel ReplaceWithThis = KSTasks.dockpanelTaskViewer(list_Quests[index], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), null/*Doesn't matter*/, button_Redeem_MouseEnter);
+                    dcIndexOfTask.Remove(stackpanelQuestspanel.Children[index * 2] as DockPanel);
+                    stackpanelQuestspanel.Children[index * 2].Visibility = Visibility.Collapsed;
+                    stackpanelQuestspanel.Children.RemoveAt(index * 2);
+                    stackpanelQuestspanel.Children.Insert(index * 2, ReplaceWithThis);
+                    dcIndexOfTask.Add(ReplaceWithThis, index);
+                });
+                DockPanel curTaskPanel = KSTasks.dockpanelTaskViewer(list_Quests[i], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), ButtonRedeem_Click, button_Redeem_MouseEnter);
+                stackpanelQuestspanel.Children.Add(curTaskPanel);
+                dcIndexOfTask.Add(curTaskPanel, i);
+                stackpanelQuestspanel.Children.Add(new Rectangle() { Width = myStackPanel.Width, Height = 2, Fill = Brushes.Transparent });
             }
+            #endregion
+
             button_Quests.Click -= button_Quests_Click_Open;
             button_Quests.Click += button_Back_Quests_Click_Close;
             RoutedEventHandler ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) => { });
@@ -3400,20 +3377,6 @@ namespace CSProjectGame
             });
             button_Quests.Click += ChangeToOldBackground_Click;
             ToPlay.Begin(this);
-        }
-
-        /// <summary>
-        /// MUST BE TESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void button_Redeem_Click(object sender, RoutedEventArgs e)
-        {
-            DockPanel Parent = (sender as Button).Parent as DockPanel;
-            int index = (myStackPanel.Children[myStackPanel.Children.Count - 1] as StackPanel).Children.IndexOf(Parent);
-            listQuestsStatus[index] = 2;
-            Parent.Children.Remove(sender as Button);
-            Parent.Children.Add(new TextBlock() { Text = "Redeemed " + lookup_Quests[index].Item2 + " portions!", Width = Parent.ActualWidth / 2, Height = Parent.ActualHeight, Background = new LinearGradientBrush(Color.FromArgb(255, 0, 200, 143), Color.FromArgb(255, 0, 162, 143), 90), Visibility = Visibility.Visible });
         }
 
         private void button_Back_Quests_Click_Close(object sender, RoutedEventArgs e)
@@ -3714,11 +3677,6 @@ namespace CSProjectGame
 
             gridProcToMem.Width = rect_AddressBusWire.Width = rect_DataBusWire.Width = ActualWidth / 14;
             gridProcToMem.Height = ActualHeight * 102 / 322;
-            
-            int button_QstSave_Width = 5;
-            button_QstSave.Height = ActualHeight * 44 / 322;
-            button_QstSave.Width = button_QstSave_Width;
-            button_QstSave.Margin = new Thickness(ActualWidth / 14 - button_QstSave_Width, 0, 0, 0);
         }
 
         /// <summary>

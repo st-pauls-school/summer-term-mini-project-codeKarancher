@@ -96,9 +96,11 @@ namespace CSProjectGame
         public class Task
         {
             TaskObjective _TObjective;
-            string _sMessage;
-            bool _IsCompleted;
-            public bool IsCompleted { get => _IsCompleted; }
+            public readonly string sTitle;
+            public readonly string sMessage;
+            int _CompletionStatus;//0 - incomplete, 1 - complete and reward ready, 2 - complete and reward redeemed
+            public int CompletionStatus { get => _CompletionStatus; }
+            public readonly int Reward;
 
             /// <summary>
             /// Initialize a task which is completed when a range of memory locations hold an array of desired values
@@ -106,18 +108,39 @@ namespace CSProjectGame
             /// <param name="TaskMessage">A brief explanation of the task for the user</param>
             /// <param name="StartIndex">The index of the first memory location to be checked</param>
             /// <param name="DesiredValues">The array of desired values to compare the memory to</param>
-            public Task(string TaskMessage, int StartIndex, string[] DesiredValues)
+            /// <param name="Reward">The amount of in-game currency earned by completing the task</param>
+            public Task(string TaskTitle, string TaskMessage, int StartIndex, string[] DesiredValues, int reward)
             {
-                _sMessage = TaskMessage;
+                sTitle = TaskTitle;
+                sMessage = TaskMessage;
                 _TObjective = new MemoryObjective(StartIndex, DesiredValues);
-                _IsCompleted = false;
+                _CompletionStatus = 0;
+                Reward = reward;
             }
 
-            public Task(string TaskMessage, string DesiredOutput)
+            /// <summary>
+            /// Initialize a task which is completed when the computer outputs a specific string
+            /// </summary>
+            /// <param name="TaskMessage">A brief explanation of the task for the user</param>
+            /// <param name="DesiredOutput">The string that the output should be compared to (the desired output)</param>
+            /// <param name="Reward">The amount of in-game currency earned by completing the task</param>
+            public Task(string TaskTitle, string TaskMessage, string DesiredOutput,  int reward)
             {
-                _sMessage = TaskMessage;
+                sTitle = TaskTitle;
+                sMessage = TaskMessage;
                 _TObjective = new OutputObjective(DesiredOutput);
-                _IsCompleted = false;
+                _CompletionStatus = 0;
+                Reward = reward;
+            }
+
+            public Task(string TaskTitle, string TaskMessage, string DesiredOutput, int reward, int complete)
+            {
+                sTitle = TaskTitle;
+                sMessage = TaskMessage;
+                _TObjective = new OutputObjective(DesiredOutput);
+                _CompletionStatus = 0;
+                Reward = reward;
+                _CompletionStatus = complete;
             }
 
             /// <summary>
@@ -130,10 +153,125 @@ namespace CSProjectGame
             public bool? CheckIfConditionSatisfied(bool ThrowExcp)
             {
                 bool? Result = _TObjective.CheckIfCompleted(ThrowExcp);
-                if (Result == true)
-                    _IsCompleted = true;
+                if (Result == true && _CompletionStatus == 0)
+                    _CompletionStatus = 1;
                 return Result;
             }
+
+            public void Redeem()
+            {
+                _CompletionStatus = 2;
+            }
+        }
+
+        public static DockPanel dockpanelTaskViewer(Task task, double height, double width, FontFamily fontfam, Color ColourScheme, RoutedEventHandler Button_Redeem_Click, MouseEventHandler Button_Redeem_MouseEnter)
+        {
+            DockPanel ToReturn = new DockPanel { Height = height, Width = width };
+            int csR = ColourScheme.R, csG = ColourScheme.G, csB = ColourScheme.B;
+            Color clightest, clight, cdark, cdarkest;
+            clightest = Color.FromRgb((byte)(csR * 1.4), (byte)(csG * 1.4), (byte)(csB * 1.4));
+            clight = Color.FromRgb((byte)(csR * 1.25), (byte)(csG * 1.25), (byte)(csB * 1.25));
+            cdark = Color.FromRgb((byte)(csR * 0.9), (byte)(csG * 0.9), (byte)(csB * 0.9));
+            cdarkest = Color.FromRgb((byte)(csR * 0.7), (byte)(csG * 0.7), (byte)(csB * 0.7));
+            const int GRADANGLE = 20;//In degrees
+            const float FONTSIZE = 13;
+            bool IsFontWhite = (csR + csG + csB < 100);
+            Brush brushRedeemButtonBackground = new LinearGradientBrush(Color.FromRgb(0, 113, 143), Color.FromRgb(10, 133, 153), GRADANGLE);
+            if (task.CompletionStatus == 0)//Quest not yet completed, textblock is sufficient
+            {
+                ToReturn.Background = new LinearGradientBrush(cdark, clightest, GRADANGLE);
+                ToReturn.Children.Add(new TextBlock()
+                {
+                    Text = task.sMessage,
+                    Height = height,
+                    Width = width,
+                    Padding = new Thickness(width / 50, 0, width / 50, 0),
+                    FontFamily = fontfam,
+                    FontSize = FONTSIZE,
+                    TextWrapping = TextWrapping.Wrap,
+                    Background = Brushes.Transparent,
+                    Foreground = (IsFontWhite) ? Brushes.White : Brushes.Black,
+                    Visibility = Visibility.Visible
+                });
+            }
+            else if (task.CompletionStatus == 1)//Quest completed, reward to be redeemed
+            {
+                ToReturn.Background = new LinearGradientBrush(clight, clightest, GRADANGLE);
+                ToReturn.Children.Add(new TextBlock()
+                {
+                    Text = task.sMessage,
+                    Height = height,
+                    Width = 0.8 * width,
+                    Padding = new Thickness(width / 50, 0, width / 50, 0),
+                    FontFamily = fontfam,
+                    FontSize = FONTSIZE,
+                    TextWrapping = TextWrapping.Wrap,
+                    Background = Brushes.Transparent,
+                    Foreground = (IsFontWhite) ? Brushes.White : Brushes.Black,
+                    Visibility = Visibility.Visible
+                });
+                Button bRedeem = new Button()
+                {
+                    Content = "Redeem " + task.Reward + " " + KSGlobal.GAMECURRENCYNAME + "!",
+                    FontFamily = fontfam,
+                    FontSize = FONTSIZE,
+                    Width = width * 0.2,
+                    Height = height,
+                    Style = KSGlobal.ButtonStyleRedeem,
+                    Foreground = Brushes.White,
+                    Visibility = Visibility.Visible
+                };
+                bRedeem.Click += Button_Redeem_Click;
+                bRedeem.MouseEnter += Button_Redeem_MouseEnter;
+                MouseEventHandler mouseLeave = new MouseEventHandler((object sender, MouseEventArgs mea) =>
+                {
+                    Button b = sender as Button;
+                    b.Content = "Redeem " + task.Reward + " " + KSGlobal.GAMECURRENCYNAME + "!";
+                    b.FontFamily = fontfam;
+                    b.FontSize = FONTSIZE;
+                    b.Width = width * 0.2;
+                    b.Height = height;
+                    b.Style = KSGlobal.ButtonStyleRedeem;
+                    b.Foreground = Brushes.White;
+                    b.Visibility = Visibility.Visible;
+                });
+                bRedeem.MouseLeave += mouseLeave;
+                ToReturn.Children.Add(bRedeem);
+            }
+            else if (task.CompletionStatus == 2)//Quest completed, reward redeemed
+            {
+                ToReturn.Background = new LinearGradientBrush(cdarkest, cdark, GRADANGLE);
+                ToReturn.Children.Add(new TextBlock()
+                {
+                    Text = task.sMessage,
+                    Height = height,
+                    Width = 0.8 * width,
+                    Padding = new Thickness(width / 50, 0, width / 50, 0),
+                    FontFamily = fontfam,
+                    FontSize = FONTSIZE,
+                    TextWrapping = TextWrapping.Wrap,
+                    Background = Brushes.Transparent,
+                    Foreground = (IsFontWhite) ? Brushes.White : Brushes.Black,
+                    Visibility = Visibility.Visible
+                });
+                ToReturn.Children.Add(new TextBlock()
+                {
+                    Text = "Redeemed " + task.Reward + " " + KSGlobal.GAMECURRENCYNAME,
+                    Height = height,
+                    Width = width * 0.2,
+                    FontFamily = fontfam,
+                    FontSize = FONTSIZE,
+                    TextAlignment = TextAlignment.Center,
+                    Background = new SolidColorBrush(Color.FromRgb(10, 95, 200)),
+                    Foreground = Brushes.White,
+                    Visibility = Visibility.Visible
+                });
+            }
+            else
+            {
+                throw new Exception("This KSTasks.Task has a completion status that is none of the expected values");
+            }
+            return ToReturn;
         }
     }
 }
