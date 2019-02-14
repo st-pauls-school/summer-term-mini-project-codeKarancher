@@ -62,6 +62,7 @@ namespace CSProjectGame
             public MemoryObjective(int startindex, string[] desiredvalues)
             {
                 iStartPointer = startindex;
+                sDesiredMemoryContents = new string[desiredvalues.Length];
                 desiredvalues.CopyTo(sDesiredMemoryContents, 0);
             }
 
@@ -133,16 +134,6 @@ namespace CSProjectGame
                 Reward = reward;
             }
 
-            public Task(string TaskTitle, string TaskMessage, string DesiredOutput, int reward, int complete)
-            {
-                sTitle = TaskTitle;
-                sMessage = TaskMessage;
-                _TObjective = new OutputObjective(DesiredOutput);
-                _CompletionStatus = 0;
-                Reward = reward;
-                _CompletionStatus = complete;
-            }
-
             /// <summary>
             /// Returns whether the task condition has been satisfied (true) or not (false). 
             /// Returns null upon error, or throws exception depending on argument.
@@ -161,6 +152,63 @@ namespace CSProjectGame
             public void Redeem()
             {
                 _CompletionStatus = 2;
+            }
+
+            /// <summary>
+            /// Be careful! This function shoud only be used in special cases. In expected scenarios the CheckIfConditionSatisfied and Redeem functions will change the completion status automatically.
+            /// </summary>
+            /// <param name="status"></param>
+            public void SetCompletionStatusTo(int status)
+            {
+                _CompletionStatus = status;
+            }
+        }
+
+        public class TaskCollection
+        {
+            List<Task> tasks;
+            public int Count { get => tasks.Count; }
+
+            public Task GetTask(int index)
+            {
+                return tasks[index];
+            }
+
+            public TaskCollection(List<Task> Tasks)
+            {
+                Task[] temp = new Task[Tasks.Count];
+                Tasks.CopyTo(temp);
+                tasks = temp.ToList();
+            }
+
+            /// <summary>
+            /// The task collection with all the quests retrieved from the account file. ONLY CALL AFTER CALLING KSFILEMANAGEMENT.RETRIEVEPROGRESS
+            /// </summary>
+            /// <returns></returns>
+            public static TaskCollection QuestsFromFile()
+            {
+                int[] QuestStats = KSFileManagement.QuestStatsFromFile;
+                Task[] Groundstate = new Task[]
+                {
+                    new Task("My First Program", "Every legend has a beginning. Store the numbers 1 to 5 in memory locations 11 to 15", 11, new string[] { "000001", "000002", "000003", "000004", "000005" }, 10),
+                    new Task("Exploring", "Store the value in location 19 + 5 in memory location 15", 15, new string[] { "000005" }, 15),
+                    new Task("Third Trial", "Store the number 5 in memory location 0", 0, new string[] {"000005" }, 20)
+                };
+                //INITQUESTSDEBUG
+                //KSGlobal.AllQuests.CopyTo(Groundstate);
+                if (Groundstate.Length != KSGlobal.NUMQUESTS)
+                    throw new Exception("KSGlobal has conflicting AllQuests and NUMQUESTS");
+                for (int curQ = 0; curQ < KSGlobal.NUMQUESTS; curQ++)
+                    Groundstate[curQ].SetCompletionStatusTo(QuestStats[curQ]);
+                return new TaskCollection(Groundstate.ToList());
+            }
+
+            public int[] GetCompletionStats()
+            {
+                int[] ToReturn = new int[tasks.Count];
+                for (int i = 0; i < tasks.Count; i++)
+                    ToReturn[i] = tasks[i].CompletionStatus;
+                return ToReturn;
             }
         }
 

@@ -489,7 +489,7 @@
                 </Button.Background>
                 <ContentControl Content="Quests" FontFamily="Century Gothic" FontSize="11.5" Foreground="#FF7A3000" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="button_Tasks2" Margin="4,8,4,2" Grid.Column="1" BorderBrush="#FF502B57">
+            <Button x:Name="button_Tasks" Margin="4,8,4,2" Grid.Column="1" BorderBrush="#FF502B57">
                 <Button.Background>
                     <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
                         <GradientStop Color="#FFE9A9F3" Offset="0"/>
@@ -500,7 +500,7 @@
                 </Button.Background>
                 <ContentControl Content="Tasks" FontFamily="Century Gothic" FontSize="11.5" Foreground="#FF502B57" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
-            <Button x:Name="button_Store2" Margin="4,8,4,2" Grid.Column="2" BorderBrush="#FF109A00">
+            <Button x:Name="button_Store" Margin="4,8,4,2" Grid.Column="2" BorderBrush="#FF109A00">
                 <Button.Background>
                     <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
                         <GradientStop Color="#FFA1F08F" Offset="0"/>
@@ -522,6 +522,18 @@
                 </Button.Background>
                 <ContentControl Content="Save" FontFamily="Century Gothic" FontSize="11.5" Foreground="#FF0048C8" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Button>
+            <TextBlock x:Name="text_Earnings" Grid.Column="4" HorizontalAlignment="Left" Height="18" Margin="4,8,4,2" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Top" Width="96" FontFamily="Century Gothic" Foreground="GhostWhite">
+                <TextBlock.Background>
+                    <LinearGradientBrush EndPoint="1,0" MappingMode="RelativeToBoundingBox" StartPoint="0,0">
+                        <GradientStop Color="#CC0F0076" Offset="0.329"/>
+                        <GradientStop Color="#FF0F0074"/>
+                        <GradientStop Color="#BB190A7E" Offset="0.518"/>
+                        <GradientStop Color="#AA24177C" Offset="0.622"/>
+                        <GradientStop Color="#00000000" Offset="1"/>
+                        <GradientStop Color="#711A00C5" Offset="0.747"/>
+                    </LinearGradientBrush>
+                </TextBlock.Background>
+            </TextBlock>
         </Grid>
         <Button x:Name="button_SecondaryMenu_Open" Content="&lt;" Height="23" Margin="0,0,500,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Click="button_SecondaryMenu_Open_Click" MouseEnter="button_SecondaryMenu_MouseEnter" MouseLeave="button_SecondaryMenu_MouseLeave" Grid.ColumnSpan="13" Opacity="0.4" FontWeight="Bold" FontFamily="Stencil"/>
         <Button x:Name="button_SecondaryMenu_Close" Content="&gt;" Height="23" Margin="500,0,0,0" VerticalAlignment="Top" Background="#FF1BD6D6" BorderBrush="{x:Null}" Foreground="#FF165353" Width="17" FontSize="10" Click="button_SecondaryMenu_Close_Click" MouseEnter="button_SecondaryMenu_MouseEnter" MouseLeave="button_SecondaryMenu_MouseLeave" Opacity="0.4" FontWeight="Bold" FontFamily="Stencil" Grid.ColumnSpan="13" Visibility="Collapsed"/>

@@ -25,6 +25,8 @@ namespace CSProjectGame
     /// </summary>
     public partial class MainWindow : Window
     {
+        //INITQUESTSDEBUG - tag for places where starting quests have been initialized. Ideally must be stored in file
+
         #region Declarations
         string sGameFilesPath { get
             {
@@ -53,7 +55,7 @@ namespace CSProjectGame
         int MemorySpec, ALUSpec, ClockSpeedSpec;
         int[] lookup_MemorySpec;
         int[] lookup_ClockSpeedSpec;
-        
+
         List<Shape> shapes_ProcessorParts;
         Grid[] gridsRegWires;
         List<StackPanel> stackpanels_Registers;
@@ -73,10 +75,19 @@ namespace CSProjectGame
         int curTab = 1;
         int runTab = 0;
         bool InSecondaryMenu = false;
-        
+
         Dictionary<string, Brush> myBrushes;
-        List<KSTasks.Task> list_Quests;//These refer to the in-game challenges coined ‘Quests’
-        List<KSTasks.Task> list_Tasks;//These refer to the imported challenges (maybe from a teacher) coined ‘Tasks’
+        KSTasks.TaskCollection tcQuests;//These refer to the in-game challenges coined ‘Quests’
+        KSTasks.TaskCollection tcTasks;//These refer to the imported challenges (maybe from a teacher) coined ‘Tasks’
+        Dictionary<Task, string> dcPathOfTask = new Dictionary<Task, string>();//Contains the file path of all imported tasks
+        int earnings;
+        int Earnings { get => earnings; set
+            {
+                earnings = value;
+                text_Earnings.Text = earnings.ToString() + " " + KSGlobal.GAMECURRENCYNAME;
+                return;
+            }
+        }
         #endregion
 
         public MainWindow()
@@ -116,13 +127,6 @@ namespace CSProjectGame
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.TextChanged += text_LoginDetails_Password_TextChanged;
 
-            list_Quests = new List<KSTasks.Task>() { new KSTasks.Task("Bobo", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaB", "BOBO", 100, 2),
-                new KSTasks.Task("K", "OB1KENOBYASDKFJLSAKDJF", "HT", 100, 1),
-                new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0),
-                new KSTasks.Task("K", "Hello there", "HT", 100, 1),
-                new KSTasks.Task("Bobo", "Make a program for bobo", "BOBO", 100, 0),
-                new KSTasks.Task("K", "Hello there", "HT", 100, 1) };
-
             RegisterName("secmenuGrid", secmenuGrid);
 
             AssignGlobalsToNewValues();
@@ -150,11 +154,11 @@ namespace CSProjectGame
                 #region Get hash of correct password
                 BinaryReader bReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
                 byte[] HashComputed = new SHA1CryptoServiceProvider().ComputeHash(bPasswordEntered);
-                byte[] HashOfCorrectPassword = KSFileManagement.HashOfCorrectPasscode(bReader);
+                bPassHash = KSFileManagement.HashOfCorrectPasscode(bReader);
                 bool PasswordIsCorrect = true;
                 for (int i = 0; i < 20; i++)
                 {
-                    if (HashComputed[i] != HashOfCorrectPassword[i])
+                    if (HashComputed[i] != bPassHash[i])
                     {
                         PasswordIsCorrect = false;
                         break;
@@ -171,7 +175,7 @@ namespace CSProjectGame
                     canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
                     button_Go.Visibility = Visibility.Collapsed;
                     button_NewAccount.Visibility = Visibility.Collapsed;
-                    ingraph_Initialise();
+                    init_Initialise();
                 }
                 else//Show error message
                 {
@@ -257,7 +261,7 @@ namespace CSProjectGame
             button_Go.Visibility = Visibility.Collapsed;
             button_NewAccount.Visibility = Visibility.Collapsed;
             text_Title.Visibility = Visibility.Collapsed;
-            ingraph_InitialiseTabs_Tutorial();
+            init_InitialiseTabs_Tutorial();
             ingraph_FirstTime_00();
         }
 
@@ -353,7 +357,7 @@ namespace CSProjectGame
             button_NewAccount.Click -= button_NewAccount_BackToLogin_Click;
             button_NewAccount.Click += button_NewAccount_Click;
         }
-        
+
         private void text_LoginDetails_Password_TextChanged(object sender, TextChangedEventArgs e)
         {
             const char HiderChar = '*';
@@ -397,7 +401,7 @@ namespace CSProjectGame
         }
         #endregion
 
-        #region Initialise Graphics (ingraph)
+        #region Initialization
 
         #region First Time
         private void ingraph_FirstTime_00()
@@ -424,7 +428,7 @@ namespace CSProjectGame
         private void ingraph_FirstTime_02_Coding_01()
         {
             text_Welcome.Text = "Click on the coding tab to continue..";
-            (tabsDockPanel.Children[1] as Button).Click += new RoutedEventHandler(Code1_Tutorial_01);
+            (tabsDockPanel.Children[1] as Button).Click += new RoutedEventHandler(CodingTab_Tutorial_Click);
         }
 
         private void ingraph_FirstTime_02_Coding_02()
@@ -468,9 +472,11 @@ namespace CSProjectGame
         private void ingraph_FirstTime_05_RuntimeButtons()
         {
             TextBlock tb = runtimeStackPanel.Children[0] as TextBlock;
-            tb.Text = "Your computer is here! You can use this side panel to go through the runtime information and notifications that will be displayed here, or click on the button below to toggle to and from your code...\nThe play button will run the code loaded in memory\nThe white bar the you see on the right hand side can be used to open quests and to save your progress,\nremember to always save!\n\npress any to continue...";
+            tb.Text = "Your computer is here! You can use this side panel to go through the runtime information and notifications that will be displayed here, or click on the button below to toggle to and from your code...\nThe play button will run the code loaded in memory\nThe left arrow that you see on the left of the Main tab will show a second menu\nThere you can view your quests and tasks, go to the store and save progress\nRemember to always save!\n\npress any to continue...";
             button_ToggleCode.Visibility = Visibility.Visible;
             button_PlayRun.Visibility = Visibility.Visible;
+            button_SecondaryMenu_Open.Visibility = Visibility.Visible;
+            Earnings = 0;
             KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_06);
         }
 
@@ -484,7 +490,7 @@ namespace CSProjectGame
         {
             (runtimeStackPanel.Children[0] as TextBlock).Text = ">>No program loaded";
             text_Welcome.Visibility = Visibility.Collapsed;
-            (tabsDockPanel.Children[0] as Button).Click -= Code1_Tutorial_01;
+            (tabsDockPanel.Children[0] as Button).Click -= CodingTab_Tutorial_Click;
             for (int i = 1; i < tabsDockPanel.Children.Count - 1; i++)
             {
                 (tabsDockPanel.Children[i] as Button).Click += CodeTab_Click;
@@ -501,6 +507,20 @@ namespace CSProjectGame
             (tabsDockPanel.Children[0] as Button).Click -= MainTab_Click_Tutorial;
             (tabsDockPanel.Children[0] as Button).Click += MainTab_Click;
 
+            //Reset the text in tab1
+            texts_Tabs[0].Text = "";
+            texts_TabNames[0].Text = "Project 1";
+            (tabsDockPanel.Children[0] as Button).Content = "";
+
+            //Give the new user a fresh set of in game quests
+            tcQuests = new KSTasks.TaskCollection(new List<KSTasks.Task>()
+            {
+                new KSTasks.Task("My First Program", "Every legend has a beginning. Store the numbers 1 to 5 in memory locations 11 to 15", 11, new string[] { "000001", "000002", "000003", "000004", "000005" }, 10),
+                new KSTasks.Task("Exploring", "Store the value in location 19 + 5 in memory location 15", 15, new string[] { "000005" }, 15),
+                new KSTasks.Task("Third Trial", "Store the number 5 in memory location 0", 0, new string[] {"000005" }, 20)
+            });
+            //INITQUESTSDEBUG
+
             //Save the new account’s base specs into the file
             button_SaveProgress_Click(button_Save, new RoutedEventArgs());
 
@@ -508,30 +528,30 @@ namespace CSProjectGame
         }
         #endregion
 
-        private void ingraph_Initialise()
+        private void init_Initialise()
         {
             BinaryReader binaryReader = new BinaryReader(new FileStream(System.IO.Path.Combine(sGameFilesPath, sUsername + sAccountFileName), FileMode.Open));
             binaryReader.BaseStream.Position = 0;
             byte b;
             if (binaryReader.BaseStream.Length <= 20)//Tutorial has not yet been completed
             {
-                ingraph_InitialiseTabs_Tutorial();
+                init_InitialiseTabs_Tutorial();
                 ingraph_FirstTime_00();
             }
             else
             {
                 //Has been played before, tutorial has been watched
                 KSFileManagement.RetrieveProgress(binaryReader);
-                ingraph_InitialiseFromFile();
-                ingraph_SetEventHandlers();
+                init_InitialiseFromFile();
+                init_SetEventHandlers();
                 GraphicsForMotherBoard();
                 curTab = 0;
                 CodeTab_Click(tabsDockPanel.Children[1] as Button, new RoutedEventArgs());
             }
 
         }
-        
-        private void ingraph_SetEventHandlers()
+
+        private void init_SetEventHandlers()
         {
             for (int i = 1; i < tabsDockPanel.Children.Count - 1; i++)
             {
@@ -552,7 +572,7 @@ namespace CSProjectGame
             (tabsDockPanel.Children[0] as Button).Click += MainTab_Click;
         }
 
-        private void ingraph_InitialiseTabs_Tutorial()
+        private void init_InitialiseTabs_Tutorial()
         {
             tabsDockPanel.Visibility = Visibility.Visible;
             tabsDockPanel.Children.Add(new Button() { FontSize = 14F, Style = (Style)Resources["ButtonStyleMainTab"], Width = ActualWidth / 14 });    //Main button
@@ -565,7 +585,7 @@ namespace CSProjectGame
             button_LoadIntoMem.Click += new RoutedEventHandler(DockButton_Click_LoadIntoMemory);
         }
 
-        private void ingraph_InitialiseFromFile()
+        private void init_InitialiseFromFile()
         {
             //ALWAYS OPEN INTO TAB 1, BECAUSE CURTAB = 1
             myStackPanel.Children.CollapseElements();
@@ -605,6 +625,8 @@ namespace CSProjectGame
             }
             ALUSpec = KSFileManagement.ALUSpecFromFile;
             ClockSpeedSpec = KSFileManagement.ClockSpeedSpecFromFile;
+            Earnings = KSFileManagement.EarningsFromFile;
+            tcQuests = KSTasks.TaskCollection.QuestsFromFile();
             texts_TabNames[0].Visibility = Visibility.Visible;
             texts_Tabs[0].Visibility = Visibility.Visible;
             myStackPanel.Visibility = Visibility.Visible;
@@ -614,7 +636,7 @@ namespace CSProjectGame
             AssignGlobalsToNewValues();
         }
         #endregion
-        
+
         #region Tutorial Event Handlers
         private void KeyDown_PressAnyToContinue_FirstTime_01(object sender, KeyEventArgs e)
         {
@@ -628,7 +650,7 @@ namespace CSProjectGame
             ingraph_FirstTime_02_Coding_01();
         }
 
-        private void Code1_Tutorial_01(object sender, RoutedEventArgs e)
+        private void CodingTab_Tutorial_Click(object sender, RoutedEventArgs e)
         {
             texts_TabNames.Add(new TextBox() { Text = "Your tab can be named here", FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Background = Brushes.DarkMagenta, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center, HorizontalContentAlignment = HorizontalAlignment.Center, TextWrapping = TextWrapping.Wrap, AcceptsReturn = false });
             texts_Tabs.Add(new TextBox() { Text = "Enter your code here and click 'Load To Memory' on the top right panel to load it into your computer's RAM\n\npress any key to continue...", Visibility = Visibility.Visible, FontFamily = new FontFamily("Courier New"), Foreground = Brushes.Black, Background = Brushes.White, TextWrapping = TextWrapping.Wrap, AcceptsReturn = true });
@@ -638,7 +660,7 @@ namespace CSProjectGame
             toolsDockPanel.Visibility = Visibility.Visible;
             button_LoadIntoMem.Visibility = Visibility.Visible;
             button_LoadIntoMem.Click -= DockButton_Click_LoadIntoMemory;
-            (sender as Button).Click -= Code1_Tutorial_01;
+            (sender as Button).Click -= CodingTab_Tutorial_Click;
             KeyDown += new KeyEventHandler(KeyDown_PressAnyToContinue_FirstTime_02_2);
         }
 
@@ -1108,7 +1130,7 @@ namespace CSProjectGame
 
             #region Initialise text_DataBus
             int InstNumber = int.Parse(text_PC.Text);
-            StackPanel MemPanel = (InstNumber > lookup_MemorySpec[MemorySpec] / 2) ? memoryStackPanel2 : memoryStackPanel1;
+            StackPanel MemPanel = (InstNumber >= lookup_MemorySpec[MemorySpec] / 2) ? memoryStackPanel2 : memoryStackPanel1;
             text_DataBus.Text = ((MemPanel.Children[InstNumber % 10] as DockPanel).Children[1] as TextBlock).Text;
             gridProcToMem.Children.Add(text_DataBus);
             Grid.SetRow(text_DataBus, 2);
@@ -1162,7 +1184,7 @@ namespace CSProjectGame
         private void EmphasisInstruction_Tick_1(object sender, EventArgs e)
         {
             int InstNumber = int.Parse(text_PC.Text);
-            StackPanel MemPanel = (InstNumber > lookup_MemorySpec[MemorySpec] / 2) ? memoryStackPanel2 : memoryStackPanel1;
+            StackPanel MemPanel = (InstNumber >= lookup_MemorySpec[MemorySpec] / 2) ? memoryStackPanel2 : memoryStackPanel1;
             ((MemPanel.Children[InstNumber % 10] as DockPanel).Children[1] as TextBlock).Background = Brushes.Red;
             gridProcToMem.Children.Remove(text_AddressBus);
             (sender as DispatcherTimer).Tick -= EmphasisInstruction_Tick_1;
@@ -1579,7 +1601,7 @@ namespace CSProjectGame
             int MemoryLocIndex = int.Parse(new string(new char[] { cAr[3], cAr[4] }));
             string ToStore = KSConvert.BinaryToDecimalForRegisters(texts_Registers[RegisterNumber].Text.ToCharArray()).ToString();
             Storyboard ToPlay = new Storyboard();
-            
+
             #region Get tanimsFromReg
             ThicknessAnimation[] tanimsFromReg = GetAnimationsNumberFromRegister(RegisterNumber, lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
             for (int i = 0; i < tanimsFromReg.Length; i++)
@@ -1669,7 +1691,7 @@ namespace CSProjectGame
             #endregion
 
             #region Make filler animation to end ToPlay after information has been stored
-            DoubleAnimation filler = new DoubleAnimation() { Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 8), BeginTime = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 8)};
+            DoubleAnimation filler = new DoubleAnimation() { Duration = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 8), BeginTime = TimeSpan.FromMilliseconds(3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 8) };
             Storyboard.SetTargetName(filler, "texts_ToRegister0");//doesn't matter
             Storyboard.SetTargetProperty(filler, new PropertyPath(OpacityProperty));//doesn't matter
             #endregion
@@ -1744,7 +1766,7 @@ namespace CSProjectGame
                 #region Create dtRemovetext_FromRegister
                 DispatcherTimer dtRemovetext_FromRegister = new DispatcherTimer();
                 dtRemovetext_FromRegister.Interval = TimeSpan.FromMilliseconds(lookup_ClockSpeedSpec[ClockSpeedSpec] / 4);
-                dtRemovetext_FromRegister.Tick +=new EventHandler(KSTimerEvHandlers.Generate("Remove", text_FromRegister));
+                dtRemovetext_FromRegister.Tick += new EventHandler(KSTimerEvHandlers.Generate("Remove", text_FromRegister));
                 #endregion
 
                 ContentToCopy = KSConvert.BinaryToDecimalForRegisters(texts_Registers[DepartureRegisterNumber].Text.ToCharArray()).ToString();
@@ -2632,7 +2654,7 @@ namespace CSProjectGame
                 Storyboard.SetTargetProperty(tanimSecondNumberToALU, new PropertyPath(MarginProperty));
                 #endregion
                 ToPlay.Children.Add(tanimSecondNumberToALU);
-                
+
                 OldText = text_CMP.Text;
 
                 dtRemovetext_SecondRegister.Start();
@@ -3004,6 +3026,12 @@ namespace CSProjectGame
 
         private void ExecuteInstruction_HALT()
         {
+            AssignGlobalsToNewValues();
+
+            //Check if any of the quests were completed
+            for (int curQ = 0; curQ < tcQuests.Count; curQ++)
+                tcQuests.GetTask(curQ).CheckIfConditionSatisfied(true);
+
             (runtimeStackPanel.Children[0] as TextBlock).Text += "\n\n>>Halt instruction decoded, program halted\n\n-----";
             text_PC.Text = "00";
             text_CIR.Text = "000000";
@@ -3012,8 +3040,6 @@ namespace CSProjectGame
                 texts_Registers[i].Text = "0000 0000";
             }
             text_CMP.Text = "";
-
-            AssignGlobalsToNewValues();
             return;
         }
         #endregion
@@ -3089,7 +3115,7 @@ namespace CSProjectGame
 
             ToPlay.Begin(this);
             dtCollapsebutton_SecondaryMenu_Open.Start();
-            
+
         }
 
         private void button_SecondaryMenu_Close_Click(object sender, RoutedEventArgs e)
@@ -3242,7 +3268,7 @@ namespace CSProjectGame
 
             const int MilliDuration = 400;
             const int MilliBeginT = 150;
-            Thickness[] InitialMargins = new Thickness[] { button_Quests.Margin, button_Tasks2.Margin, button_Store2.Margin, button_Save.Margin };
+            Thickness[] InitialMargins = new Thickness[] { button_Quests.Margin, button_Tasks.Margin, button_Store.Margin, button_Save.Margin, text_Earnings.Margin };
             #region Create tanimButtonToCentre
             ThicknessAnimation tanimButtonToCentre = new ThicknessAnimation();
             tanimButtonToCentre.By = new Thickness(2 * ActualWidth / 5, 0, -2 * ActualWidth / 5, 0);
@@ -3254,8 +3280,8 @@ namespace CSProjectGame
             #endregion
             ToPlay.Children.Add(tanimButtonToCentre);
 
-            #region Create tanims to move all other menu buttons out
-            for (int i = 1; i < 4; i++)
+            #region Create tanims to move all other menu elements out
+            for (int i = 1; i < secmenuGrid.Children.Count; i++)
             {
                 #region Create tanimEverythingElseOut
                 ThicknessAnimation tanimEverythingElseOut = new ThicknessAnimation();
@@ -3270,7 +3296,7 @@ namespace CSProjectGame
             }
             #endregion
 
-            #region Add an eventhandler to return state when quests are closed
+            #region Add an eventhandler to go back to program when quests are closed
             int garbage;
             Action RemoveAnimateBackFromClickEventHandlers = new Action(() => garbage = 0);
             RoutedEventHandler AnimateBackButtonsAndBackground = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
@@ -3289,7 +3315,7 @@ namespace CSProjectGame
                 ToPlayBack.Children.Add(tanimButtonBack);
 
                 #region Create tanims to move all other menu buttons back
-                for (int i = 1; i < 4; i++)
+                for (int i = 1; i < secmenuGrid.Children.Count; i++)
                 {
                     #region Create tanimMoveButtonBack
                     ThicknessAnimation tanimMoveButtonBack = new ThicknessAnimation();
@@ -3332,26 +3358,27 @@ namespace CSProjectGame
             StackPanel stackpanelQuestspanel = new StackPanel() { Visibility = Visibility.Visible };
             myStackPanel.Children.Add(stackpanelQuestspanel);
             Dictionary<DockPanel, int> dcIndexOfTask = new Dictionary<DockPanel, int>();
-            for (int i = 0; i < list_Quests.Count; i++)
+            for (int i = 0; i < tcQuests.Count; i++)
             {
                 RoutedEventHandler ButtonRedeem_Click = new RoutedEventHandler((object button_redeem, RoutedEventArgs r) =>
                 {
                     int index = dcIndexOfTask[((button_redeem as Button).Parent as DockPanel)];
-                    //Add parts to player wallet
+                    //Add earnings to player wallet
+                    Earnings += tcQuests.GetTask(dcIndexOfTask[((button_redeem as Button).Parent as DockPanel)]).Reward;//NEEDS DEBUGGING
 
                     //Change task status
-                    list_Quests[index].Redeem();
+                    tcQuests.GetTask(index).Redeem();
 
                     //Change to redeemed task on screen
                     //index * 2 is used because there is a small rectangle between each task panel
-                    DockPanel ReplaceWithThis = KSTasks.dockpanelTaskViewer(list_Quests[index], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), null/*Doesn't matter*/, button_Redeem_MouseEnter);
+                    DockPanel ReplaceWithThis = KSTasks.dockpanelTaskViewer(tcQuests.GetTask(index), 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), null/*Doesn't matter*/, button_Redeem_MouseEnter);
                     dcIndexOfTask.Remove(stackpanelQuestspanel.Children[index * 2] as DockPanel);
                     stackpanelQuestspanel.Children[index * 2].Visibility = Visibility.Collapsed;
                     stackpanelQuestspanel.Children.RemoveAt(index * 2);
                     stackpanelQuestspanel.Children.Insert(index * 2, ReplaceWithThis);
                     dcIndexOfTask.Add(ReplaceWithThis, index);
                 });
-                DockPanel curTaskPanel = KSTasks.dockpanelTaskViewer(list_Quests[i], 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), ButtonRedeem_Click, button_Redeem_MouseEnter);
+                DockPanel curTaskPanel = KSTasks.dockpanelTaskViewer(tcQuests.GetTask(i), 25, myStackPanel.Width, new FontFamily("Century Gothic Light"), Color.FromArgb(215, 150, 95, 20), ButtonRedeem_Click, button_Redeem_MouseEnter);
                 stackpanelQuestspanel.Children.Add(curTaskPanel);
                 dcIndexOfTask.Add(curTaskPanel, i);
                 stackpanelQuestspanel.Children.Add(new Rectangle() { Width = myStackPanel.Width, Height = 2, Fill = Brushes.Transparent });
@@ -3399,8 +3426,8 @@ namespace CSProjectGame
             });
             dtBackToTabs.Tick += triggermenuchange;
             #endregion
-            
-            ToPlay.Completed += delegate(object sender2, EventArgs e2)
+
+            ToPlay.Completed += delegate (object sender2, EventArgs e2)
             {
                 dtBackToTabs.Start();
             };
@@ -3420,16 +3447,19 @@ namespace CSProjectGame
             }
             for (int i = 0; i < 20; i++)
                 binaryWrite.Write(bPassHash[i]);
-            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec);
+
+            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec, Earnings, tcQuests.GetCompletionStats());//DEBUG - TCQUESTS IS NULL
         }
         #endregion
-        
+
         #region Tools Dockpanel
         private void DockButton_Click_LoadIntoMemory(object sender, RoutedEventArgs e)
         {
             runTab = curTab;
             (runtimeStackPanel.Children[0] as TextBlock).Text = texts_Tabs[curTab - 1].Text;
             char[][] charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text);
+            if (charars_Instructions == null)
+                return;
             for (int i = 0; i < texts_MemoryCells.Length; i++)
             {
                 if (i < charars_Instructions.Length)
@@ -3508,7 +3538,7 @@ namespace CSProjectGame
             text_NoAccountFound.Height = 26 * ActualHeight / 322;
             text_NoAccountFound.FontSize = ActualWidth / 100;
             text_NoAccountFound.Margin = new Thickness(0.65 * ActualWidth / 14, 17 * ActualHeight / 322, 0.65 * ActualWidth / 14, 8 * ActualHeight / 322);
-            
+
             button_Go.Width = myGrid.ColumnDefinitions[5].ActualWidth * 3;
             button_Go.Height = myGrid.RowDefinitions[3].ActualHeight * 0.5;
             button_Go.Margin = new Thickness(myGrid.ColumnDefinitions[5].ActualWidth / 2, myGrid.RowDefinitions[5].ActualHeight * 0.5, myGrid.ColumnDefinitions[5].ActualWidth / 2, 0);
@@ -3538,11 +3568,22 @@ namespace CSProjectGame
             button_SecondaryMenu_Close.Margin = new Thickness(ActualWidth - 35, 0, 0, 0);
             if (button_SecondaryMenu_Open.Height >= myGrid.RowDefinitions[0].MyHeight())
                 button_SecondaryMenu_Open.Height = button_SecondaryMenu_Close.Height = myGrid.RowDefinitions[0].MyHeight();
-            //for (int curChild = 0; curChild < 4; curChild++)
-            //{
-            //    (secmenuGrid.Children[curChild] as Button).Margin = new Thickness(4 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103, 0, 4 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103, 0);
-            //    secmenuRects[curChild].Width = (secmenuGrid.Children[curChild] as Button).Width = 95 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103;
-            //}
+            for (int curChild = 0; curChild < secmenuGrid.Children.Count - 1; curChild++)
+            {
+                try
+                {
+                    (secmenuGrid.Children[curChild] as Button).Margin = new Thickness(4 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103, 4, 4 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103, 2);
+                    (secmenuGrid.Children[curChild] as Button).Width = (secmenuGrid.Children[curChild] as Button).Width = 95 * secmenuGrid.ColumnDefinitions[curChild].MyWidth() / 103;
+                }
+                catch { }
+            }
+            (secmenuGrid.Children[secmenuGrid.Children.Count - 1] as TextBlock).Margin = new Thickness(
+                4 * secmenuGrid.ColumnDefinitions[secmenuGrid.Children.Count - 1].MyWidth() / 103,
+                2 * secmenuGrid.ColumnDefinitions[secmenuGrid.Children.Count - 1].MyWidth() / 103,
+                4 * secmenuGrid.ColumnDefinitions[secmenuGrid.Children.Count - 1].MyWidth() / 103,
+                1 * secmenuGrid.ColumnDefinitions[secmenuGrid.Children.Count - 1].MyWidth() / 103);
+            (secmenuGrid.Children[secmenuGrid.Children.Count - 1] as TextBlock).Width = 95 * secmenuGrid.ColumnDefinitions[secmenuGrid.Children.Count - 1].MyWidth() / 103;
+            (secmenuGrid.Children[secmenuGrid.Children.Count - 1] as TextBlock).Height = secmenuGrid.Height - 4;
 
             rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
             rect_MotherBoardBackGround.Height = 299 * ActualHeight / 322;
@@ -3685,7 +3726,7 @@ namespace CSProjectGame
                 for (int i = 0; i < tempMemory.Length; i++)
                     tempMemory[i] = texts_MemoryCells[i].Text;
             } catch { }
-            KSGlobal.SetAll(NumRegisters, tempRegisters, tempMemory);
+            KSGlobal.SetAll(NumRegisters, tempRegisters, tempMemory, Earnings);
         }
         #endregion
     }

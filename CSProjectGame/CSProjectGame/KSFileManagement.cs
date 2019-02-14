@@ -15,6 +15,8 @@ namespace CSProjectGame
          * 1 byte: ALU spec
          * 1 byte: Clock Speed spec
          * 1 byte: Memory spec
+         * 1 byte: Currency
+         * NUMQUESTS bytes: Quests status of each quest in game.
          */
 
         /*How to use class:
@@ -37,6 +39,8 @@ namespace CSProjectGame
         public static int ALUSpecFromFile;
         public static int ClockSpeedSpecFromFile;
         public static int MemSpecFromFile;
+        public static int EarningsFromFile;
+        public static int[] QuestStatsFromFile;
 
         public static byte[] HashOfCorrectPasscode(BinaryReader binRead)
         {
@@ -77,15 +81,19 @@ namespace CSProjectGame
                 ALUSpecFromFile = binRead.ReadByte();
                 ClockSpeedSpecFromFile = binRead.ReadByte();
                 MemSpecFromFile = binRead.ReadByte();
+                EarningsFromFile = binRead.ReadByte();
+                QuestStatsFromFile = new int[KSGlobal.NUMQUESTS];
+                for (int curQ = 0; curQ < KSGlobal.NUMQUESTS; curQ++)
+                    QuestStatsFromFile[curQ] = (int)binRead.ReadByte();
                 binRead.Close();
             }
-            catch
+            catch (Exception e)
             {
-                throw new Exception("Progress was attempted to be retrieved from a file that progress had not been saved to.");
+                throw new Exception("Progress was attempted to be retrieved from a file of incorrect format");
             }
-        }
+}
 
-        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec)
+        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec, int Currency, int[] QuestsStats)
         {
             binWrite.BaseStream.Position = 20;
             binWrite.Write((byte)NumTabs);
@@ -104,6 +112,9 @@ namespace CSProjectGame
             binWrite.Write((byte)ALUSpec);
             binWrite.Write((byte)ClockSpeedSpec);
             binWrite.Write((byte)MemSpec);
+            binWrite.Write((byte)Currency);
+            for (int curQ = 0; curQ < KSGlobal.NUMQUESTS; curQ++)
+                binWrite.Write((byte)QuestsStats[curQ]);
             binWrite.Close();
         }
     }
