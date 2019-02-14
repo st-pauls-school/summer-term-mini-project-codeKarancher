@@ -3051,6 +3051,8 @@ namespace CSProjectGame
         #region Secondary Menu
         private void button_SecondaryMenu_Open_Click(object sender, RoutedEventArgs e)
         {
+            InSecondaryMenu = true;
+
             const int iMillisecondsDuration = 700;
             const int iDelay = 200;
             const int iFadeInDuration = 400;
@@ -3120,6 +3122,8 @@ namespace CSProjectGame
 
         private void button_SecondaryMenu_Close_Click(object sender, RoutedEventArgs e)
         {
+            InSecondaryMenu = false;
+
             const int iMillisecondsDuration = 700;
             const int iDelay = 200;
             const int iFadeInDuration = 400;
@@ -3232,8 +3236,6 @@ namespace CSProjectGame
 
         private void button_Quests_Click_Open(object sender, RoutedEventArgs e)
         {
-            InSecondaryMenu = true;
-
             #region Change Screen
             Storyboard ToPlay = new Storyboard();
 
@@ -3398,7 +3400,6 @@ namespace CSProjectGame
 
         private void button_Back_Quests_Click_Close(object sender, RoutedEventArgs e)
         {
-            InSecondaryMenu = false;
 
             Storyboard ToPlay = new Storyboard();
             //CLOSE QUESTS
@@ -3420,8 +3421,17 @@ namespace CSProjectGame
             DispatcherTimer dtBackToTabs = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(UserChoiceDelayMilli) };
             EventHandler triggermenuchange = new EventHandler((object sender2, EventArgs e2) =>
             {
-                if (!InSecondaryMenu)
+                if (InSecondaryMenu)
                     button_SecondaryMenu_Close_Click(button_SecondaryMenu_Close, e);
+                button_SecondaryMenu_Close.Click -= button_SecondaryMenu_Close_Click;
+                EventHandler ReinstateEventHandler = new EventHandler((object oo, EventArgs ee) =>
+                {
+                    button_SecondaryMenu_Close.Click += button_SecondaryMenu_Close_Click;
+                    (oo as DispatcherTimer).Stop();
+                });
+                DispatcherTimer dtReinstateEvHandler = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(1000) };
+                dtReinstateEvHandler.Tick += ReinstateEventHandler;
+                dtReinstateEvHandler.Start();
                 (sender2 as DispatcherTimer).Stop();
             });
             dtBackToTabs.Tick += triggermenuchange;
