@@ -38,19 +38,47 @@ namespace CSProjectGame
             }
         }
 
-        private class OutputObjective : TaskObjective
+        private class CommandAndMemoryObjective : TaskObjective
         {
-            string sDesiredOutput;
-
-            public OutputObjective(string DesiredOutput)
+            int iDesiredCommand;
+            string[] sDesiredMemoryContents;
+            int iStartPointer;
+            
+            public CommandAndMemoryObjective(int DesiredCommand, int startindex, string[] desiredvalues)
             {
-                sDesiredOutput = DesiredOutput;
+                iStartPointer = startindex;
+                sDesiredMemoryContents = new string[desiredvalues.Length];
+                desiredvalues.CopyTo(sDesiredMemoryContents, 0);
             }
 
             public override bool? CheckIfCompleted(bool ThrowExcp)
             {
-                //Check output box
-                throw new NotImplementedException();
+                if (!KSGlobal.InstructionsContain(iDesiredCommand))
+                    return false;
+                try
+                {
+                    if (sDesiredMemoryContents.Length + iStartPointer > KSGlobal.S_MemoryCells.Length)
+                        return false;
+
+                    string[] memToCheck = new string[sDesiredMemoryContents.Length];
+                    for (int curloc = iStartPointer; curloc < iStartPointer + memToCheck.Length; curloc++)
+                        memToCheck[curloc - iStartPointer] = KSGlobal.S_MemoryCells[curloc];
+
+                    //check if memory contents match desired contents
+                    int index;
+                    for (index = 0; index < sDesiredMemoryContents.Length; index++)
+                        if (sDesiredMemoryContents[index] != memToCheck[index])
+                            break;
+                    if (index == sDesiredMemoryContents.Length)//no inequalities were encountered
+                        return true;
+                    return false;
+                }
+                catch (Exception exception)
+                {
+                    if (ThrowExcp)
+                        throw exception;
+                    return null;
+                }
             }
         }
 
@@ -102,6 +130,7 @@ namespace CSProjectGame
             int _CompletionStatus;//0 - incomplete, 1 - complete and reward ready, 2 - complete and reward redeemed
             public int CompletionStatus { get => _CompletionStatus; }
             public readonly int Reward;
+            public readonly TimeSpan TimeConstraint;
 
             /// <summary>
             /// Initialize a task which is completed when a range of memory locations hold an array of desired values
@@ -109,7 +138,7 @@ namespace CSProjectGame
             /// <param name="TaskMessage">A brief explanation of the task for the user</param>
             /// <param name="StartIndex">The index of the first memory location to be checked</param>
             /// <param name="DesiredValues">The array of desired values to compare the memory to</param>
-            /// <param name="Reward">The amount of in-game currency earned by completing the task</param>
+            /// <param name="reward">The amount of in-game currency earned by completing the task</param>
             public Task(string TaskTitle, string TaskMessage, int StartIndex, string[] DesiredValues, int reward)
             {
                 sTitle = TaskTitle;
@@ -120,18 +149,57 @@ namespace CSProjectGame
             }
 
             /// <summary>
-            /// Initialize a task which is completed when the computer outputs a specific string
+            /// Initialize a task which is completed when a range of memory locations hold an array of desired values
             /// </summary>
             /// <param name="TaskMessage">A brief explanation of the task for the user</param>
-            /// <param name="DesiredOutput">The string that the output should be compared to (the desired output)</param>
-            /// <param name="Reward">The amount of in-game currency earned by completing the task</param>
-            public Task(string TaskTitle, string TaskMessage, string DesiredOutput,  int reward)
+            /// <param name="StartIndex">The index of the first memory location to be checked</param>
+            /// <param name="DesiredValues">The array of desired values to compare the memory to</param>
+            /// <param name="reward">The amount of in-game currency earned by completing the task</param>
+            /// <param name="TimeDuration">The time within which the program running the task should be completed</param>
+            public Task(string TaskTitle, string TaskMessage, int StartIndex, string[] DesiredValues, int reward, TimeSpan TimeDuration)
             {
                 sTitle = TaskTitle;
                 sMessage = TaskMessage;
-                _TObjective = new OutputObjective(DesiredOutput);
+                _TObjective = new MemoryObjective(StartIndex, DesiredValues);
                 _CompletionStatus = 0;
                 Reward = reward;
+                TimeConstraint = TimeDuration;
+            }
+
+            /// <summary>
+            /// Initialize a task which is completed when a range of memory locations hold an array of desired values and the user has used a specific command at least once.
+            /// </summary>
+            /// <param name="TaskMessage">A brief explanation of the task for the user</param>
+            /// <param name="StartIndex">The index of the first memory location to be checked</param>
+            /// <param name="DesiredValues">The array of desired values to compare the memory to</param>
+            /// <param name="desiredCommand">The index (see KSAssemblyCode.cs) of the required command to be used</param>
+            /// <param name="reward">The amount of in-game currency earned by completing the task</param>
+            public Task(string TaskTitle, string TaskMessage, int StartIndex, string[] DesiredValues, int desiredCommand, int reward)
+            {
+                sTitle = TaskTitle;
+                sMessage = TaskMessage;
+                _TObjective = new CommandAndMemoryObjective(desiredCommand, StartIndex, DesiredValues);
+                _CompletionStatus = 0;
+                Reward = reward;
+            }
+
+            /// <summary>
+            /// Initialize a task which is completed when a range of memory locations hold an array of desired values and the user has used a specific command at least once.
+            /// </summary>
+            /// <param name="TaskMessage">A brief explanation of the task for the user</param>
+            /// <param name="StartIndex">The index of the first memory location to be checked</param>
+            /// <param name="DesiredValues">The array of desired values to compare the memory to</param>
+            /// <param name="reward">The amount of in-game currency earned by completing the task</param>            
+            /// <param name="desiredCommand">The index (see KSAssemblyCode.cs) of the required command to be used</param>
+            /// <param name="TimeDuration">The time within which the program running the task should be completed</param>
+            public Task(string TaskTitle, string TaskMessage, int StartIndex, string[] DesiredValues, int desiredCommand, int reward, TimeSpan TimeDuration)
+            {
+                sTitle = TaskTitle;
+                sMessage = TaskMessage;
+                _TObjective = new CommandAndMemoryObjective(desiredCommand, StartIndex, DesiredValues);
+                _CompletionStatus = 0;
+                Reward = reward;
+                TimeConstraint = TimeDuration;
             }
 
             /// <summary>
@@ -144,6 +212,7 @@ namespace CSProjectGame
             public bool? CheckIfConditionSatisfied(bool ThrowExcp)
             {
                 bool? Result = _TObjective.CheckIfCompleted(ThrowExcp);
+                bool TimeSatisfied = (KSGlobal.RunDuration < TimeConstraint);
                 if (Result == true && _CompletionStatus == 0)
                     _CompletionStatus = 1;
                 return Result;

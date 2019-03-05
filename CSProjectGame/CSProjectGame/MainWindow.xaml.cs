@@ -68,7 +68,7 @@ namespace CSProjectGame
 
         TextBlock[] texts_MemoryCellNames;
         TextBlock[] texts_MemoryCells;
-        char[][] charars_Commands;
+        char[][] charars_Instructions;
 
         List<TextBox> texts_TabNames;
         List<TextBox> texts_Tabs;
@@ -88,6 +88,8 @@ namespace CSProjectGame
                 return;
             }
         }
+        DispatcherTimer dtRunTimer;
+        int iRunDurationInMS = 0;
         #endregion
 
         public MainWindow()
@@ -607,7 +609,7 @@ namespace CSProjectGame
             MemorySpec = KSFileManagement.MemSpecFromFile;
             texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
             texts_MemoryCellNames = new TextBlock[lookup_MemorySpec[MemorySpec]];
-            charars_Commands = new char[lookup_MemorySpec[MemorySpec]][];
+            charars_Instructions = new char[lookup_MemorySpec[MemorySpec]][];
             for (int i = 0; i < lookup_MemorySpec[MemorySpec]; i++)
             {
                 texts_MemoryCells[i] = new TextBlock()
@@ -621,7 +623,7 @@ namespace CSProjectGame
                     Text = i.ToString() + ":",
                     FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20
                 };
-                charars_Commands[i] = new char[8];
+                charars_Instructions[i] = new char[8];
             }
             ALUSpec = KSFileManagement.ALUSpecFromFile;
             ClockSpeedSpec = KSFileManagement.ClockSpeedSpecFromFile;
@@ -1046,6 +1048,14 @@ namespace CSProjectGame
                 NoProgramLoaded_CommunicateToUser();
                 return;
             }
+            LoadMachineCodeIntoMemory();//Reset whatever was in memory to just the machine code.
+            dtRunTimer = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(1) };
+            EventHandler IncrementDurationVar = new EventHandler((object object2, EventArgs e2) =>
+            {
+                iRunDurationInMS++;
+            });
+            dtRunTimer.Tick += IncrementDurationVar;
+            dtRunTimer.Start();
             Fetch();
         }
 
@@ -3026,12 +3036,15 @@ namespace CSProjectGame
 
         private void ExecuteInstruction_HALT()
         {
+            dtRunTimer.Stop();
+            KSGlobal.SetDurationOfRun(TimeSpan.FromMilliseconds(iRunDurationInMS));
             AssignGlobalsToNewValues();
 
             //Check if any of the quests were completed
             for (int curQ = 0; curQ < tcQuests.Count; curQ++)
                 tcQuests.GetTask(curQ).CheckIfConditionSatisfied(true);
 
+            //Reset
             (runtimeStackPanel.Children[0] as TextBlock).Text += "\n\n>>Halt instruction decoded, program halted\n\n-----";
             text_PC.Text = "00";
             text_CIR.Text = "000000";
@@ -3040,6 +3053,7 @@ namespace CSProjectGame
                 texts_Registers[i].Text = "0000 0000";
             }
             text_CMP.Text = "";
+            iRunDurationInMS = 0;
             return;
         }
         #endregion
@@ -3465,21 +3479,9 @@ namespace CSProjectGame
         #region Tools Dockpanel
         private void DockButton_Click_LoadIntoMemory(object sender, RoutedEventArgs e)
         {
-            runTab = curTab;
-            (runtimeStackPanel.Children[0] as TextBlock).Text = texts_Tabs[curTab - 1].Text;
-            char[][] charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text);
-            if (charars_Instructions == null)
-                return;
-            for (int i = 0; i < texts_MemoryCells.Length; i++)
-            {
-                if (i < charars_Instructions.Length)
-                    texts_MemoryCells[i].Text = new string(charars_Instructions[i]);
-                else
-                    texts_MemoryCells[i].Text = "000000";
-            }
-            charars_Commands = new char[charars_Instructions.Length][];
-            for (int i = 0; i < charars_Instructions.Length; i++)
-                charars_Instructions[i].CopyTo((charars_Commands[i] = new char[8]), 0);
+            runTab = curTab;//Set the ‘runTab’ as the one from which the code is being loaded into memory
+            (runtimeStackPanel.Children[0] as TextBlock).Text = texts_Tabs[curTab - 1].Text;//Set the text in the ‘Code’ option of the Main tab to the solution that is being loaded
+            LoadMachineCodeIntoMemory();
         }
 
         private void DockButton_Click_DeleteTab(object sender, RoutedEventArgs e)
@@ -3737,6 +3739,24 @@ namespace CSProjectGame
                     tempMemory[i] = texts_MemoryCells[i].Text;
             } catch { }
             KSGlobal.SetAll(NumRegisters, tempRegisters, tempMemory, Earnings);
+        }
+
+        private void LoadMachineCodeIntoMemory()
+        {
+            char[][] local_charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text);//Interpret the code
+            if (local_charars_Instructions == null)
+                return;
+            for (int i = 0; i < texts_MemoryCells.Length; i++)
+            {
+                if (i < local_charars_Instructions.Length)
+                    texts_MemoryCells[i].Text = new string(local_charars_Instructions[i]);
+                else
+                    texts_MemoryCells[i].Text = "000000";
+            }
+            charars_Instructions = new char[local_charars_Instructions.Length][];
+            for (int i = 0; i < local_charars_Instructions.Length; i++)
+                local_charars_Instructions[i].CopyTo((charars_Instructions[i] = new char[8]), 0);
+            return;
         }
         #endregion
     }
