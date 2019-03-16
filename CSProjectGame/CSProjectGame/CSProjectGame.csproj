@@ -58,6 +58,7 @@
     <Compile Include="Global.cs" />
     <Compile Include="KSProcessorInteraction.cs" />
     <Compile Include="KSTasks.cs" />
+    <Compile Include="StoreProcedures.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -46,6 +46,7 @@ namespace CSProjectGame
             
             public CommandAndMemoryObjective(int DesiredCommand, int startindex, string[] desiredvalues)
             {
+                iDesiredCommand = DesiredCommand;
                 iStartPointer = startindex;
                 sDesiredMemoryContents = new string[desiredvalues.Length];
                 desiredvalues.CopyTo(sDesiredMemoryContents, 0);
@@ -261,10 +262,11 @@ namespace CSProjectGame
                 {
                     new Task("My First Program", "Every legend has a beginning. Store the numbers 1 to 5 in memory locations 11 to 15", 11, new string[] { "000001", "000002", "000003", "000004", "000005" }, 10),
                     new Task("Exploring", "Store the value in location 19 + 5 in memory location 15", 15, new string[] { "000005" }, 15),
-                    new Task("Third Trial", "Store the number 5 in memory location 0", 0, new string[] {"000005" }, 20)
+                    new Task("Third Trial", "Store the number 5 in memory location 0", 0, new string[] {"000005" }, 20),
+                    new Task("Fourth Trial", "Use a branch statement to store numbers 1 to 5 in memory locations 15 to 19", 15, new string[] { "000001", "000002", "000003", "000004", "000005"}, 4, 20)
+
                 };
                 //INITQUESTSDEBUG
-                //KSGlobal.AllQuests.CopyTo(Groundstate);
                 if (Groundstate.Length != KSGlobal.NUMQUESTS)
                     throw new Exception("KSGlobal has conflicting AllQuests and NUMQUESTS");
                 for (int curQ = 0; curQ < KSGlobal.NUMQUESTS; curQ++)

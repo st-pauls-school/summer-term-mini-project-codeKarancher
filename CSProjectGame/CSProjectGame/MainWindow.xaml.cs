@@ -52,7 +52,7 @@ namespace CSProjectGame
         TextBlock text_Welcome;
 
         int NumRegisters;
-        int MemorySpec, ALUSpec, ClockSpeedSpec;
+        int MemorySpec, ClockSpeedSpec;
         int[] lookup_MemorySpec;
         int[] lookup_ClockSpeedSpec;
 
@@ -74,7 +74,7 @@ namespace CSProjectGame
         List<TextBox> texts_Tabs;
         int curTab = 1;
         int runTab = 0;
-        bool InSecondaryMenu = false;
+        int InSecondaryMenu = 0;//0 => Secondary menu is not on the screen. 1 => Secondary menu is open but no buttons have been pressed. 2 => Secondary menu has been opened and an option in the menu has been clicked
 
         Dictionary<string, Brush> myBrushes;
         KSTasks.TaskCollection tcQuests;//These refer to the in-game challenges coined ‘Quests’
@@ -90,6 +90,8 @@ namespace CSProjectGame
         }
         DispatcherTimer dtRunTimer;
         int iRunDurationInMS = 0;
+        
+        Canvas[] canvassStore;
         #endregion
 
         public MainWindow()
@@ -116,6 +118,8 @@ namespace CSProjectGame
 
             myUniversalRand = new Random(DateTime.Today.Millisecond);
             myBrushes = new Dictionary<string, Brush>();
+            button_SecondaryMenu_Open.Visibility = Visibility.Collapsed;
+            button_SecondaryMenu_Open.Content = "<";
 
             canvas_LoginDetails_Username.Opacity = 0;
             RegisterName("canvas_LoginDetails_Username", canvas_LoginDetails_Username);
@@ -128,6 +132,8 @@ namespace CSProjectGame
             text_LoginDetails_Username.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.GotMouseCapture += text_LoginDetails_ClearText;
             text_LoginDetails_Password.TextChanged += text_LoginDetails_Password_TextChanged;
+
+            canvassStore = new Canvas[] { canvasBuyRegister, canvasUpgradeClockSpeed, canvasUpgradeMemory };
 
             RegisterName("secmenuGrid", secmenuGrid);
 
@@ -177,6 +183,7 @@ namespace CSProjectGame
                     canvas_LoginDetails_Password.Visibility = Visibility.Collapsed;
                     button_Go.Visibility = Visibility.Collapsed;
                     button_NewAccount.Visibility = Visibility.Collapsed;
+                    text_NoAccountFound.Visibility = Visibility.Collapsed;
                     init_Initialise();
                 }
                 else//Show error message
@@ -263,6 +270,7 @@ namespace CSProjectGame
             button_Go.Visibility = Visibility.Collapsed;
             button_NewAccount.Visibility = Visibility.Collapsed;
             text_Title.Visibility = Visibility.Collapsed;
+            text_NoAccountFound.Visibility = Visibility.Collapsed;
             init_InitialiseTabs_Tutorial();
             ingraph_FirstTime_00();
         }
@@ -465,7 +473,6 @@ namespace CSProjectGame
                 texts_MemoryCellNames[curMem].FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20;
                 texts_MemoryCells[curMem].FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20;
             }
-            ALUSpec = 0;
             ClockSpeedSpec = 0;
             (tabsDockPanel.Children[0] as Button).Click += new RoutedEventHandler(MainTab_Click_Tutorial);
             text_Welcome.Text = "You will start with just 1 register, " + lookup_MemorySpec[MemorySpec] + " memory locations, a basic ALU and minimal clock speed... Click on the 'Main' tab to see your brand new computer hot out of the oven!";
@@ -519,7 +526,8 @@ namespace CSProjectGame
             {
                 new KSTasks.Task("My First Program", "Every legend has a beginning. Store the numbers 1 to 5 in memory locations 11 to 15", 11, new string[] { "000001", "000002", "000003", "000004", "000005" }, 10),
                 new KSTasks.Task("Exploring", "Store the value in location 19 + 5 in memory location 15", 15, new string[] { "000005" }, 15),
-                new KSTasks.Task("Third Trial", "Store the number 5 in memory location 0", 0, new string[] {"000005" }, 20)
+                new KSTasks.Task("Third Trial", "Store the number 5 in memory location 0", 0, new string[] {"000005" }, 20),
+                new KSTasks.Task("Fourth Trial", "Use a branch statement to store numbers 1 to 5 in memory locations 15 to 19", 15, new string[] { "000001", "000002", "000003", "000004", "000005"}, 4, 20)
             });
             //INITQUESTSDEBUG
 
@@ -549,6 +557,7 @@ namespace CSProjectGame
                 GraphicsForMotherBoard();
                 curTab = 0;
                 CodeTab_Click(tabsDockPanel.Children[1] as Button, new RoutedEventArgs());
+                button_SecondaryMenu_Open.Visibility = Visibility.Visible;
             }
 
         }
@@ -625,7 +634,6 @@ namespace CSProjectGame
                 };
                 charars_Instructions[i] = new char[8];
             }
-            ALUSpec = KSFileManagement.ALUSpecFromFile;
             ClockSpeedSpec = KSFileManagement.ClockSpeedSpecFromFile;
             Earnings = KSFileManagement.EarningsFromFile;
             tcQuests = KSTasks.TaskCollection.QuestsFromFile();
@@ -891,9 +899,9 @@ namespace CSProjectGame
                 {
                     stackpanels_Registers.Add(new StackPanel() { Background = Brushes.DarkGray, Height = registersStackPanel.Height / 6, Width = registersStackPanel.Width });
                     registersStackPanel.Children.Add(stackpanels_Registers[curReg]);
-                    texts_RegisterNames.Add(new TextBlock() { Text = "Register " + curReg.ToString(), FontSize = registersStackPanel.Width / 8 < stackpanels_Registers[curReg].Height / 4 ? registersStackPanel.Width / 8 : stackpanels_Registers[curReg].Height / 4, FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.Black, Height = stackpanels_Registers[curReg].Height / 2.5 });
+                    texts_RegisterNames.Add(new TextBlock() { Text = "Register " + curReg.ToString(), FontSize = GetRegisterFontSize(), FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.Black, Height = stackpanels_Registers[curReg].Height / 2.5 });
                     stackpanels_Registers[curReg].Children.Add(texts_RegisterNames[curReg]);
-                    texts_Registers.Add(new TextBlock() { FontSize = registersStackPanel.Width / 8 < stackpanels_Registers[curReg].Height / 4 ? registersStackPanel.Width / 8 : stackpanels_Registers[curReg].Height / 4, FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.White, Height = stackpanels_Registers[curReg].Height / 3 });
+                    texts_Registers.Add(new TextBlock() { FontSize = GetRegisterFontSize(), Style = (Style)Resources["TextRegisterStyle"], Height = stackpanels_Registers[curReg].Height / 3 });
                     stackpanels_Registers[curReg].Children.Add(texts_Registers[curReg]);
                     stackpanels_Registers[curReg].IsMouseDirectlyOverChanged += new DependencyPropertyChangedEventHandler(stackpanels_Registers_IsMouseDirectlyOverChanged);
                 }
@@ -936,8 +944,8 @@ namespace CSProjectGame
                 text_CMP.Foreground = Brushes.Black;
 
                 text_AddressBus = new TextBlock(); text_DataBus = new TextBlock(); text_ToALU = new TextBlock();
-                texts_ToRegister = new TextBlock[NumRegisters];
-                for (int i = 0; i < NumRegisters; i++)
+                texts_ToRegister = new TextBlock[6];
+                for (int i = 0; i < 6; i++)
                 {
                     texts_ToRegister[i] = new TextBlock();
                     texts_ToRegister[i].Width = 25;
@@ -978,6 +986,7 @@ namespace CSProjectGame
             (runtimeStackPanel.Children[0] as TextBlock).Text = ">>" + (runTab == 0 ? "No program loaded" : (texts_TabNames[runTab - 1].Text + " program loaded"));
             for (int i = 0; i < NumRegisters; i++)
                 gridsRegWires[i].Visibility = Visibility.Visible;
+            ResizeRegisterWireGrids();
             gridToALU.Visibility = Visibility.Visible;
             text_ALU.Visibility = Visibility.Visible;
             gridProcToMem.Visibility = Visibility.Visible;
@@ -1048,7 +1057,7 @@ namespace CSProjectGame
                 NoProgramLoaded_CommunicateToUser();
                 return;
             }
-            LoadMachineCodeIntoMemory();//Reset whatever was in memory to just the machine code.
+            LoadMachineCodeIntoMemory(runTab);//Reset whatever was in memory to just the machine code.
             dtRunTimer = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(1) };
             EventHandler IncrementDurationVar = new EventHandler((object object2, EventArgs e2) =>
             {
@@ -1056,6 +1065,7 @@ namespace CSProjectGame
             });
             dtRunTimer.Tick += IncrementDurationVar;
             dtRunTimer.Start();
+            button_PlayRun.Click -= button_PlayRun_Click;
             Fetch();
         }
 
@@ -3054,6 +3064,7 @@ namespace CSProjectGame
             }
             text_CMP.Text = "";
             iRunDurationInMS = 0;
+            button_PlayRun.Click += button_PlayRun_Click;
             return;
         }
         #endregion
@@ -3065,7 +3076,7 @@ namespace CSProjectGame
         #region Secondary Menu
         private void button_SecondaryMenu_Open_Click(object sender, RoutedEventArgs e)
         {
-            InSecondaryMenu = true;
+            InSecondaryMenu = 1;
 
             const int iMillisecondsDuration = 700;
             const int iDelay = 200;
@@ -3136,7 +3147,7 @@ namespace CSProjectGame
 
         private void button_SecondaryMenu_Close_Click(object sender, RoutedEventArgs e)
         {
-            InSecondaryMenu = false;
+            InSecondaryMenu = 0;
 
             const int iMillisecondsDuration = 700;
             const int iDelay = 200;
@@ -3250,6 +3261,8 @@ namespace CSProjectGame
 
         private void button_Quests_Click_Open(object sender, RoutedEventArgs e)
         {
+            InSecondaryMenu = 2;
+
             #region Change Screen
             Storyboard ToPlay = new Storyboard();
 
@@ -3270,13 +3283,8 @@ namespace CSProjectGame
             text_ALU.Visibility = Visibility.Collapsed;
             gridProcToMem.Visibility = Visibility.Collapsed;
             button_SecondaryMenu_Close.Visibility = Visibility.Collapsed;
-
-            //Clear contents if view was in coding tab
-            if (curTab != 0)
-            {
-                myStackPanel.Children.CollapseElements();
-                toolsDockPanel.Visibility = Visibility.Collapsed;
-            }
+            myStackPanel.Children.CollapseElements();
+            toolsDockPanel.Visibility = Visibility.Collapsed;
 
             //Change background
             Brush OldBackgroundsecmenu = secmenuGrid.Background;
@@ -3402,20 +3410,14 @@ namespace CSProjectGame
             #endregion
 
             button_Quests.Click -= button_Quests_Click_Open;
-            button_Quests.Click += button_Back_Quests_Click_Close;
-            RoutedEventHandler ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) => { });
-            ChangeToOldBackground_Click = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
-            {
-                button_Quests.Click -= ChangeToOldBackground_Click;
-            });
-            button_Quests.Click += ChangeToOldBackground_Click;
+            button_Quests.Click += button_Quests_Click_Close;
             ToPlay.Begin(this);
         }
 
-        private void button_Back_Quests_Click_Close(object sender, RoutedEventArgs e)
+        private void button_Quests_Click_Close(object sender, RoutedEventArgs e)
         {
+            InSecondaryMenu = 1;
 
-            Storyboard ToPlay = new Storyboard();
             //CLOSE QUESTS
             myStackPanel.Children.RemoveAt(myStackPanel.Children.Count - 1);
             myStackPanel.Background = myBrushes["myStackPanel.DefaultBackground"];
@@ -3427,15 +3429,15 @@ namespace CSProjectGame
             curTab = 0;
             tabsDockPanel.Visibility = Visibility.Visible;
 
-            button_Quests.Click -= button_Back_Quests_Click_Close;
+            button_Quests.Click -= button_Quests_Click_Close;
             button_Quests.Click += button_Quests_Click_Open;
 
             const int UserChoiceDelayMilli = 2500;
-            #region Create dtBackToTabs
+            #region Create dtBackToTabs to go back to tabs automatically after a delay time UserChoiceDelayMilli
             DispatcherTimer dtBackToTabs = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(UserChoiceDelayMilli) };
             EventHandler triggermenuchange = new EventHandler((object sender2, EventArgs e2) =>
             {
-                if (InSecondaryMenu)
+                if (InSecondaryMenu == 1)
                     button_SecondaryMenu_Close_Click(button_SecondaryMenu_Close, e);
                 button_SecondaryMenu_Close.Click -= button_SecondaryMenu_Close_Click;
                 EventHandler ReinstateEventHandler = new EventHandler((object oo, EventArgs ee) =>
@@ -3451,11 +3453,6 @@ namespace CSProjectGame
             dtBackToTabs.Tick += triggermenuchange;
             #endregion
 
-            ToPlay.Completed += delegate (object sender2, EventArgs e2)
-            {
-                dtBackToTabs.Start();
-            };
-            ToPlay.Begin(this);
             dtBackToTabs.Start();
         }
 
@@ -3472,7 +3469,240 @@ namespace CSProjectGame
             for (int i = 0; i < 20; i++)
                 binaryWrite.Write(bPassHash[i]);
 
-            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ALUSpec, ClockSpeedSpec, MemorySpec, Earnings, tcQuests.GetCompletionStats());//DEBUG - TCQUESTS IS NULL
+            KSFileManagement.SaveProgress(binaryWrite, texts_Tabs.Count, TabInfo[0], TabInfo[1], NumRegisters, ClockSpeedSpec, MemorySpec, Earnings, tcQuests.GetCompletionStats());//DEBUG - TCQUESTS IS NULL
+        }
+
+        private void button_Store_Click_Open(object sender, RoutedEventArgs e)
+        {
+            InSecondaryMenu = 0;
+            Storyboard ToPlay = new Storyboard();
+
+            #region Change Screen
+            //Clear previous contents of screen
+            for (int i = 0; i < shapes_ProcessorParts.Count; i++)
+                shapes_ProcessorParts[i].Visibility = Visibility.Collapsed;
+            registersStackPanel.Visibility = Visibility.Collapsed;
+            rect_MotherBoardBackGround.Visibility = Visibility.Collapsed;
+            processorStackPanel.Visibility = Visibility.Collapsed;
+            runtimeStackPanel.Visibility = Visibility.Collapsed;
+            runtimeDockPanel.Visibility = Visibility.Collapsed;
+            runtimestackpanelBorder.Visibility = Visibility.Collapsed;
+            memoryDockPanel.Visibility = Visibility.Collapsed;
+            tabsDockPanel.Visibility = Visibility.Collapsed;
+            for (int i = 0; i < NumRegisters; i++)
+                gridsRegWires[i].Visibility = Visibility.Collapsed;
+            gridToALU.Visibility = Visibility.Collapsed;
+            text_ALU.Visibility = Visibility.Collapsed;
+            gridProcToMem.Visibility = Visibility.Collapsed;
+            button_SecondaryMenu_Close.Visibility = Visibility.Collapsed;
+
+            button_Store.Click -= button_Store_Click_Open;
+            button_Store.Click += button_Store_Click_Close;
+
+            //Clear contents if view was in coding tab
+            if (curTab != 0)
+            {
+                myStackPanel.Visibility = Visibility.Collapsed;
+                toolsDockPanel.Visibility = Visibility.Collapsed;
+            }
+
+            //Change background
+            Brush OldBackgroundsecmenu = secmenuGrid.Background;
+            secmenuGrid.Background = Brushes.DeepSkyBlue;
+
+            const int MilliDuration = 400;
+            const int MilliBeginT = 150;
+            Thickness[] InitialMargins = new Thickness[] { button_Quests.Margin, button_Tasks.Margin, button_Store.Margin, button_Save.Margin, text_Earnings.Margin };
+
+            #region Create tanims to move all other menu elements out
+            for (int i = 0; i < secmenuGrid.Children.Count; i++)
+            {
+                if (i == 2)//skip the Store button
+                    continue;
+                #region Create tanimEverythingElseOut
+                ThicknessAnimation tanimEverythingElseOut = new ThicknessAnimation();
+                tanimEverythingElseOut.By = new Thickness(ActualWidth, 0, -1 * ActualWidth, 0);
+                tanimEverythingElseOut.Duration = TimeSpan.FromMilliseconds(MilliDuration);
+                tanimEverythingElseOut.EasingFunction = new CubicEase();
+                tanimEverythingElseOut.BeginTime = TimeSpan.FromMilliseconds(MilliBeginT);
+                Storyboard.SetTarget(tanimEverythingElseOut, secmenuGrid.Children[i]);
+                Storyboard.SetTargetProperty(tanimEverythingElseOut, new PropertyPath(MarginProperty));
+                #endregion
+                ToPlay.Children.Add(tanimEverythingElseOut);
+            }
+            #endregion
+
+            #region Add an eventhandler to go back to program when quests are closed
+            int garbage;
+            Action RemoveAnimateBackFromClickEventHandlers = new Action(() => garbage = 0);//defined properly below
+            RoutedEventHandler AnimateBackButtonsAndBackground = new RoutedEventHandler((object sender2, RoutedEventArgs e2) =>
+            {
+                Storyboard ToPlayBack = new Storyboard();
+
+                #region Create tanims to move all menu buttons back
+                for (int i = 0; i < secmenuGrid.Children.Count; i++)
+                {
+                    if (i == 2)//skip Store button, since it is already at its initial position
+                        continue;
+                    #region Create tanimMoveButtonBack
+                    ThicknessAnimation tanimMoveButtonBack = new ThicknessAnimation();
+                    tanimMoveButtonBack.To = InitialMargins[i];
+                    tanimMoveButtonBack.Duration = TimeSpan.FromMilliseconds(MilliDuration);
+                    tanimMoveButtonBack.EasingFunction = new CubicEase();
+                    tanimMoveButtonBack.BeginTime = TimeSpan.FromMilliseconds(MilliBeginT);
+                    Storyboard.SetTarget(tanimMoveButtonBack, secmenuGrid.Children[i]);
+                    Storyboard.SetTargetProperty(tanimMoveButtonBack, new PropertyPath(MarginProperty));
+                    #endregion
+                    ToPlayBack.Children.Add(tanimMoveButtonBack);
+                }
+                #endregion
+
+                ToPlayBack.Completed += delegate (object o, EventArgs ea)
+                {
+                    secmenuGrid.Background = OldBackgroundsecmenu;
+                };
+
+                ToPlayBack.Begin(this);
+                RemoveAnimateBackFromClickEventHandlers();
+            });
+            RemoveAnimateBackFromClickEventHandlers = new Action(() => button_Store.Click -= AnimateBackButtonsAndBackground);
+            button_Store.Click += AnimateBackButtonsAndBackground;
+            #endregion
+
+            //Show store elements
+            gridStore.Visibility = Visibility.Visible;
+            #endregion
+
+            #region Display Store
+            for (int i = 0; i < canvassStore.Length; i++)
+            {
+                DisplayStoreItemCanvas(i);
+            }
+            #endregion
+
+            button_Store.Click -= button_Store_Click_Open;
+            button_Store.Click += button_Store_Click_Close;
+            ToPlay.Begin(this);
+        }
+
+        private void DisplayStoreItemCanvas(int index)
+        {
+            Canvas canvas = canvassStore[index];
+            TextBlock tbLabel = canvas.Children[0] as TextBlock;
+            TextBlock tbPrice = canvas.Children[1] as TextBlock;
+            Button bPurchase = canvas.Children[2] as Button;
+            canvas.Visibility = Visibility.Visible;
+            switch (index)
+            {
+                case 0://BuyRegister
+                    int cost = StoreProcedures.CostOfNewRegister(NumRegisters);
+                    tbPrice.Text = cost.ToString();
+                    bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
+                    {
+                        int i = StoreProcedures.CanUserBuyRegister(NumRegisters, Earnings);
+                        if (i == 1)
+                        {
+                            MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
+                        }
+                        else if (i == -1)
+                        {
+                            MessageBox.Show("You have already maxed out with 6 registers! You cannot buy more.");
+                        }
+                        else//The user can buy a new register
+                        {
+                            NumRegisters++;
+                            Earnings -= cost;
+
+                            //Add UI Elements
+                            StackPanel sp = new StackPanel() { Background = Brushes.DarkGray, Height = registersStackPanel.Height / 6, Width = registersStackPanel.Width };
+                            stackpanels_Registers.Add(sp);
+                            registersStackPanel.Children.Add(sp);
+                            TextBlock tb = new TextBlock() { FontSize = GetRegisterFontSize(), FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.Black, Height = stackpanels_Registers[NumRegisters - 1].Height / 3, Text = "Register " + (NumRegisters - 1).ToString() };
+                            texts_RegisterNames.Add(tb);
+                            sp.Children.Add(tb);
+                            tb = new TextBlock() { FontSize = GetRegisterFontSize(), Style = (Style)Resources["TextRegisterStyle"], Height = stackpanels_Registers[NumRegisters - 1].Height / 3 };
+                            texts_Registers.Add(tb);
+                            sp.Children.Add(tb);
+                            sp.IsMouseDirectlyOverChanged += new DependencyPropertyChangedEventHandler(stackpanels_Registers_IsMouseDirectlyOverChanged);
+
+                            ResizeRegisterWireGrids();
+
+                        }
+                        tbPrice.Text = StoreProcedures.CostOfNewRegister(NumRegisters).ToString();
+                    });
+                    break;
+                case 1://UpgradeClockSpeed
+                    tbPrice.Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
+                    bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
+                    {
+                        int i = StoreProcedures.UpgradeCS(ref ClockSpeedSpec, Earnings);
+                        if (i == 1)
+                        {
+                            MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
+                        }
+                        else if (i == -1)
+                        {
+                            MessageBox.Show("You have maxed out your clock speed! You cannot upgrade it further.");
+                        }
+                        tbPrice.Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
+                    });
+                    break;
+                case 2://UpgradeMem
+                    tbPrice.Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
+                    bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
+                    {
+                        int i = StoreProcedures.UpgradeMem(ref MemorySpec, Earnings);
+                        if (i == 1)
+                        {
+                            MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
+                        }
+                        else if (i == -1)
+                        {
+                            MessageBox.Show("You have maxed out your memory! You cannot upgrade it further.");
+                        }
+                        tbPrice.Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
+                    });
+                    break;
+            }
+        }
+
+        private void button_Store_Click_Close(object sender, RoutedEventArgs e)
+        {
+            InSecondaryMenu = 1;
+
+            //CLOSE STORE
+            gridStore.Visibility = Visibility.Collapsed;
+
+            button_SecondaryMenu_Close.Visibility = Visibility.Visible;
+            GraphicsForMotherBoard();
+            curTab = 0;
+            tabsDockPanel.Visibility = Visibility.Visible;
+
+            const int UserChoiceDelayMilli = 2500;
+            #region Create dtBackToTabs to go back to tabs automatically after a delay time UserChoiceDelayMilli
+            DispatcherTimer dtBackToTabs = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(UserChoiceDelayMilli) };
+            EventHandler triggermenuchange = new EventHandler((object sender2, EventArgs e2) =>
+            {
+                if (InSecondaryMenu == 1)
+                    button_SecondaryMenu_Close_Click(button_SecondaryMenu_Close, e);
+                button_SecondaryMenu_Close.Click -= button_SecondaryMenu_Close_Click;
+                EventHandler ReinstateEventHandler = new EventHandler((object oo, EventArgs ee) =>
+                {
+                    button_SecondaryMenu_Close.Click += button_SecondaryMenu_Close_Click;
+                    (oo as DispatcherTimer).Stop();
+                });
+                DispatcherTimer dtReinstateEvHandler = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(1000) };
+                dtReinstateEvHandler.Tick += ReinstateEventHandler;
+                dtReinstateEvHandler.Start();
+                (sender2 as DispatcherTimer).Stop();
+            });
+            dtBackToTabs.Tick += triggermenuchange;
+            #endregion
+
+            dtBackToTabs.Start();
+
+            button_Store.Click -= button_Store_Click_Close;
+            button_Store.Click += button_Store_Click_Open;
         }
         #endregion
 
@@ -3481,7 +3711,7 @@ namespace CSProjectGame
         {
             runTab = curTab;//Set the ‘runTab’ as the one from which the code is being loaded into memory
             (runtimeStackPanel.Children[0] as TextBlock).Text = texts_Tabs[curTab - 1].Text;//Set the text in the ‘Code’ option of the Main tab to the solution that is being loaded
-            LoadMachineCodeIntoMemory();
+            LoadMachineCodeIntoMemory(curTab);
         }
 
         private void DockButton_Click_DeleteTab(object sender, RoutedEventArgs e)
@@ -3536,6 +3766,7 @@ namespace CSProjectGame
         #region Miscellaneous
         private void MainWindow_SizeChanged_ResizeElements(object sender, SizeChangedEventArgs e)
         {
+            #region Start screen
             double AmountStickingOut = canvas_LoginDetails_Username.Width - 4 * myGrid.ColumnDefinitions[4].ActualWidth;
             canvas_LoginDetails_Username.Margin = new Thickness(myGrid.ColumnDefinitions[3].ActualWidth - AmountStickingOut / 2, 0, myGrid.ColumnDefinitions[3].ActualWidth - AmountStickingOut / 2, myGrid.RowDefinitions[3].ActualHeight - canvas_LoginDetails_Username.Height);
             canvas_LoginDetails_Password.Margin = new Thickness(canvas_LoginDetails_Username.Margin.Left, canvas_LoginDetails_Username.Margin.Bottom, canvas_LoginDetails_Username.Margin.Right, 0);
@@ -3558,7 +3789,9 @@ namespace CSProjectGame
             button_NewAccount.Width = myGrid.ColumnDefinitions[5].ActualWidth * 2.5;
             button_NewAccount.Height = myGrid.RowDefinitions[3].ActualHeight * 0.4;
             button_NewAccount.Margin = new Thickness(myGrid.ColumnDefinitions[5].ActualWidth * 0.75, myGrid.RowDefinitions[3].ActualHeight * 0.2, myGrid.ColumnDefinitions[5].ActualWidth * 0.75, myGrid.RowDefinitions[3].ActualHeight * 0.4);
-
+            #endregion
+            
+            #region Tabs and top bar
             myStackPanel.Width = ActualWidth * 6 / 7;
             myStackPanel.Height = ActualHeight * 5 / 6;
             toolsDockPanel.Width = 3.2 * (toolsDockPanel.Height = ActualHeight / 10);
@@ -3575,6 +3808,9 @@ namespace CSProjectGame
                 for (int i = 1; i < tabsDockPanel.Children.Count; i++)
                     (tabsDockPanel.Children[i] as Button).Width = ActualWidth / 14;
             }
+            #endregion
+           
+            #region Secondary Menu
             button_SecondaryMenu_Open.Width = button_SecondaryMenu_Close.Width = 20;
             button_SecondaryMenu_Open.Margin = new Thickness(0, 0, ActualWidth - 35, 0);
             button_SecondaryMenu_Close.Margin = new Thickness(ActualWidth - 35, 0, 0, 0);
@@ -3597,6 +3833,15 @@ namespace CSProjectGame
             (secmenuGrid.Children[secmenuGrid.Children.Count - 1] as TextBlock).Width = 95 * secmenuGrid.ColumnDefinitions[secmenuGrid.Children.Count - 1].MyWidth() / 103;
             (secmenuGrid.Children[secmenuGrid.Children.Count - 1] as TextBlock).Height = secmenuGrid.Height - 4;
 
+            #region Store canvas sizing
+            for (int i = 0; i < canvassStore.Length; i++)
+            {
+                ResizeStoreCanvas(i);
+            }
+            #endregion
+            #endregion
+
+            #region Main tab
             rect_MotherBoardBackGround.Width = 11 * ActualWidth / 14;
             rect_MotherBoardBackGround.Height = 299 * ActualHeight / 322;
             registersStackPanel.Width = 3 * ActualWidth / 14;
@@ -3657,7 +3902,29 @@ namespace CSProjectGame
                 }
             }
 
-            #region Register Wire Grid Sizing (confusing at first sight)
+            ResizeRegisterWireGrids();
+
+            gridToALU.Width = ActualWidth * 3 / 14;
+            gridToALU.Height = rect_ToALUWire.Height = ActualHeight * 51 / 322;
+            text_ALU.Width = ActualWidth * 3 / 14;
+            text_ALU.Height = ActualHeight * 51 / 322;
+            text_ALU.FontSize = (ActualWidth * (3 * 2) / (14 * 11) < ActualHeight * (51 * 2) / (322 * 5)) ? ActualWidth * (3 * 2) / (14 * 11) : ActualHeight * (51 * 2) / (322 * 5);
+            stackpanel_CMP.Width = 0.5 * text_ALU.Width;
+            stackpanel_CMP.Height = 0.15 * text_ALU.Height;
+            if (text_CMP != null)
+            {
+                text_CMP.Width = stackpanel_CMP.Width;
+                text_CMP.Height = stackpanel_CMP.Height;
+                text_CMP.FontSize = Math.Min(text_CMP.Width * 2.3, text_CMP.Height * 0.9);
+            }
+
+            gridProcToMem.Width = rect_AddressBusWire.Width = rect_DataBusWire.Width = ActualWidth / 14;
+            gridProcToMem.Height = ActualHeight * 102 / 322;   
+            #endregion
+        }
+
+        private void ResizeRegisterWireGrids()
+        {
             gridReg1Wire.Width = ActualWidth * 3 / 28;
             gridReg1Wire.Height = ActualHeight * 73 / 161;
             rect_Reg1Wire_1.Width = ActualWidth * (43 * 3) / (73 * 28);
@@ -3704,24 +3971,24 @@ namespace CSProjectGame
                     }
                 }
             }
-            #endregion
+        }
 
-            gridToALU.Width = ActualWidth * 3 / 14;
-            gridToALU.Height = rect_ToALUWire.Height = ActualHeight * 51 / 322;
-            text_ALU.Width = ActualWidth * 3 / 14;
-            text_ALU.Height = ActualHeight * 51 / 322;
-            text_ALU.FontSize = (ActualWidth * (3 * 2) / (14 * 11) < ActualHeight * (51 * 2) / (322 * 5)) ? ActualWidth * (3 * 2) / (14 * 11) : ActualHeight * (51 * 2) / (322 * 5);
-            stackpanel_CMP.Width = 0.5 * text_ALU.Width;
-            stackpanel_CMP.Height = 0.15 * text_ALU.Height;
-            if (text_CMP != null)
-            {
-                text_CMP.Width = stackpanel_CMP.Width;
-                text_CMP.Height = stackpanel_CMP.Height;
-                text_CMP.FontSize = Math.Min(text_CMP.Width * 2.3, text_CMP.Height * 0.9);
-            }
-
-            gridProcToMem.Width = rect_AddressBusWire.Width = rect_DataBusWire.Width = ActualWidth / 14;
-            gridProcToMem.Height = ActualHeight * 102 / 322;
+        private void ResizeStoreCanvas(int index)
+        {
+            Canvas canvas = canvassStore[index];
+            TextBlock tbLabel = canvas.Children[0] as TextBlock;
+            TextBlock tbPrice = canvas.Children[1] as TextBlock;
+            Button bPurchase = canvas.Children[2] as Button;
+            canvas.Width = ActualWidth / 5;
+            canvas.Height = ActualHeight / 5;
+            tbLabel.Width = tbPrice.Width = canvas.Width;
+            tbLabel.Height = tbPrice.Height = canvas.Height / 4;
+            tbLabel.FontSize = tbPrice.FontSize = bPurchase.FontSize = canvas.Height / 11;
+            bPurchase.Width = canvas.Width;
+            bPurchase.Height = canvas.Height / 5;
+            tbLabel.Margin = new Thickness(0, 0, 0, canvas.Height - tbLabel.Height);
+            tbPrice.Margin = new Thickness(0, tbLabel.Height, 0, canvas.Height - tbLabel.Height - tbPrice.Height);
+            bPurchase.Margin = new Thickness(0, canvas.Height * 3 / 5, 0, 0);
         }
 
         /// <summary>
@@ -3741,9 +4008,10 @@ namespace CSProjectGame
             KSGlobal.SetAll(NumRegisters, tempRegisters, tempMemory, Earnings);
         }
 
-        private void LoadMachineCodeIntoMemory()
+        private void LoadMachineCodeIntoMemory(int LoadingTab)
         {
-            char[][] local_charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[curTab - 1].Text);//Interpret the code
+            char[][] local_charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[LoadingTab - 1].Text);//Interpret the code
+            KSGlobal.CopyInstructionsFrom(local_charars_Instructions);
             if (local_charars_Instructions == null)
                 return;
             for (int i = 0; i < texts_MemoryCells.Length; i++)
@@ -3757,6 +4025,11 @@ namespace CSProjectGame
             for (int i = 0; i < local_charars_Instructions.Length; i++)
                 local_charars_Instructions[i].CopyTo((charars_Instructions[i] = new char[8]), 0);
             return;
+        }
+
+        private double GetRegisterFontSize()
+        {
+            return registersStackPanel.Width / 8 < stackpanels_Registers[0].Height / 4 ? registersStackPanel.Width / 8 : stackpanels_Registers[0].Height / 4;
         }
         #endregion
     }

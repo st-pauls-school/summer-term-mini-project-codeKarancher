@@ -12,7 +12,6 @@ namespace CSProjectGame
          * (x) number of couples representing different tabs
          * * Each couple consists of a string representing the name of the tab, then a TABSEP, then a string representing the text in the tab, then a TABEND
          * 1 byte: Number of registers
-         * 1 byte: ALU spec
          * 1 byte: Clock Speed spec
          * 1 byte: Memory spec
          * 1 byte: Currency
@@ -36,7 +35,6 @@ namespace CSProjectGame
         public static string[] TabNamesFromFile;
         public static string[] TabTextsFromFile;
         public static int NumRegFromFile;
-        public static int ALUSpecFromFile;
         public static int ClockSpeedSpecFromFile;
         public static int MemSpecFromFile;
         public static int EarningsFromFile;
@@ -78,7 +76,6 @@ namespace CSProjectGame
                     TabTextsFromFile[curTab] = new string(curCharString.ToArray());
                 }
                 NumRegFromFile = binRead.ReadByte();
-                ALUSpecFromFile = binRead.ReadByte();
                 ClockSpeedSpecFromFile = binRead.ReadByte();
                 MemSpecFromFile = binRead.ReadByte();
                 EarningsFromFile = binRead.ReadByte();
@@ -93,7 +90,7 @@ namespace CSProjectGame
             }
 }
 
-        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ALUSpec, int ClockSpeedSpec, int MemSpec, int Currency, int[] QuestsStats)
+        public static void SaveProgress(BinaryWriter binWrite, int NumTabs, string[] TabNames, string[] TabTexts, int NumRegisters, int ClockSpeedSpec, int MemSpec, int Currency, int[] QuestsStats)
         {
             binWrite.BaseStream.Position = 20;
             binWrite.Write((byte)NumTabs);
@@ -109,7 +106,6 @@ namespace CSProjectGame
                 binWrite.Write(TABEND);
             }
             binWrite.Write((byte)NumRegisters);
-            binWrite.Write((byte)ALUSpec);
             binWrite.Write((byte)ClockSpeedSpec);
             binWrite.Write((byte)MemSpec);
             binWrite.Write((byte)Currency);

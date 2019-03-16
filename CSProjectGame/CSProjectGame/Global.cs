@@ -30,7 +30,7 @@ namespace CSProjectGame
         private static char[][] c_c_Instructions;
         public static readonly string GAMECURRENCYNAME = "Parts";
         public static Style ButtonStyleRedeem;
-        public static readonly int NUMQUESTS = 3;
+        public static readonly int NUMQUESTS = 4;
 
         public static int NumRegisters { get => numRegisters; set => numRegisters = value; }
         public static string[] S_Registers { get => s_Registers; set => s_Registers = value; }
@@ -61,6 +61,17 @@ namespace CSProjectGame
                 if (c_c_Instructions[curLine][0] == (char)('0' + iCommandToCheck))
                     return true;
             return false;
+        }
+
+        public static void CopyInstructionsFrom(char[][] instructions)
+        {
+            c_c_Instructions = new char[instructions.Length][];
+            for (int curline = 0; curline < instructions.Length; curline++)
+            {
+                c_c_Instructions[curline] = new char[instructions[curline].Length];
+                instructions[curline].CopyTo(c_c_Instructions[curline], 0);
+            }
+            return;
         }
     }
 }
