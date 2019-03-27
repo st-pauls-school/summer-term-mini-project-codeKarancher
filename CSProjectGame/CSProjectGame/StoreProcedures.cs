@@ -43,15 +43,13 @@ namespace CSProjectGame
             return NumReg * 20;
         }
 
-        public static int UpgradeCS(ref int CSSpec, int Earnings)
+        public static int CanUserUpgradeCS(ref int CSSpec, int Earnings)
         {
             if (CSSpec == 6)
                 return -1;
             int cost = CostOfUpgradeCS(CSSpec);
             if (Earnings < cost)
                 return 1;
-            Earnings -= cost;
-            CSSpec++;
             return 0;
         }
 
@@ -60,15 +58,13 @@ namespace CSProjectGame
             return CSSpec * 30 + 25;
         }
 
-        public static int UpgradeMem(ref int MemSpec, int Earnings)
+        public static int CanUserUpgradeMem(ref int MemSpec, int Earnings)
         {
             if (MemSpec == 6)
                 return -1;
             int cost = CostOfUpgradeMem(MemSpec);
             if (Earnings < cost)
                 return 1;
-            Earnings -= cost;
-            MemSpec++;
             return 0;
         }
 

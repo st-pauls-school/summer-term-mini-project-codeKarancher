@@ -615,5 +615,6 @@
             </Canvas>
 
         </Grid>
+        <Button x:Name="button_TRIAL" Content="TRIAL" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Grid.ColumnSpan="3" Margin="36,0,0,0" Grid.Row="6" Grid.Column="10" Click="button_TRIAL_Click"/>
     </Grid>
 </Window>

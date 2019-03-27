@@ -26,6 +26,7 @@ namespace CSProjectGame
     public partial class MainWindow : Window
     {
         //INITQUESTSDEBUG - tag for places where starting quests have been initialized. Ideally must be stored in file
+        //TRIALDEBUG
 
         #region Declarations
         string sGameFilesPath { get
@@ -92,6 +93,9 @@ namespace CSProjectGame
         int iRunDurationInMS = 0;
         
         Canvas[] canvassStore;
+
+
+        bool IsTrial;
         #endregion
 
         public MainWindow()
@@ -643,6 +647,11 @@ namespace CSProjectGame
             toolsDockPanel.Visibility = Visibility.Visible;
             toolsDockPanel.Children.ShowAllElements();
 
+            if (IsTrial)
+            {
+                Earnings = 100;
+            }//TRIALDEBUG
+
             AssignGlobalsToNewValues();
         }
         #endregion
@@ -926,15 +935,6 @@ namespace CSProjectGame
 
                 button_ToggleCode.Click += new RoutedEventHandler(button_ToggleCode_Click_Open);
                 button_PlayRun.Click += new RoutedEventHandler(button_PlayRun_Click);
-                for (int a = 0; a < lookup_MemorySpec[MemorySpec]; a++)
-                {
-                    if (a < lookup_MemorySpec[MemorySpec] / 2)//add textblock to first stackpanel
-                        memoryStackPanel1.Children.Add(new DockPanel() { Children = { texts_MemoryCellNames[a], texts_MemoryCells[a] } });
-                    else
-                    {
-                        memoryStackPanel2.Children.Add(new DockPanel() { Children = { texts_MemoryCellNames[a], texts_MemoryCells[a] } });
-                    }
-                }
 
                 text_CMP = new TextBlock();
                 stackpanel_CMP.Children.Add(text_CMP);
@@ -973,6 +973,38 @@ namespace CSProjectGame
                     text_CMP.FontSize = Math.Min(text_CMP.Width * 2.3, text_CMP.Height * 0.9);
                 }
             }
+            if (texts_MemoryCells.Length != lookup_MemorySpec[MemorySpec] || FirstTimeShowing)
+            {
+                texts_MemoryCells = new TextBlock[lookup_MemorySpec[MemorySpec]];
+                texts_MemoryCellNames = new TextBlock[lookup_MemorySpec[MemorySpec]];
+                for (int i = 0; i < lookup_MemorySpec[MemorySpec]; i++)
+                {
+                    texts_MemoryCells[i] = new TextBlock()
+                    {
+                        Text = "000000",
+                        Background = Brushes.Transparent,
+                        FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20
+                    };
+                    texts_MemoryCellNames[i] = new TextBlock()
+                    {
+                        Text = i.ToString() + ":",
+                        FontSize = (memoryStackPanel1.Width / 6.5 < memoryStackPanel1.Height / 20) ? memoryStackPanel1.Width / 6.5 : memoryStackPanel1.Height / 20
+                    };
+                }
+                memoryStackPanel1.Children.RemoveRange(0, memoryStackPanel1.Children.Count);
+                memoryStackPanel2.Children.RemoveRange(0, memoryStackPanel2.Children.Count);
+                for (int a = 0; a < lookup_MemorySpec[MemorySpec]; a++)
+                {
+                    if (a < lookup_MemorySpec[MemorySpec] / 2)//add textblock to first stackpanel
+                        memoryStackPanel1.Children.Add(new DockPanel() { Children = { texts_MemoryCellNames[a], texts_MemoryCells[a] } });
+                    else
+                    {
+                        memoryStackPanel2.Children.Add(new DockPanel() { Children = { texts_MemoryCellNames[a], texts_MemoryCells[a] } });
+                    }
+                }
+                LoadMachineCodeIntoMemory(runTab);
+            }
+
             text_PC.Text = "00";
             text_CIR.Text = "000000";
             text_PCName.Visibility = Visibility.Visible;
@@ -3635,7 +3667,7 @@ namespace CSProjectGame
                     tbPrice.Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
                     bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
                     {
-                        int i = StoreProcedures.UpgradeCS(ref ClockSpeedSpec, Earnings);
+                        int i = StoreProcedures.CanUserUpgradeCS(ref ClockSpeedSpec, Earnings);
                         if (i == 1)
                         {
                             MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
@@ -3644,14 +3676,20 @@ namespace CSProjectGame
                         {
                             MessageBox.Show("You have maxed out your clock speed! You cannot upgrade it further.");
                         }
-                        tbPrice.Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
+                        else
+                        {
+                            int CScost = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec);
+                            Earnings -= CScost;
+                            ClockSpeedSpec++;
+                            tbPrice.Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
+                        }
                     });
                     break;
                 case 2://UpgradeMem
                     tbPrice.Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
                     bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
                     {
-                        int i = StoreProcedures.UpgradeMem(ref MemorySpec, Earnings);
+                        int i = StoreProcedures.CanUserUpgradeMem(ref MemorySpec, Earnings);
                         if (i == 1)
                         {
                             MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
@@ -3660,7 +3698,13 @@ namespace CSProjectGame
                         {
                             MessageBox.Show("You have maxed out your memory! You cannot upgrade it further.");
                         }
-                        tbPrice.Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
+                        else
+                        {
+                            int Memcost = StoreProcedures.CostOfUpgradeMem(MemorySpec);
+                            Earnings -= Memcost;
+                            MemorySpec++;
+                            tbPrice.Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
+                        }
                     });
                     break;
             }
@@ -4010,6 +4054,8 @@ namespace CSProjectGame
 
         private void LoadMachineCodeIntoMemory(int LoadingTab)
         {
+            if (LoadingTab == 0)
+                return;
             char[][] local_charars_Instructions = KSAssemblyCode.Interpret(texts_Tabs[LoadingTab - 1].Text);//Interpret the code
             KSGlobal.CopyInstructionsFrom(local_charars_Instructions);
             if (local_charars_Instructions == null)
@@ -4032,5 +4078,10 @@ namespace CSProjectGame
             return registersStackPanel.Width / 8 < stackpanels_Registers[0].Height / 4 ? registersStackPanel.Width / 8 : stackpanels_Registers[0].Height / 4;
         }
         #endregion
+
+        private void button_TRIAL_Click(object sender, RoutedEventArgs e)
+        {
+            IsTrial = true;
+        }
     }
 }
