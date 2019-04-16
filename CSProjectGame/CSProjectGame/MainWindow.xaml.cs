@@ -25,10 +25,11 @@ namespace CSProjectGame
     /// </summary>
     public partial class MainWindow : Window
     {
+        #region Declarations
+
         //INITQUESTSDEBUG - tag for places where starting quests have been initialized. Ideally must be stored in file
         //TRIALDEBUG
 
-        #region Declarations
         string sGameFilesPath { get
             {
                 return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "InsideYourComputer", "GameFiles");
@@ -107,7 +108,7 @@ namespace CSProjectGame
             if (!Directory.Exists(sGameFilesPath))
                 Directory.CreateDirectory(sGameFilesPath);
             lookup_MemorySpec = new int[] { 20, 25, 30, 35, 40, 45, 50 };   //lookup_MemorySpec[memoryspec] will give the number of bytes of memory that the player has
-            lookup_ClockSpeedSpec = new int[] { 3000, 2540, 2080, 1620, 1160, 700, 240 }; //lookup_ClockSpeedSpec[clockspeedspec] will give the number of milliseconds to take per operation
+            lookup_ClockSpeedSpec = new int[] { 8000, 2540, 2080, 1620, 1160, 700, 240 }; //lookup_ClockSpeedSpec[clockspeedspec] will give the number of milliseconds to take per operation
 
             shapes_ProcessorParts = new List<Shape>();
             stackpanels_Registers = new List<StackPanel>();
@@ -1977,7 +1978,7 @@ namespace CSProjectGame
             ToPlay.Completed += delegate (object senderc, EventArgs c)
             {
                 int cmp = Comparand1.CompareTo(Comparand2);
-                if (cmp > 0)
+                if (cmp < 0)
                     text_CMP.Text = ">";//greater than
                 else if (cmp == 0)
                     text_CMP.Text = "=";//equal to
@@ -2842,6 +2843,7 @@ namespace CSProjectGame
             #region Get tanimstext_ParameterRegister
             TextBlock text_ParameterRegister = texts_ToRegister[ParameterRegisterNumber];
             text_ParameterRegister.Text = iOperand1.ToString();
+            text_ParameterRegister.Visibility = Visibility.Visible;
             ThicknessAnimation[] tanimstext_ParameterRegister;
             if (cArLine[3] == '0')//immediate addressing
             {
@@ -2914,6 +2916,7 @@ namespace CSProjectGame
                 #region Get tanimstext_SecondRegister
                 TextBlock text_SecondRegister = texts_ToRegister[SecondRegisterNumber];
                 text_SecondRegister.Text = (iOperand2 = KSConvert.BinaryToDecimalForRegisters(texts_Registers[SecondRegisterNumber].Text.ToCharArray())).ToString();
+                text_SecondRegister.Visibility = Visibility.Visible;
                 ThicknessAnimation[] tanimstext_SecondRegister = GetAnimationsNumberFromRegister(SecondRegisterNumber, 3 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 20);
                 for (int i = 0; i < 3; i++)
                 {
@@ -2974,7 +2977,7 @@ namespace CSProjectGame
             double OldFontSize = text_CMP.FontSize;
             Action<object, EventArgs> TickEventHandler1 = (object sender, EventArgs e) =>
             {
-                text_CMP.Text = iOperand1.ToString() + " AND " + iOperand2.ToString() + " = " + iSum.ToString();
+                text_CMP.Text = iOperand1.ToString() + " ORR " + iOperand2.ToString() + " = " + iSum.ToString();
                 text_CMP.FontSize *= 0.8;
                 (sender as DispatcherTimer).Stop();
             };
@@ -3022,16 +3025,14 @@ namespace CSProjectGame
             };
             DispatcherTimer dtSetMargin = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16) };
             dtSetMargin.Tick += new EventHandler(TickSetMargin);
-            DispatcherTimer dtRevealtext_SumCarrier = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16) };
+            DispatcherTimer dtRevealtext_SumCarrier = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(5 * lookup_ClockSpeedSpec[ClockSpeedSpec] / 16 - 5) };
             dtRevealtext_SumCarrier.Tick += new EventHandler(KSTimerEvHandlers.Generate("Reveal", texts_ToRegister[MainRegisterNumber]));
-            if (ParameterRegisterNumber == MainRegisterNumber)
+            Action<object, EventArgs> Addtext_ToRegisterToGrid = (object sender, EventArgs e) =>
             {
-                Action<object, EventArgs> Addtext_ToRegisterToGrid = (object sender, EventArgs e) =>
-                {
+                if (text_ToRegister.Parent != Parentgrid)
                     Parentgrid.Children.Add(text_ToRegister);
-                };
-                dtRevealtext_SumCarrier.Tick += new EventHandler(Addtext_ToRegisterToGrid);
-            }
+            };
+            dtRevealtext_SumCarrier.Tick += new EventHandler(Addtext_ToRegisterToGrid);
             #endregion
 
             #region Get tanimsSumToRegister
@@ -3617,6 +3618,80 @@ namespace CSProjectGame
             ToPlay.Begin(this);
         }
 
+        private void button_BuyRegister_Click(object sender, RoutedEventArgs e)
+        {
+            int i = StoreProcedures.CanUserBuyRegister(NumRegisters, Earnings);
+            if (i == 1)
+            {
+                MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
+            }
+            else if (i == -1)
+            {
+                MessageBox.Show("You have already maxed out with 6 registers! You cannot buy more.");
+            }
+            else//The user can buy a new register
+            {
+                NumRegisters++;
+                Earnings -= StoreProcedures.CostOfNewRegister(NumRegisters);
+
+                //Add UI Elements
+                StackPanel sp = new StackPanel() { Background = Brushes.DarkGray, Height = registersStackPanel.Height / 6, Width = registersStackPanel.Width };
+                stackpanels_Registers.Add(sp);
+                registersStackPanel.Children.Add(sp);
+                TextBlock tb = new TextBlock() { FontSize = GetRegisterFontSize(), FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.Black, Height = stackpanels_Registers[NumRegisters - 1].Height / 3, Text = "Register " + (NumRegisters - 1).ToString() };
+                texts_RegisterNames.Add(tb);
+                sp.Children.Add(tb);
+                tb = new TextBlock() { FontSize = GetRegisterFontSize(), Style = (Style)Resources["TextRegisterStyle"], Height = stackpanels_Registers[NumRegisters - 1].Height / 3 };
+                texts_Registers.Add(tb);
+                sp.Children.Add(tb);
+                sp.IsMouseDirectlyOverChanged += new DependencyPropertyChangedEventHandler(stackpanels_Registers_IsMouseDirectlyOverChanged);
+
+                ResizeRegisterWireGrids();
+
+            }
+            (canvassStore[0].Children[1] as TextBlock).Text = StoreProcedures.CostOfNewRegister(NumRegisters).ToString();
+        }
+
+        private void button_UpgradeCS_Click(object sender, RoutedEventArgs e)
+        {
+            int i = StoreProcedures.CanUserUpgradeCS(ref ClockSpeedSpec, Earnings);
+            if (i == 1)
+            {
+                MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
+            }
+            else if (i == -1)
+            {
+                MessageBox.Show("You have maxed out your clock speed! You cannot upgrade it further.");
+            }
+            else
+            {
+                int CScost = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec);
+                Earnings -= CScost;
+                ClockSpeedSpec++;
+                (canvassStore[1].Children[1] as TextBlock).Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
+            }
+        }
+
+        private void button_UpgradeMem_Click(object sender, RoutedEventArgs e)
+        {
+            int i = StoreProcedures.CanUserUpgradeMem(ref MemorySpec, Earnings);
+            if (i == 1)
+            {
+                MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
+            }
+            else if (i == -1)
+            {
+                MessageBox.Show("You have maxed out your memory! You cannot upgrade it further.");
+            }
+            else
+            {
+                int Memcost = StoreProcedures.CostOfUpgradeMem(MemorySpec);
+                Earnings -= Memcost;
+                MemorySpec++;
+                (canvassStore[2].Children[1] as TextBlock).Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
+            }
+        }
+
         private void DisplayStoreItemCanvas(int index)
         {
             Canvas canvas = canvassStore[index];
@@ -3629,83 +3704,12 @@ namespace CSProjectGame
                 case 0://BuyRegister
                     int cost = StoreProcedures.CostOfNewRegister(NumRegisters);
                     tbPrice.Text = cost.ToString();
-                    bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
-                    {
-                        int i = StoreProcedures.CanUserBuyRegister(NumRegisters, Earnings);
-                        if (i == 1)
-                        {
-                            MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
-                        }
-                        else if (i == -1)
-                        {
-                            MessageBox.Show("You have already maxed out with 6 registers! You cannot buy more.");
-                        }
-                        else//The user can buy a new register
-                        {
-                            NumRegisters++;
-                            Earnings -= cost;
-
-                            //Add UI Elements
-                            StackPanel sp = new StackPanel() { Background = Brushes.DarkGray, Height = registersStackPanel.Height / 6, Width = registersStackPanel.Width };
-                            stackpanels_Registers.Add(sp);
-                            registersStackPanel.Children.Add(sp);
-                            TextBlock tb = new TextBlock() { FontSize = GetRegisterFontSize(), FontFamily = new FontFamily("HP Simplified"), Foreground = Brushes.Black, Height = stackpanels_Registers[NumRegisters - 1].Height / 3, Text = "Register " + (NumRegisters - 1).ToString() };
-                            texts_RegisterNames.Add(tb);
-                            sp.Children.Add(tb);
-                            tb = new TextBlock() { FontSize = GetRegisterFontSize(), Style = (Style)Resources["TextRegisterStyle"], Height = stackpanels_Registers[NumRegisters - 1].Height / 3 };
-                            texts_Registers.Add(tb);
-                            sp.Children.Add(tb);
-                            sp.IsMouseDirectlyOverChanged += new DependencyPropertyChangedEventHandler(stackpanels_Registers_IsMouseDirectlyOverChanged);
-
-                            ResizeRegisterWireGrids();
-
-                        }
-                        tbPrice.Text = StoreProcedures.CostOfNewRegister(NumRegisters).ToString();
-                    });
                     break;
                 case 1://UpgradeClockSpeed
                     tbPrice.Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
-                    bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
-                    {
-                        int i = StoreProcedures.CanUserUpgradeCS(ref ClockSpeedSpec, Earnings);
-                        if (i == 1)
-                        {
-                            MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
-                        }
-                        else if (i == -1)
-                        {
-                            MessageBox.Show("You have maxed out your clock speed! You cannot upgrade it further.");
-                        }
-                        else
-                        {
-                            int CScost = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec);
-                            Earnings -= CScost;
-                            ClockSpeedSpec++;
-                            tbPrice.Text = StoreProcedures.CostOfUpgradeCS(ClockSpeedSpec).ToString();
-                        }
-                    });
                     break;
                 case 2://UpgradeMem
                     tbPrice.Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
-                    bPurchase.Click += new RoutedEventHandler((object sender, RoutedEventArgs e) =>
-                    {
-                        int i = StoreProcedures.CanUserUpgradeMem(ref MemorySpec, Earnings);
-                        if (i == 1)
-                        {
-                            MessageBox.Show("Not enough " + KSGlobal.GAMECURRENCYNAME);
-                        }
-                        else if (i == -1)
-                        {
-                            MessageBox.Show("You have maxed out your memory! You cannot upgrade it further.");
-                        }
-                        else
-                        {
-                            int Memcost = StoreProcedures.CostOfUpgradeMem(MemorySpec);
-                            Earnings -= Memcost;
-                            MemorySpec++;
-                            tbPrice.Text = StoreProcedures.CostOfUpgradeMem(MemorySpec).ToString();
-                        }
-                    });
                     break;
             }
         }
@@ -4082,6 +4086,7 @@ namespace CSProjectGame
         private void button_TRIAL_Click(object sender, RoutedEventArgs e)
         {
             IsTrial = true;
+            button_TRIAL.Visibility = Visibility.Collapsed;
         }
     }
 }

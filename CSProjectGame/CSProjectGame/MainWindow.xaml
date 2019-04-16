@@ -568,7 +568,7 @@
                 </Canvas.Background>
                 <TextBlock x:Name="text_LabelBuyRegister" Text="Buy a new register" Foreground="GhostWhite" Background="Transparent" Margin="0" Visibility="Visible" FontFamily="Century Gothic"/>
                 <TextBlock x:Name="text_PriceBuyRegister" Foreground="Goldenrod" Background="Transparent" Visibility="Visible" FontFamily="Century Gothic"/>
-                <Button x:Name="button_BuyRegister" Content="Buy" Foreground="GhostWhite" Visibility="Visible" Canvas.Left="0" Canvas.Top="42" FontFamily="Century Gothic" BorderBrush="{x:Null}" Width="50" FontSize="12.5">
+                <Button x:Name="button_BuyRegister" Content="Buy" Foreground="GhostWhite" Visibility="Visible" Canvas.Left="0" Canvas.Top="42" FontFamily="Century Gothic" BorderBrush="{x:Null}" Width="50" FontSize="12.5" Click="button_BuyRegister_Click">
                     <Button.Background>
                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                             <GradientStop Color="#FF0080FF" Offset="0"/>
@@ -586,7 +586,7 @@
                 </Canvas.Background>
                 <TextBlock x:Name="text_LabelUpgradeClockSpeed" Text="Upgrade your clock speed" Foreground="GhostWhite" Background="Transparent" Margin="0" Visibility="Visible" FontFamily="Century Gothic"/>
                 <TextBlock x:Name="text_PriceUpgradeClockSpeed" Foreground="Goldenrod" Background="Transparent" Visibility="Visible" FontFamily="Century Gothic"/>
-                <Button x:Name="button_UpgradeClockSpeed" Content="Upgrade" Foreground="GhostWhite" Visibility="Visible" Canvas.Left="0" Canvas.Top="42" FontFamily="Century Gothic" BorderBrush="{x:Null}" Width="50" FontSize="12">
+                <Button x:Name="button_UpgradeClockSpeed" Content="Upgrade" Foreground="GhostWhite" Visibility="Visible" Canvas.Left="0" Canvas.Top="42" FontFamily="Century Gothic" BorderBrush="{x:Null}" Width="50" FontSize="12" Click="button_UpgradeCS_Click">
                     <Button.Background>
                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                             <GradientStop Color="#FF0080FF" Offset="0"/>
@@ -604,7 +604,7 @@
                 </Canvas.Background>
                 <TextBlock x:Name="text_LabelUpgradeMemory" Text="Upgrade your memory" Foreground="GhostWhite" Background="Transparent" Margin="0" Visibility="Visible" FontFamily="Century Gothic"/>
                 <TextBlock x:Name="text_PriceUpgradeMemory" Foreground="Goldenrod" Background="Transparent" Visibility="Visible" FontFamily="Century Gothic"/>
-                <Button x:Name="button_UpgradeMemory" Content="Upgrade" Foreground="GhostWhite" Visibility="Visible" Canvas.Left="0" Canvas.Top="42" FontFamily="Century Gothic" BorderBrush="{x:Null}" Width="50" FontSize="12">
+                <Button x:Name="button_UpgradeMemory" Content="Upgrade" Foreground="GhostWhite" Visibility="Visible" Canvas.Left="0" Canvas.Top="42" FontFamily="Century Gothic" BorderBrush="{x:Null}" Width="50" FontSize="12" Click="button_UpgradeMem_Click">
                     <Button.Background>
                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                             <GradientStop Color="#FF0080FF" Offset="0"/>
@@ -615,6 +615,6 @@
             </Canvas>
 
         </Grid>
-        <Button x:Name="button_TRIAL" Content="TRIAL" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Grid.ColumnSpan="3" Margin="36,0,0,0" Grid.Row="6" Grid.Column="10" Click="button_TRIAL_Click"/>
+        <Button x:Name="button_TRIAL" Content="TRIAL" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Grid.ColumnSpan="3" Margin="36,0,0,0" Grid.Row="6" Grid.Column="10" Click="button_TRIAL_Click" Visibility="Visible"/>
     </Grid>
 </Window>
